@@ -19,8 +19,8 @@
 </head>
 
 <body class="">
-    <div class="container mx-auto mt-4">
-        <img src="{% static 'app/images/logo_dark.png' %}" alt='quayside logo' style="height: 50px;"/>
+    <div class="w-full h-screen bg-black" style="background-image: url('{% static 'app/images/background.png' %}'); background-position:center;">
+        {% include 'navbar.html' %}
         {% block content %}
         {% endblock content %}
     </div>
