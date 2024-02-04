@@ -4,17 +4,8 @@ Welcome to our quayside.app, the project management tool that helps you the ques
 
 ## Setup
 You need to install python and npm (you can do this by installing [Node.js](https://nodejs.org/en/download)). Once that is done, set up your virtual environment and activate it.
-
-Mac/Linux:
 ```bash
 python -m venv venv
-source venv/bin/activate
-```
-
-Windows:
-```bash
-python -m venv venv
-venv\Scripts\activate
 ```
 
 Then run the following command in this directory to install all dependencies:
@@ -26,7 +17,17 @@ npm install
 
 ## Usage
 
-To run the developlement server, run:
+First activate your venv:
+```bash
+# Mac/Linux:
+source venv/bin/activate
+
+# Windows:
+venv\Scripts\activate
+```
+
+
+To run the development server, run:
 ```bash
 python manage.py rundev
 ``` 
