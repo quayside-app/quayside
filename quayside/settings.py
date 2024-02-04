@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     "app",
     "api",
     "compressor",  # For tailwind
+    "django_browser_reload",  # For automatic reload
 ]
 
 MIDDLEWARE = [
@@ -50,6 +51,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "django_browser_reload.middleware.BrowserReloadMiddleware",  # For automatic reload
 ]
 
 ROOT_URLCONF = "quayside.urls"
