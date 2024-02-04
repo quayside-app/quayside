@@ -37,6 +37,8 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "app",
+    "api",
     "compressor",  # For tailwind
 ]
 
@@ -55,7 +57,7 @@ ROOT_URLCONF = "quayside.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / 'templates'],  # For tailwind
+        "DIRS": [BASE_DIR / 'app' / 'templates'],  # For tailwind
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -76,8 +78,6 @@ WSGI_APPLICATION = "quayside.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
     }
 }
 
@@ -124,6 +124,7 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # For tailwind
-COMPRESS_ROOT = BASE_DIR / 'static'
+COMPRESS_ROOT = BASE_DIR / 'app' / 'static'
 COMPRESS_ENABLED = True
 STATICFILES_FINDERS = ('compressor.finders.CompressorFinder',)
+
