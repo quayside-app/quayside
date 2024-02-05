@@ -1,6 +1,6 @@
 ### quayside
 
-Welcome to our quayside.app, the project management tool that helps you the question "What's Next?". 
+Welcome to our quayside.app, the project management tool that helps your team answer the question "What's Next?" to succeed in your project goals. 
 
 ## Setup
 You need to install python3, pip, and npm (you can do this by installing [Node.js](https://nodejs.org/en/download)). Once that is done, set up your virtual environment (venv):
