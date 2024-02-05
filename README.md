@@ -1,6 +1,6 @@
 ### quayside
 
-Welcome to our quayside.app, the project management tool that helps you the question "What's Next?". 
+Welcome to our quayside.app, the project management tool that helps your team answer the question "What's Next?" to succeed in your project goals. 
 
 ## Setup
 You need to install python, pip, and npm (you can do this by installing [Node.js](https://nodejs.org/en/download)). Once that is done, set up your virtual environment (venv):
@@ -33,6 +33,7 @@ python manage.py rundev
 This custom command will allow you to see add tailwind classes properly (unline `python manage.py runserver`).
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+EW - development server started at [http://127.0.0.1:8000](http://127.0.0.1:8000/).
 
 
 If you add any other npm dependencies, please do it by running `npm install --save <my-dependency>` so it is added to package.json for the next person to install. Otherwise, add the package manually to package.json. If you install python dependencies, please add them to the requirements.txt by running `pip freeze > requirements.txt`.
