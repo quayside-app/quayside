@@ -3,7 +3,7 @@
 Welcome to our quayside.app, the project management tool that helps you the question "What's Next?". 
 
 ## Setup
-You need to install python and npm (you can do this by installing [Node.js](https://nodejs.org/en/download)). Once that is done, set up your virtual environment (venv):
+You need to install python, pip, and npm (you can do this by installing [Node.js](https://nodejs.org/en/download)). Once that is done, set up your virtual environment (venv):
 ```bash
 python -m venv venv
 ```
@@ -18,7 +18,7 @@ venv\Scripts\activate
 
 Then run the following command in this directory to install all dependencies:
 ```bash
-python -r requirements.txt
+pip install -r requirements.txt
 npm install
 ``` 
 
