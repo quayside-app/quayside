@@ -3,6 +3,12 @@ Django==5.0.1
 django-appconf==1.0.6
 django-browser-reload==1.12.1
 django-compressor==4.4
+djangorestframework==3.14.0
+dnspython==2.5.0
+mongoengine==0.27.0
+pymongo==4.6.1
+python-dotenv==1.0.1
+pytz==2024.1
 rcssmin==1.1.1
 rjsmin==1.2.1
 sqlparse==0.4.4

@@ -22,6 +22,13 @@ pip install -r requirements.txt
 npm install
 ``` 
 
+For accessing the mongo database locally, you will need the following generated database Atlas creds in an `.env` file (fyi, these creds are different than your creds to login to Mongo Atlas).Here is the format:
+
+```bash
+MONGO_USERNAME=<your username>
+MONGO_PASSWORD=<your password>
+```
+
 
 ## Usage
 
