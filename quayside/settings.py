@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "api",
     "compressor",  # For tailwind
     "django_browser_reload",  # For automatic reload
+    "rest_framework"
 ]
 
 MIDDLEWARE = [
@@ -78,10 +79,7 @@ WSGI_APPLICATION = "quayside.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-    }
-}
+DATABASES = {}
 
 
 # Password validation
@@ -133,4 +131,3 @@ STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
     'compressor.finders.CompressorFinder',
 ]
-

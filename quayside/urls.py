@@ -17,13 +17,13 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from .views import index
-
+from . import views
+from api.views import UserListView
 
 urlpatterns = [
-    path("admin/", admin.site.urls),
     path('', index, name='index'),
-    path("__reload__/", include("django_browser_reload.urls")), #new
-
+    path("__reload__/", include("django_browser_reload.urls")), 
+    path("user-list/", UserListView.as_view(), ),
 ] 
 
 
