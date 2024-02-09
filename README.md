@@ -14,6 +14,9 @@ source venv/bin/activate
 
 # Windows:
 venv\Scripts\activate
+
+# Windows Bash:
+source venv\Scripts\activate
 ```
 
 Then run the following command in this directory to install all dependencies:
@@ -40,6 +43,7 @@ python manage.py rundev
 This custom command will allow you to see add tailwind classes properly (unlike `python manage.py runserver`).
 
 Open [http://127.0.0.1:8000/](http://127.0.0.1:8000/) with your browser to see the result.
+
 
 
 If you add any other npm dependencies, please do it by running `npm install --save <my-dependency>` so it is added to package.json for the next person to install. Otherwise, add the package manually to package.json. If you install python dependencies, please add them to the requirements.txt by running `pip freeze > requirements.txt`.
