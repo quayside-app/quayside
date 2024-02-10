@@ -30,7 +30,7 @@ class Project(mongo.Document):
     completionRequirements = mongo.ListField(mongo.StringField())
     qualityAssurance = mongo.ListField(mongo.StringField())
     KPIs = mongo.ListField(mongo.StringField())
-    otherProjectDepencies = mongo.ListField(mongo.ObjectIdFieldField())
+    otherProjectDepencies = mongo.ListField(mongo.ObjectIdField())
     informationLinks = mongo.ListField(mongo.StringField())
     completionStatus = mongo.StringField()
     teams = mongo.ListField(mongo.ObjectIdField())
