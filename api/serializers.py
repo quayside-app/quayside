@@ -1,10 +1,13 @@
-from rest_framework import serializers
-from .models import User
+from rest_framework_mongoengine.serializers import DocumentSerializer
+from .models import User, Project
 
-class UserSerializer(serializers.Serializer):
-    email = serializers.EmailField()
-    username = serializers.CharField(max_length=100)
-    firstName = serializers.CharField(max_length=100, allow_blank=True, required=False)
-    lastName = serializers.CharField(max_length=100, allow_blank=True, required=False)
-    teamIDs = serializers.ListField(child=serializers.CharField(), required=False)
+class UserSerializer(DocumentSerializer):
+    class Meta:
+        model = User
+        # Default to all fields
+        
 
+class ProjectSerializer(DocumentSerializer):
+    class Meta:
+        model = Project
+        # Default to all fields

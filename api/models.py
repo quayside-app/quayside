@@ -11,6 +11,9 @@ class User(mongo.Document):
         'collection': 'User', # Need to specify UPPER Case
         'strict': False  # If true, throws weird error for __v
         } 
+    
+    class Meta:
+        ordering = ['created']
 
 class Project(mongo.Document):
     name = mongo.StringField()
@@ -26,7 +29,7 @@ class Project(mongo.Document):
     userIDs = mongo.ListField(mongo.ObjectIdField())
     projectManagerIDs = mongo.ListField(mongo.ObjectIdField())
     sponsors = mongo.ListField(mongo.StringField())
-    contributerIDs = mongo.ListField(mongo.ObjectIdField())
+    contributorIDs = mongo.ListField(mongo.ObjectIdField())
     completionRequirements = mongo.ListField(mongo.StringField())
     qualityAssurance = mongo.ListField(mongo.StringField())
     KPIs = mongo.ListField(mongo.StringField())
