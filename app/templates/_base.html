@@ -1,29 +1,41 @@
-<!-- templates/_base.html -->
-
 {% load compress %}
 {% load static %}
 
 <!DOCTYPE html>
 <html lang="en">
 
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>quayside</title>
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>quayside</title>
 
-    {% compress css %}
-    <link rel="stylesheet" href="{% static '/app/src/output.css' %}">
-    {% endcompress %}
+        {% compress css %}
+        <link rel="stylesheet" href="{% static '/app/src/output.css' %}">
+        {% endcompress %}
 
-</head>
+    </head>
 
-<body class="">
-    <div class="w-full h-screen bg-black" style="background-image: url('{% static 'app/images/background.png' %}'); background-position:center;">
-        {% include 'navbar.html' %}
-        {% block content %}
-        {% endblock content %}
-    </div>
-</body>
+    <body class>
+        <div class=" w-full h-screen bg-black">
+
+            {% include "navbar.html" %}
+
+            <div class="flex w-full h-screen">
+
+                <!-- <div id="sidebar" class="w-1/2">
+                    {% block sidebar %}
+
+                    {% include 'sidebar.html' %}
+                    {% endblock %}
+                </div> -->
+                <div id="content" class='w-full' style='background-image: url("{% static 'app/images/background.png' %}"); background-position:center'>
+                    {% block content %}
+                    {% endblock content %}
+                </div>
+            </div>
+
+        </div>
+    </body>
 
 </html>
