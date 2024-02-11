@@ -1,14 +1,14 @@
 from django.urls import path
 import importlib
 
-VERSION = "v1"
-#views_module = importlib.import_module(f"views.{VERSION}", package="quayside-api")
-from .views.v1 import users
+API_VERSION = "v1"
+views = importlib.import_module(name=f".views.{API_VERSION}", package="api")
+
 
 
 
 urlpatterns = [
-    path(f"{VERSION}/users/<str:username>/", users.UserDetailAPIView.as_view(), name="v1-user-detail"),
+    path(f"{API_VERSION}/users/<str:username>/", views.users.UserDetailAPIView.as_view(), name="v1-user-detail"),
 ]
 
 # GET /api/v1/users/:username                   Get information about a user
