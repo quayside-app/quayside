@@ -5,16 +5,17 @@ API_VERSION = "v1"
 views = importlib.import_module(name=f".views.{API_VERSION}", package="api")
 
 
-
-
 urlpatterns = [
-    path(f"{API_VERSION}/users/<str:username>/", views.users.UserDetailAPIView.as_view(), name="v1-user-detail"),
+    path(
+        f"{API_VERSION}/users/<str:username>/",
+        views.users.UserDetailAPIView.as_view(),
+        name="v1-user-detail",
+    ),
 ]
 
 # GET /api/v1/users/:username                   Get information about a user
 #           no req
 #           res = {email:String, username:String, firstName:String, lastName:String}
-
 
 
 # GET /api/v1/projects?uid={}&projectID={}      Get a some form of a list of projects

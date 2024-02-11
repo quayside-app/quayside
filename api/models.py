@@ -8,9 +8,10 @@ class User(mongo.Document):
     lastName = mongo.StringField()
     teamIDs = mongo.ListField(mongo.ObjectIdField())
     meta = {
-        'collection': 'User', # Need to specify UPPER Case
-        'strict': False  # If true, throws weird error for __v
-        } 
+        "collection": "User",  # Need to specify UPPER Case
+        "strict": False,  # If true, throws weird error for __v
+    }
+
 
 class Project(mongo.Document):
     name = mongo.StringField()
@@ -35,8 +36,6 @@ class Project(mongo.Document):
     completionStatus = mongo.StringField()
     teams = mongo.ListField(mongo.ObjectIdField())
     meta = {
-        'collection': 'Project', # Need to specify UPPER Case
-        'strict': False  # If true, throws weird error for __v
-        } 
-
-
+        "collection": "Project",  # Need to specify UPPER Case
+        "strict": False,  # If true, throws weird error for __v
+    }

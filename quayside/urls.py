@@ -20,13 +20,11 @@ from .views import index
 from api.viewsOldVersion import UserListView
 
 urlpatterns = [
-    path('i/', index, name='index'),
-    path("__reload__/", include("django_browser_reload.urls")), 
-    path("api/v1/user-list/", UserListView.as_view(), ),
-    path('api/', include('api.urls'))
-
-] 
-
-
-
-
+    path("i/", index, name="index"),
+    path("__reload__/", include("django_browser_reload.urls")),
+    path(
+        "api/v1/user-list/",
+        UserListView.as_view(),
+    ),
+    path("api/", include("api.urls")),
+]
