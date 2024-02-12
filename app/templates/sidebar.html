@@ -9,10 +9,11 @@
 
             const projectListElement = document.getElementById('project-list');
             projects.forEach(function(project) {
-                const listItem = document.createElement('li');
-                listItem.textContent = project.name;
-                listItem.className = "flex p-1  hover:text-gray-400  truncate w-32";
-                projectListElement.appendChild(listItem);
+                const listLink = document.createElement('a');
+                listLink.href = `/project/${project.id}`;
+                listLink.textContent = project.name;
+                listLink.className = "flex p-1  hover:text-gray-400  truncate w-32";
+                projectListElement.appendChild(listLink);
                 
             });
 

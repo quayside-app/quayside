@@ -17,19 +17,21 @@
     </head>
 
     <body class>
-        <div class="w-full h-screen ">
+        <div class="w-full h-screen bg-black">
             <div class="fixed w-full h-14 z-40">
                 {% include "navbar.html" %}
             </div>
 
-            <div class="fixed top-14 w-40 h-screen ">
+
+            <div class=" fixed pt-14 w-40 h-screen ">
                 {% include 'sidebar.html' %}
             </div>
 
-            <div class="sm:ml-40 h-screen" style='background-image: url("{% static 'app/images/background.png' %}"); background-position:center'>
+            <div class=" pt-14 sm:ml-40 h-screen" style="background-image: url('{% static 'app/images/background.png' %}'); background-position:center">
                 {% block content %}
                 {% endblock content %}
             </div>
+
 
         </div>
     </body>

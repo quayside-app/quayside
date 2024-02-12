@@ -11,6 +11,7 @@ class ProjectsAPIView(APIView):
         provided in the request. 
 
         Query Parameters:
+            - id (objectID str)
             - name (str)
             - types (list[str])
             - objectives (list[str])
