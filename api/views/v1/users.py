@@ -4,7 +4,10 @@ from rest_framework import status
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import User
 
+
 class UserDetailAPIView(APIView):
+
+
     def get(self, request, username):
         # You can customize the response message as needed
         response_data = {
