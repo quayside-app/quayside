@@ -1,11 +1,29 @@
 {% load static %}
 
+<script>
+    (async function() {
+        try {
+            const response = await fetch('/api/v1/projects/?userIDs=6521d8581bcf69b7d260608b'); // TODO: REPLACE userID w/ reference
+            if (!response.ok) throw new Error('Network response was not ok');
+            const projects = await response.json();
+
+            const projectListElement = document.getElementById('project-list');
+            projects.forEach(function(project) {
+                const listItem = document.createElement('li');
+                listItem.textContent = project.name;
+                projectListElement.appendChild(listItem);
+            });
+
+        } catch (error) {
+            console.error('There has been a problem with your fetch operation:', error);
+        }
+    })();
+</script>
 <div class="bg-neutral-800 min-h-screen p-4">
 
-    <div class=" text-white justify-center">
-        Sidebar
-        <ul class='font-medium'>
-
+    <div class="text-white justify-center">
+        Projects
+        <ul class="font-medium" id="project-list">
         </ul>
     </div>
 
