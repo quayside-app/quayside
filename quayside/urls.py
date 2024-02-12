@@ -17,12 +17,11 @@ Including another URLconf
 
 from django.urls import path, include
 from .views import index
-from api.viewsOldVersion import UserListView
 
 urlpatterns = [
     path('', index, name='index'),
     path("__reload__/", include("django_browser_reload.urls")), 
-    path("api/v1/user-list/", UserListView.as_view(), ),
+    path('', include('app.urls')),
     path('api/', include('api.urls'))
 
 ] 
