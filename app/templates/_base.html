@@ -17,22 +17,18 @@
     </head>
 
     <body class>
-        <div class=" w-full h-screen bg-black">
+        <div class="w-full h-screen ">
+            <div class="fixed w-full h-14 z-40">
+                {% include "navbar.html" %}
+            </div>
 
-            {% include "navbar.html" %}
+            <div class="fixed top-14 w-32 h-screen ">
+                {% include 'sidebar.html' %}
+            </div>
 
-            <div class="flex w-full h-screen">
-
-                <!-- <div id="sidebar" class="w-1/2">
-                    {% block sidebar %}
-
-                    {% include 'sidebar.html' %}
-                    {% endblock %}
-                </div> -->
-                <div id="content" class='w-full' style='background-image: url("{% static 'app/images/background.png' %}"); background-position:center'>
-                    {% block content %}
-                    {% endblock content %}
-                </div>
+            <div class="sm:ml-32 h-screen" style='background-image: url("{% static 'app/images/background.png' %}"); background-position:center'>
+                {% block content %}
+                {% endblock content %}
             </div>
 
         </div>
