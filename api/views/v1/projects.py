@@ -43,13 +43,16 @@ class ProjectsAPIView(APIView):
             GET /api/projects?userIDs=1234
 
         """
-        query_params = request.query_params.dict()
-        
-        #! TODO: Filter query params to prevent injection attack?!!
+        try:
+            query_params = request.query_params.dict()
+            
+            #! TODO: Filter query params to prevent injection attack?!!
 
-        projects = Project.objects.filter(**query_params)  # Query mongo
+            projects = Project.objects.filter(**query_params)  # Query mongo
 
-        serializer = ProjectSerializer(projects, many=True)
+            serializer = ProjectSerializer(projects, many=True)
 
-        return Response(serializer.data)
+            return Response(serializer.data)
+        except:
+            return Response({'message': 'Projects not found'}, status=404)
 
