@@ -8,16 +8,16 @@ views = importlib.import_module(name=f".views.{API_VERSION}", package="api")
 # Remember to add class to views/{version}/__init__.py
 urlpatterns = [
     path(f"{API_VERSION}/users/",
-         views.users.UserDetailAPIView.as_view(), name="v1-get_user"),
+         views.users.UserDetailAPIView.as_view(), name=f"{API_VERSION}-get_user"),
 
     path(f"{API_VERSION}/users/create",
-         views.createUser.CreateUserAPIView.as_view(), name="v1-create-user"),
+         views.createUser.CreateUserAPIView.as_view(), name=f"{API_VERSION}-create-user"),
 
     path(f"{API_VERSION}/projects/",
-         views.projects.ProjectsAPIView.as_view(), name="v1-projects-list"),
+         views.projects.ProjectsAPIView.as_view(), name=f"{API_VERSION}-projects-list"),
      
     path(f"{API_VERSION}/project/<str:id>/",
-         views.project.ProjectAPIView.as_view(), name="v1-project-details"),
+         views.project.ProjectAPIView.as_view(), name=f"{API_VERSION}-project-details"),
 
 
      # path(f"{API_VERSION}/project/<str:projectID>/", 
