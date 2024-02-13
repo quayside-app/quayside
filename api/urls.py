@@ -13,7 +13,6 @@ urlpatterns = [
     path(f"{API_VERSION}/users/create",
          views.createUser.CreateUserAPIView.as_view(), name="v1-create-user"),
 
-
     path(f"{API_VERSION}/projects/",
          views.projects.ProjectsAPIView.as_view(), name="v1-projects-list"),
      

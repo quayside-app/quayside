@@ -7,13 +7,15 @@ from api.serializers import UserSerializer
 
 
 class UserDetailAPIView(APIView):
+    # permission_classes = [IsAuthenticated]
 
     def get(self, request):
         # TODO very very important!!!!!
         # add authentication.
         """
-        Retrieves a single users information. User is found by query of id or email.
-        Endpoint: 
+        Retrieves all users. When query parameters used, only one user retrieved.
+        Endpoints: 
+            - GET /api/{version}/users/
             - GET /api/{version}/users/?id={user_id}
             - GET /api/{version}/users/?email={email}
         
@@ -25,22 +27,22 @@ class UserDetailAPIView(APIView):
 
         """
         try:
-            user_id = request.GET.get('id')
-            email = request.GET.get('email')
+            user_id = request.GET.get('id') or None
+            email = request.GET.get('email') or None
 
-            if not user_id and not email:
-                return Response({'message': 'User id or email required. Hint: /?id=<>'}, status=status.HTTP_400_BAD_REQUEST)
-            
             if user_id and email:
-                return Response({'message': 'Only user id or email needed. Hint: remove /?email=<>'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'message': 'Only user id or email needed. Hint: remove email=<> from the url'}, status=status.HTTP_400_BAD_REQUEST)
             
+            user = None
             if user_id:
                 user = User.objects.filter(id=user_id).first()
-            else:
+            elif email:
                 user = User.objects.filter(email=email).first()
+            else:
+                user = User.objects.filter(None)
 
             if not user:
-                return Response({'message': 'User not found.'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'message': 'User(s) not found.'}, status=status.HTTP_400_BAD_REQUEST)
             
             serialized_user = UserSerializer(user).data
             return Response({'user': serialized_user}, status=status.HTTP_200_OK)
