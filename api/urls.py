@@ -18,10 +18,9 @@ urlpatterns = [
      
     path(f"{API_VERSION}/project/<str:id>/",
          views.project.ProjectAPIView.as_view(), name=f"{API_VERSION}-project-details"),
+    path(f"{API_VERSION}/tasks/",
+         views.tasks.TasksAPIView.as_view(), name=f"{API_VERSION}-tasks-list"),
 
-
-     # path(f"{API_VERSION}/project/<str:projectID>/", 
-     #      views.project.ProjectAPIView.as_view(), name='v1-project-details'),
 ]
 
 # GET /api/v1/users/:username                   Get information about a user

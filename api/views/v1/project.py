@@ -16,6 +16,8 @@ class ProjectAPIView(APIView):
         """
 
         try:
+            #! TODO: Authentication
+            # TODO: Remove??
             #! TODO: Filter query params to prevent injection attack?!!
             project = Project.objects.get(id=id)
 

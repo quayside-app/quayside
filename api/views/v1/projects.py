@@ -40,10 +40,11 @@ class ProjectsAPIView(APIView):
 
         Example:
             # Example request using query parameters for filtering projects by userID
-            GET /api/projects?userIDs=1234
+            GET /api/v1/projects?userIDs=1234
 
         """
         try:
+            #! TODO: Authentication
             query_params = request.query_params.dict()
             
             #! TODO: Filter query params to prevent injection attack?!!
@@ -56,3 +57,8 @@ class ProjectsAPIView(APIView):
         except:
             return Response({'message': 'Projects not found'}, status=404)
 
+
+"""
+TEST
+http://127.0.0.1:8000/api/v1/tasks/?projectID=65530c4d3f9666ab932b59e2
+"""

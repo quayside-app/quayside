@@ -33,7 +33,7 @@ class Project(mongo.Document):
     completionRequirements = mongo.ListField(mongo.StringField())
     qualityAssurance = mongo.ListField(mongo.StringField())
     KPIs = mongo.ListField(mongo.StringField())
-    otherProjectDepencies = mongo.ListField(mongo.ObjectIdField())
+    otherProjectDependencies = mongo.ListField(mongo.ObjectIdField())
     informationLinks = mongo.ListField(mongo.StringField())
     completionStatus = mongo.StringField()
     teams = mongo.ListField(mongo.ObjectIdField())
@@ -42,4 +42,23 @@ class Project(mongo.Document):
         'strict': False  # If true, throws weird error for __v
         } 
 
+
+class Task(mongo.Document):
+    parentTaskID = mongo.ObjectIdField()
+    name = mongo.StringField()
+    objectives = mongo.ListField(mongo.StringField())
+    scopesIncluded = mongo.ListField(mongo.StringField())
+    scopesExcluded = mongo.ListField(mongo.StringField())
+    contributorIDs = mongo.ListField(mongo.ObjectIdField())
+    otherProjectDependencies = mongo.ListField(mongo.ObjectIdField())
+    otherTaskDependencies = mongo.ListField(mongo.ObjectIdField())
+    projectID = mongo.ObjectIdField()
+    description = mongo.StringField()
+    startDate = mongo.DateField()
+    endDate = mongo.DateField()
+
+    meta = {
+        'collection': 'Task', # Need to specify UPPER Case
+        'strict': False  # If true, throws weird error for __v
+        } 
 
