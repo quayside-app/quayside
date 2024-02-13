@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from api.models import User
 from api.serializers import UserSerializer
+from mongoengine.errors import NotUniqueError
 
 
 class CreateUserAPIView(APIView):
@@ -35,21 +36,33 @@ class CreateUserAPIView(APIView):
             return Response({'error': 'Invalid Content-Type. Use application/json.'}, status=status.HTTP_400_BAD_REQUEST)     
 
         serializer = UserSerializer(data=request.data)
-        print("serializer: ", serializer)
-        if serializer.is_valid():
+        
+        try:
+            serializer.is_valid(raise_exception=True)
             user = User.objects.create(**serializer.validated_data)
-
             response_data = UserSerializer(user).data
-
             return Response(response_data, status=status.HTTP_201_CREATED)
-        else:
-            return Response({'error': 'Invalid input data.', 'details': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        
+        except NotUniqueError as e:
+            error_message = str(e)
+            if 'email' in error_message:
+                return Response({'error': 'Email address is already in use.'}, status=status.HTTP_400_BAD_REQUEST)
+            elif 'username' in error_message:
+                return Response({'error': 'Username is already taken.'}, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return Response({'error': 'Duplicate key error.', 'details': error_message}, status=status.HTTP_400_BAD_REQUEST)
+             
+        except Exception as e:
+            return Response({'error': 'Internal server error.', 'details': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-# Sample data I was using to test the route
+# Sample data I was using to test the route.
+# Definitely need to learn how to do this in a test file.
 """
 {
 "email": "kaiverson@alaska.edu",
-"username": "kaiverson"
+"username": "kaiverson",
+"firstName": "Kai",
+"lastName": "Iverson"
 }
 """
