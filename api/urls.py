@@ -7,8 +7,8 @@ views = importlib.import_module(name=f".views.{API_VERSION}", package="api")
 
 # Remember to add class to views/{version}/__init__.py
 urlpatterns = [
-    path(f"{API_VERSION}/users/<str:username>/",
-         views.users.UserDetailAPIView.as_view(), name="v1-user-details"),
+    path(f"{API_VERSION}/users/",
+         views.users.UserDetailAPIView.as_view(), name="v1-get_user"),
 
     path(f"{API_VERSION}/users/create",
          views.createUser.CreateUserAPIView.as_view(), name="v1-create-user"),

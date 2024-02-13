@@ -3,7 +3,7 @@ import mongoengine as mongo
 
 class User(mongo.Document):
     email = mongo.EmailField(required=True, unique=True)
-    username = mongo.StringField(required=True, unique=True)
+    username = mongo.StringField(required=True)     #     , unique=True)
     firstName = mongo.StringField()
     lastName = mongo.StringField()
     teamIDs = mongo.ListField(mongo.ObjectIdField())
