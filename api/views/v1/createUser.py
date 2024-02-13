@@ -19,7 +19,7 @@ class CreateUserAPIView(APIView):
             - email (str) REQUIRED
             - firstName (str)
             - lastName (str)
-            - username (str)
+            - username (str) REQUIRED
             - teamIDs (list[str])
 
         @response'
@@ -35,6 +35,7 @@ class CreateUserAPIView(APIView):
             return Response({'error': 'Invalid Content-Type. Use application/json.'}, status=status.HTTP_400_BAD_REQUEST)     
 
         serializer = UserSerializer(data=request.data)
+        print("serializer: ", serializer)
         if serializer.is_valid():
             user = User.objects.create(**serializer.validated_data)
 
@@ -43,3 +44,11 @@ class CreateUserAPIView(APIView):
             return Response(response_data, status=status.HTTP_201_CREATED)
         else:
             return Response({'error': 'Invalid input data.', 'details': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+
+"""
+{
+"email": "kaiverson@alaska.edu",
+"username": "kaiverson"
+}
+"""

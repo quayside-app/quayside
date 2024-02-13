@@ -6,7 +6,7 @@ from api.models import User
 
 class CreateUserAPIViewTestCase(APITestCase):
     def setUp(self):
-        self.create_user_url = reverse('user_signup')  # Adjust this based on your URL configuration
+        self.create_user_url = reverse('v1_create_user')
         self.valid_user_data = {
             'email': 'test@example.com',
             'firstName': 'John',
@@ -15,7 +15,7 @@ class CreateUserAPIViewTestCase(APITestCase):
             'teamIDs': ['team1', 'team2']
         }
         self.invalid_user_data = {
-            'email': 'invalid_email',  # Invalid email format
+            'email': 'invalid_email', 
         }
 
     def test_create_user_success(self):
