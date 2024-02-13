@@ -46,6 +46,7 @@ class CreateUserAPIView(APIView):
             return Response({'error': 'Invalid input data.', 'details': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
+# Sample data I was using to test the route
 """
 {
 "email": "kaiverson@alaska.edu",
