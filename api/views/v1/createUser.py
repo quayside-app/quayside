@@ -47,8 +47,8 @@ class CreateUserAPIView(APIView):
             error_message = str(e)
             if 'email' in error_message:
                 return Response({'error': 'Email address is already in use.'}, status=status.HTTP_400_BAD_REQUEST)
-            elif 'username' in error_message:
-                return Response({'error': 'Username is already taken.'}, status=status.HTTP_400_BAD_REQUEST)
+#           elif 'username' in error_message:
+#               return Response({'error': 'Username is already taken.'}, status=status.HTTP_400_BAD_REQUEST)
             else:
                 return Response({'error': 'Duplicate key error.', 'details': error_message}, status=status.HTTP_400_BAD_REQUEST)
              
