@@ -12,7 +12,7 @@
                 const listLink = document.createElement('a');
                 listLink.href = `/project/${project.id}`;
                 listLink.textContent = project.name;
-                listLink.className = "flex p-1  hover:text-gray-400  truncate w-32";
+                listLink.className = "flex p-1  hover:text-gray-500  truncate w-32";
                 projectListElement.appendChild(listLink);
                 
             });
@@ -23,10 +23,14 @@
     })();
 </script>
 
-<div class="bg-neutral-800 min-h-screen p-4">
+<div class="bg-neutral-800 min-h-screen p-4 text-white">
 
-    <div class="text-white justify-center">
-        <div class="text-xl font-bold pt-4 pb-2"> Projects</div>
+    <div class="mt-4 text-xl text-center font-medium rounded-lg  py-1 bg-neutral-600 hover:bg-gray-500">
+        <a href="/create-project"> + Project</a>
+    </div>
+
+    <div class="mt-10">
+        <div class="text-xl font-medium pt-4 pb-2"> Projects</div>
         <ul class id="project-list"></ul>
     </div>
 
