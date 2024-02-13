@@ -10,6 +10,7 @@ class Command(BaseCommand):
         self.stdout.write('Starting Tailwind CSS build process...')
         tailwind_process = subprocess.Popen(
             ['npx', 'tailwindcss', '-i', './app/static/app/src/input.css', '-o', './app/static/app/src/output.css', '--watch'],
+            shell = True
         )
 
         self.stdout.write('Starting Django development server...')
