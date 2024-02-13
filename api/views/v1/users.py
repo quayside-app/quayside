@@ -7,25 +7,35 @@ from api.serializers import UserSerializer
 
 
 class UserDetailAPIView(APIView):
+    """
+    User Detail API View
+
+    Retrieves user information based on optional query parameters. If no parameters are provided,
+    retrieves a list of all users. Supports filtering by user ID or email address.
+
+    Endpoints:
+    - GET /api/{version}/users/            (Retrieve a list of all users)
+    - GET /api/{version}/users/?id={user_id}   (Retrieve a specific user by ID)
+    - GET /api/{version}/users/?email={email}  (Retrieve a specific user by email)
+
+    Query Parameters:
+    - id (objectID str): Filter users by ID.
+    - email (str): Filter users by email address.
+
+    Response:
+    - Returns basic information about the user or a list of users.
+    - If no users match the query, a 400 Bad Request response is returned.
+
+    Note:
+    - To retrieve a specific user, provide either 'id' or 'email' as a query parameter.
+    - To retrieve all users, make the request without any query parameters.
+
+    """
     # permission_classes = [IsAuthenticated]
 
     def get(self, request):
         # TODO very very important!!!!!
         # add authentication.
-        """
-        Retrieves all users. When query parameters used, only one user retrieved.
-        Endpoints: 
-            - GET /api/{version}/users/
-            - GET /api/{version}/users/?id={user_id}
-            - GET /api/{version}/users/?email={email}
-        
-        Query Parameters:
-            - id (objectID str)
-            - email (str)
-
-        return: Basic information about a user.
-
-        """
         try:
             user_id = request.GET.get('id') or None
             email = request.GET.get('email') or None
