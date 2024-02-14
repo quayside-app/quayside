@@ -2,6 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from api.models import Task
 from api.serializers import TaskSerializer
+from rest_framework import status
 
 
 class TasksAPIView(APIView):
@@ -47,3 +48,41 @@ class TasksAPIView(APIView):
         except:
             return Response({'message': 'Tasks not found'}, status=404)
 
+
+    def post(self, request):
+        """
+        Creates a single task or a list of tasks. MUST have projectID.
+
+        Expected JSON Body Format:
+            Single Task:
+                {
+                    "projectID": "objectId str",
+                    "name": "str",
+                    ...
+                }
+            
+            List of Tasks:
+                [
+                    {
+                        "projectID": "objectId str",
+                        "name": "str",
+                        ...
+                    },
+                    ...
+                ]
+
+        @return: A Response object with the created task(s) data or an error message.
+        """
+
+        # Check if single or multiple tasks
+        if isinstance(request.data, list):
+            serializer = TaskSerializer(data=request.data, many=True)
+        else:
+            serializer = TaskSerializer(data=request.data)
+
+        # Makes sure task(s) meets the modal requirements (required projectID)
+        if serializer.is_valid(): 
+            serializer.save()  # Save the task(s) to MongoDB
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

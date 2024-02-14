@@ -38,7 +38,7 @@ class ProjectsAPIView(APIView):
         @return: A Response object containing a JSON array of serialized Project objects that 
         match the query parameters.
 
-        Example:
+        @example:
             # Example request using query parameters for filtering projects by userID
             GET /api/v1/projects?userIDs=1234
 

@@ -30,6 +30,7 @@ For accessing the mongo database locally, you will need the following generated 
 ```bash
 MONGO_USERNAME=<your username>
 MONGO_PASSWORD=<your password>
+CHATGPT_API_KEY=<your ChatGPT API key>
 ```
 
 
