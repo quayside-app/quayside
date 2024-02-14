@@ -18,10 +18,7 @@ def createProject(request):
             name = form.cleaned_data["description"]
 
             projectData, status = ProjectsAPIView.createProjects({"name": name, "userIDs": ["6521d8581bcf69b7d260608b"] }) #! TODO change to not-hardcoded
-            print(projectData, status)
-
-            GeneratedTasks.generateTasks({"projectID":1234, "name": name})
-            print("HEREEE")
+            GeneratedTasks.generateTasks({"projectID": projectData["id"], "name": name})
 
             # Redirect to home
             return HttpResponseRedirect("/")
