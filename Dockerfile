@@ -1,13 +1,18 @@
+FROM node:20.11.0-alpine as build
+
+WORKDIR /app
+COPY package.json /app
+RUN npm install
+
 FROM python:3.12
 
-COPY . quayside
-WORKDIR /quayside
+COPY . app
+WORKDIR /app
+
+COPY --from=build /app /app
 
 COPY requirements.txt requirements.txt
 RUN pip install -r requirements.txt
-
-#RUN npm run build
-
 
 EXPOSE 8080
 ENV PORT 8080
