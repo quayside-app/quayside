@@ -73,16 +73,25 @@ class TasksAPIView(APIView):
 
         @return: A Response object with the created task(s) data or an error message.
         """
+        response_data, http_status = self.createTasks(request.data) 
+        return Response(response_data, status=http_status)
+        
+    @staticmethod
+    def createTasks(taskData):
+        """
+        Service API function that can be called internally as well as through the API to create tasks
+        Creates a single task or multiple tasks based on the input data.
 
-        # Check if single or multiple tasks
-        if isinstance(request.data, list):
-            serializer = TaskSerializer(data=request.data, many=True)
+        @param task_data      Dict for a single task or list of dicts for multiple tasks.
+        @return      A tuple of (response_data, http_status).
+        """
+        if isinstance(taskData, list):
+            serializer = TaskSerializer(data=taskData, many=True)
         else:
-            serializer = TaskSerializer(data=request.data)
+            serializer = TaskSerializer(data=taskData)
 
-        # Makes sure task(s) meets the modal requirements (required projectID)
-        if serializer.is_valid(): 
-            serializer.save()  # Save the task(s) to MongoDB
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        if serializer.is_valid():
+            serializer.save()  # Save the task(s) to the database
+            return serializer.data, status.HTTP_201_CREATED
         else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return serializer.errors, status.HTTP_400_BAD_REQUEST
