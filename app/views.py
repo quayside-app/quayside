@@ -17,11 +17,12 @@ def createProject(request):
             print(form.cleaned_data)
             name = form.cleaned_data["description"]
 
-            projectData, status = ProjectsAPIView.createProjects({"name": name, "userIDs": ["6521d8581bcf69b7d260608b"] }) #! TODO change to not-hardcoded
-            GeneratedTasks.generateTasks({"projectID": projectData["id"], "name": name})
+            projectData, _ = ProjectsAPIView.createProjects({"name": name, "userIDs": ["6521d8581bcf69b7d260608b"] }) #! TODO change to not-hardcoded
+            projectID = projectData["id"]
+            GeneratedTasks.generateTasks({"projectID": projectID, "name": name})
 
             # Redirect to home
-            return HttpResponseRedirect("/")
+            return HttpResponseRedirect(f"/project/{projectID}")
 
     # If a GET (or any other method), create a blank form
     else:
