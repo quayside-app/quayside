@@ -15,8 +15,7 @@
             </div>
 
             <form action="/create-project" method="post">
-                <!-- Required by Django to prevent Cross Site Scripting -->
-                {% csrf_token %}
+                {% csrf_token %} <!-- Required by Django to prevent Cross Site Scripting -->
 
                 <!-- Project Input(s) -->
                 <div class="pt-4 w-96">
@@ -30,6 +29,7 @@
                     </button>
                 </div>
             </form>
+            
         </div>
     </div>
 </div>

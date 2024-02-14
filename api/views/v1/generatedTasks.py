@@ -4,9 +4,8 @@ from rest_framework import status
 from api.serializers import GeneratedTaskSerializer
 from dotenv import load_dotenv
 import os
-from openai import OpenAI
+import openai 
 import re
-
 
 class GeneratedTasks(APIView):
     """
@@ -14,19 +13,32 @@ class GeneratedTasks(APIView):
     """
 
     def post(self, request):
-        serializer = GeneratedTaskSerializer(data=request.data)
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        response_data, http_status = self.generateTasks(request.data) 
+        return Response(response_data, status=http_status)
 
-        userDescription = serializer.validated_data.description
+
+    @staticmethod
+    def generateTasks(projectData):
+        """
+        Service API function that can be called internally as well as through the API to generate 
+        and save tasks.
+        """
+        print("HERE1")
+        #! TODO needs authorization - pass API key?
+
+        # Check
+        serializer = GeneratedTaskSerializer(data=projectData)
+        if not serializer.is_valid():
+            print(serializer.errors)
+            return serializer.errors, status.HTTP_400_BAD_REQUEST
 
         # Load ChatGPT creds
         load_dotenv()
-        chatGPTAPIKey = os.getenv('CHATGPT_API_KEY')
+        openai.api_key = os.getenv('CHATGPT_API_KEY')
 
         # Call ChatGPT
-        client = OpenAI(apiKey=chatGPTAPIKey)
-        completion = client.chat.completions.create(
+        # TODO add exception handleing
+        completion = openai.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content":
@@ -38,8 +50,8 @@ class GeneratedTasks(APIView):
                     task is on one line after the number. NEVER create new paragraphs within a 
                     task or subtask.
                     """
-                 },
-                {"role": "user", "content": userDescription}
+                    },
+                {"role": "user", "content": serializer.validated_data["description"]}
             ],
             temperature=0,
             max_tokens=1024,
@@ -79,9 +91,22 @@ class GeneratedTasks(APIView):
                 # Find parent task
                 parentTask = next((task for task in newTasks if task['id'] == currentTaskNumber), None)
                 if parentTask:
-                    parentTask.subtasks.push({
+                    parentTask['subtasks'].append({
                         "id": subTaskNumber,
                         "name": subTaskText,
                         "parent": currentTaskNumber
                     })
+        
+        
         print(newTasks)
+        return
+
+        # Create a root task if one does not exist
+        if newTasks.length != 1:
+            pass
+
+
+        # Parse tasks and save them
+        # serializer.validated_data["projectID"],
+        #! TODO return stuff
+            
