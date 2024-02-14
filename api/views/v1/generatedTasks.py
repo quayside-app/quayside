@@ -4,8 +4,11 @@ from rest_framework import status
 from api.serializers import GeneratedTaskSerializer
 from dotenv import load_dotenv
 import os
-import openai 
+import openai
 import re
+
+from api.views.v1.tasks import TasksAPIView
+
 
 class GeneratedTasks(APIView):
     """
@@ -13,9 +16,8 @@ class GeneratedTasks(APIView):
     """
 
     def post(self, request):
-        response_data, http_status = self.generateTasks(request.data) 
+        response_data, http_status = self.generateTasks(request.data)
         return Response(response_data, status=http_status)
-
 
     @staticmethod
     def generateTasks(projectData):
@@ -29,8 +31,10 @@ class GeneratedTasks(APIView):
         # Check
         serializer = GeneratedTaskSerializer(data=projectData)
         if not serializer.is_valid():
-            print(serializer.errors)
             return serializer.errors, status.HTTP_400_BAD_REQUEST
+
+        projectName = serializer.validated_data["name"]
+        projectID = serializer.validated_data["projectID"]
 
         # Load ChatGPT creds
         load_dotenv()
@@ -50,8 +54,8 @@ class GeneratedTasks(APIView):
                     task is on one line after the number. NEVER create new paragraphs within a 
                     task or subtask.
                     """
-                    },
-                {"role": "user", "content": serializer.validated_data["name"]}
+                 },
+                {"role": "user", "content": projectName}
             ],
             temperature=0,
             max_tokens=1024,
@@ -73,7 +77,7 @@ class GeneratedTasks(APIView):
             subTaskMatch = re.match(r'^\s+(\d+\.\d+\.?)\s(.+)', line)
 
             if primaryTaskMatch:
-                taskNumber =  primaryTaskMatch[1]
+                taskNumber = primaryTaskMatch[1]
                 taskText = primaryTaskMatch[2]
                 currentTaskNumber = taskNumber
 
@@ -83,30 +87,52 @@ class GeneratedTasks(APIView):
                     "parent": "root",
                     "subtasks": []
                 })
-            
+
             elif subTaskMatch:
                 subTaskNumber = subTaskMatch[1]
                 subTaskText = subTaskMatch[2]
 
                 # Find parent task
-                parentTask = next((task for task in newTasks if task['id'] == currentTaskNumber), None)
+                parentTask = next(
+                    (task for task in newTasks if task['id'] == currentTaskNumber), None)
                 if parentTask:
                     parentTask['subtasks'].append({
                         "id": subTaskNumber,
                         "name": subTaskText,
                         "parent": currentTaskNumber
                     })
-        
-        
-        print(newTasks)
-        return
+
+        # print(newTasks)
+        # return
+
+        # Save tasks
+        # TODO Revise this to combine with upper portion
+
+        # Function for Parsing Tasks
+        def parseTask(task: dict, parentID: str, projectID: str):
+            taskData, _ = TasksAPIView.createTasks(
+                {"projectID": projectID, "parentTaskID":parentID, "name": task["name"]})
+
+            if "subtasks" in task:
+                for subtask in task["subtasks"]:
+                    parseTask(subtask, taskData["id"], projectID)
+            return taskData
+
+        createdTasks = []
 
         # Create a root task if one does not exist
-        if newTasks.length != 1:
-            pass
+        rootID = None
+        if len(newTasks) != 1:
+            taskData, _ = TasksAPIView.createTasks(
+                {"projectID": projectID, "name": projectName})
+            print(taskData)
+            rootID = taskData["id"]
+            createdTasks.append(taskData)
 
+        for task in newTasks:
+            taskData = parseTask(task, rootID, projectID)
+            createdTasks.append(taskData)
 
-        # Parse tasks and save them
-        # serializer.validated_data["projectID"],
-        #! TODO return stuff
-            
+        return createdTasks, status.HTTP_201_CREATED
+
+# TODO TEST API route
