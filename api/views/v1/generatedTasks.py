@@ -51,7 +51,7 @@ class GeneratedTasks(APIView):
                     task or subtask.
                     """
                     },
-                {"role": "user", "content": serializer.validated_data["description"]}
+                {"role": "user", "content": serializer.validated_data["name"]}
             ],
             temperature=0,
             max_tokens=1024,

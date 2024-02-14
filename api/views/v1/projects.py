@@ -2,6 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from api.models import Project
 from api.serializers import ProjectSerializer
+from rest_framework import status
 
 
 class ProjectsAPIView(APIView):
@@ -57,6 +58,38 @@ class ProjectsAPIView(APIView):
         except:
             return Response({'message': 'Projects not found'}, status=404)
 
+    def post(self, request):
+        """
+        Creates a project or list of projectss
+
+        TODO MORE COMMENTS
+
+        @return: A Response object with the created prject(s) data or an error message.
+        """
+        response_data, http_status = self.createProjects(request.data) 
+        return Response(response_data, status=http_status)
+    
+    @staticmethod
+    def createProjects(projectData):
+        """
+        Service API function that can be called internally as well as through the API to create tasks
+        Creates a single task or multiple tasks based on the input data.
+
+        @param task_data      Dict for a single project dict or list of dicts for multiple tasks.
+        @return      A tuple of (response_data, http_status).
+        """
+
+        #! TODO Authenticate
+        if isinstance(projectData, list):
+            serializer = ProjectSerializer(data=projectData, many=True)
+        else:
+            serializer = ProjectSerializer(data=projectData)
+
+        if serializer.is_valid():
+            serializer.save()  # Save the project(s) to the database
+            return serializer.data, status.HTTP_201_CREATED  # Returns data including new primary key
+        else:
+            return serializer.errors, status.HTTP_400_BAD_REQUEST
 
 """
 TEST
