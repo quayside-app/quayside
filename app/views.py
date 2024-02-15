@@ -5,8 +5,12 @@ from .forms import NewProjectForm
 from api.views.v1.generatedTasks import GeneratedTasks
 from api.views.v1.projects import ProjectsAPIView
 
-def project(request, projectID):
-    return render(request, 'project.html', {'project_ID': projectID})
+
+
+def projectGraph(request, projectID):
+    print("IN VIEW ID", projectID)
+    return render(request, 'graph.html', {'project_ID': projectID})
+
 
 def createProject(request):
     # If this is a POST request, process the form data
@@ -21,8 +25,8 @@ def createProject(request):
             projectID = projectData["id"]
             GeneratedTasks.generateTasks({"projectID": projectID, "name": name})
 
-            # Redirect to home
-            return HttpResponseRedirect(f"/project/{projectID}")
+            # Redirect to project
+            return HttpResponseRedirect(f"/project/{projectID}/graph")
 
     # If a GET (or any other method), create a blank form
     else:

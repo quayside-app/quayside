@@ -27,8 +27,10 @@
         </button>
 
     </div>
+    
+    {% block projectView %}{% endblock %}
 
-    {% include "graph.html" %}
+
 </div>
 <script>
     document.getElementById("deleteProjectButton").addEventListener("click", async function() {

@@ -11,7 +11,7 @@
             const projectListElement = document.getElementById("projectList");
             projects.forEach(function(project) {
                 const listLink = document.createElement("a");
-                listLink.href = `/project/${project.id}`;
+                listLink.href = `/project/${project.id}/graph`;
                 listLink.textContent = project.name;
                 listLink.className = "flex pb-1  hover:text-neutral-500  truncate w-22";
                 projectListElement.appendChild(listLink);

@@ -1,7 +1,7 @@
+{% extends "project.html" %}
 {% load static %}
 
-{% block content %}
-
+{% block projectView %}
 <head>
     <!-- TODO use npm nodemanager instead of the headers -->
     <script src="https://unpkg.com/cytoscape@3.23.0/dist/cytoscape.min.js"></script>
@@ -12,9 +12,12 @@
     //import cytoscape from 'cytoscape';
     (async function() {
         try {
+            console.log("HEREES THE ID {{project_ID}}")
             const response = await fetch('{{ api_url }}/tasks/?projectID={{project_ID}}'); 
             if (!response.ok) throw new Error('REST tasks response was not ok.');
             const tasks = await response.json();
+
+            console.log("Tasks!", tasks)
 
             console.log(tasks)
 
@@ -96,6 +99,7 @@
 
 </script>
 <div class="flex justify-center">
+    
     <div id="cytoscape-graph" style="height:900px; width:95%"></div>
 </div>
 {% endblock %}

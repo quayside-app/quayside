@@ -101,11 +101,13 @@ class TasksAPIView(APIView):
             serializer = TaskSerializer(data=taskData, many=True)
         else:
             serializer = TaskSerializer(data=taskData)
-
+        print("HEREEEE IN TASK CREATION")
         if serializer.is_valid():
             serializer.save()  # Save the task(s) to the database
+            print(serializer.data)
             return serializer.data, status.HTTP_201_CREATED
         else:
+            print(serializer.errors)
             return serializer.errors, status.HTTP_400_BAD_REQUEST
 
     @staticmethod
@@ -123,12 +125,10 @@ class TasksAPIView(APIView):
         if "id" in taskData:
             numberObjectsDeleted = Task.objects(id=taskData["id"]).delete()
         else:  # projectIDs
-            numberObjectsDeleted = Task.objects(projectID=taskData["projectID"]).delete()
-
-
+            numberObjectsDeleted = Task.objects(
+                projectID=taskData["projectID"]).delete()
 
         if numberObjectsDeleted == 0:
             return "No tasks found to delete.", status.HTTP_404_NOT_FOUND
-
 
         return "Task(s) Deleted Successfully", status.HTTP_200_OK
