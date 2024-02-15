@@ -8,7 +8,6 @@ from api.views.v1.projects import ProjectsAPIView
 
 
 def projectGraph(request, projectID):
-    print("IN VIEW ID", projectID)
     return render(request, 'graph.html', {'project_ID': projectID})
 
 
@@ -18,7 +17,6 @@ def createProject(request):
         form = NewProjectForm(request.POST)
         if form.is_valid():
             # Process the data in form.cleaned_data as required
-            print(form.cleaned_data)
             name = form.cleaned_data["description"]
 
             projectData, _ = ProjectsAPIView.createProjects({"name": name, "userIDs": ["6521d8581bcf69b7d260608b"] }) #! TODO change to not-hardcoded

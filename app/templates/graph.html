@@ -12,14 +12,10 @@
     //import cytoscape from 'cytoscape';
     (async function() {
         try {
-            console.log("HEREES THE ID {{project_ID}}")
+
             const response = await fetch('{{ api_url }}/tasks/?projectID={{project_ID}}'); 
             if (!response.ok) throw new Error('REST tasks response was not ok.');
             const tasks = await response.json();
-
-            console.log("Tasks!", tasks)
-
-            console.log(tasks)
 
             const elements = []
 

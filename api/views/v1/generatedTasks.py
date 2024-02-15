@@ -25,7 +25,6 @@ class GeneratedTasks(APIView):
         Service API function that can be called internally as well as through the API to generate 
         and save tasks.
         """
-        print("HERE1")
         #! TODO needs authorization - pass API key?
 
         # Check
@@ -102,9 +101,6 @@ class GeneratedTasks(APIView):
                         "parent": currentTaskNumber
                     })
 
-        # print(newTasks)
-        # return
-
         # Save tasks
         # TODO Revise this to combine with upper portion
 
@@ -125,7 +121,6 @@ class GeneratedTasks(APIView):
         if len(newTasks) != 1:
             taskData, _ = TasksAPIView.createTasks(
                 {"projectID": projectID, "name": projectName})
-            print(taskData)
             rootID = taskData["id"]
             createdTasks.append(taskData)
 
