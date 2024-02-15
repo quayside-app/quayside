@@ -2,7 +2,9 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from api.models import Project
 from api.serializers import ProjectSerializer
+from api.views.v1.tasks import TasksAPIView
 from rest_framework import status
+
 
 
 class ProjectsAPIView(APIView):
@@ -46,11 +48,11 @@ class ProjectsAPIView(APIView):
         """
         try:
             #! TODO: Authentication
-            query_params = request.query_params.dict()
-            
+            queryParams = request.query_params.dict()
+
             #! TODO: Filter query params to prevent injection attack?!!
 
-            projects = Project.objects.filter(**query_params)  # Query mongo
+            projects = Project.objects.filter(**queryParams)  # Query mongo
 
             serializer = ProjectSerializer(projects, many=True)
 
@@ -66,9 +68,22 @@ class ProjectsAPIView(APIView):
 
         @return: A Response object with the created prject(s) data or an error message.
         """
-        response_data, http_status = self.createProjects(request.data) 
-        return Response(response_data, status=http_status)
+        responseData, httpStatus = self.createProjects(request.data)
+        return Response(responseData, status=httpStatus)
     
+    def delete(self, request):
+        """
+        Deletes a project or list of projects
+
+        TODO MORE COMMENTS
+        TODO TEST
+
+        @return: A Response object with the created prject(s) data or an error message.
+        """
+
+        responseData, httpStatus = self.deleteProjects(request.query_params)
+        return Response(responseData, status=httpStatus)
+
     @staticmethod
     def createProjects(projectData):
         """
@@ -87,9 +102,46 @@ class ProjectsAPIView(APIView):
 
         if serializer.is_valid():
             serializer.save()  # Save the project(s) to the database
-            return serializer.data, status.HTTP_201_CREATED  # Returns data including new primary key
+            # Returns data including new primary key
+            return serializer.data, status.HTTP_201_CREATED
         else:
             return serializer.errors, status.HTTP_400_BAD_REQUEST
+
+    @staticmethod
+    def deleteProjects(projectData):
+        """
+        Service API function that can be called internally as well as through the API to delete
+        project(s) and all associated tasks.
+        TODO
+
+        @param projectData      Dict for a single project dict or list of dicts for multiple tasks.
+        @return      A tuple of (response_data, http_status).
+        """
+
+        #! TODO Authenticate
+        # TODO error handling
+
+        # Check
+        if "id" not in projectData:
+            return "Error: Parameter 'id' required", status.HTTP_400_BAD_REQUEST
+        
+        id = projectData["id"]
+        
+        # Delete associated tasks
+        ids = id
+        if not isinstance(id, list):
+            ids = [ids]
+            
+        for id in ids:
+            result = TasksAPIView.deleteTasks({"projectID": id})
+            # TODO handle result if error
+
+        numberObjectsDeleted = Project.objects(id=id).delete()
+        if numberObjectsDeleted == 0:
+            return "No project(s) found to delete.", status.HTTP_404_NOT_FOUND
+        
+        return "Project(s) Deleted Successfully", status.HTTP_200_OK
+
 
 """
 TEST

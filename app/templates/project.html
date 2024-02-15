@@ -19,10 +19,28 @@
 </script>
 <div class=" w-full p-6 text-white">
 
-    <div class="w-full bg-neutral-800 rounded-lg py-2 px-4 sm:text-2xl">
-        <div id="project-name"></div>
+    <div class="flex justify-between w-full bg-neutral-800 rounded-lg py-2 px-4">
+        <div id="project-name" class="my-auto sm:text-2xl"></div>
+
+        <button id="deleteProjectButton" class="text-center rounded-lg  px-2 py-1 bg-red-600 hover:bg-red-500">
+            Delete Project
+        </button>
+
     </div>
 
     {% include "graph.html" %}
 </div>
+<script>
+    document.getElementById("deleteProjectButton").addEventListener("click", async function() {
+    
+    console.log("CLICKED DELETE BUTTON");
+
+    const response = await fetch("{{api_url}}/projects/?id={{project_ID}}", {method: 'DELETE'}); 
+    if (!response.ok) throw new Error("Network response was not ok");
+
+    // Navigate Home after deleting
+    window.location.href = '/';
+    });
+</script>
+
 {% endblock %}
