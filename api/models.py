@@ -45,7 +45,7 @@ class Project(mongo.Document):
 
 class Task(mongo.Document):
     projectID = mongo.ObjectIdField(required=True)
-    parentTaskID = mongo.ObjectIdField()
+    parentTaskID = mongo.ObjectIdField(null=True) # Allow null values
     name = mongo.StringField()
     objectives = mongo.ListField(mongo.StringField())
     scopesIncluded = mongo.ListField(mongo.StringField())
