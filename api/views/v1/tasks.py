@@ -37,7 +37,7 @@ class TasksAPIView(APIView):
         try:
             #! TODO: Authentication
             query_params = request.query_params.dict()
-            
+
             #! TODO: Filter query params to prevent injection attack?!!
 
             projects = Task.objects.filter(**query_params)  # Query mongo
@@ -47,7 +47,6 @@ class TasksAPIView(APIView):
             return Response(serializer.data)
         except:
             return Response({'message': 'Tasks not found'}, status=404)
-
 
     def post(self, request):
         """
@@ -60,7 +59,7 @@ class TasksAPIView(APIView):
                     "name": "str",
                     ...
                 }
-            
+
             List of Tasks:
                 [
                     {
@@ -73,9 +72,22 @@ class TasksAPIView(APIView):
 
         @return: A Response object with the created task(s) data or an error message.
         """
-        response_data, http_status = self.createTasks(request.data) 
+        response_data, http_status = self.createTasks(request.data)
         return Response(response_data, status=http_status)
-        
+
+    def delete(self, request):
+        """
+        Deletes a task or list of tasks
+
+        TODO MORE COMMENTS
+        TODO TEST
+
+        @return: A Response object with the created task(s) data or an error message.
+        """
+
+        responseData, httpStatus = self.createTasks(request.query_params)
+        return Response(responseData, status=httpStatus)
+
     @staticmethod
     def createTasks(taskData):
         """
@@ -95,3 +107,28 @@ class TasksAPIView(APIView):
             return serializer.data, status.HTTP_201_CREATED
         else:
             return serializer.errors, status.HTTP_400_BAD_REQUEST
+
+    @staticmethod
+    def deleteTasks(taskData):
+        """
+        TODO
+        """
+
+        # TODO try/accept??
+
+        # Check
+        if "id" not in taskData and "projectID" not in taskData:
+            return "Error: Parameter 'id' or 'projectID' required", status.HTTP_400_BAD_REQUEST
+
+        if "id" in taskData:
+            numberObjectsDeleted = Task.objects(id=taskData["id"]).delete()
+        else:  # projectIDs
+            numberObjectsDeleted = Task.objects(projectID=taskData["projectID"]).delete()
+
+
+
+        if numberObjectsDeleted == 0:
+            return "No tasks found to delete.", status.HTTP_404_NOT_FOUND
+
+
+        return "Task(s) Deleted Successfully", status.HTTP_200_OK
