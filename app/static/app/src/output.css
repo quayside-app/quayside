@@ -675,6 +675,10 @@ video {
   margin-top: 2rem;
 }
 
+.mt-80 {
+  margin-top: 20rem;
+}
+
 .block {
   display: block;
 }
@@ -729,6 +733,10 @@ video {
 
 .w-screen {
   width: 100vw;
+}
+
+.w-48 {
+  width: 12rem;
 }
 
 .max-w-full {
@@ -919,6 +927,14 @@ video {
   padding-top: 16rem;
 }
 
+.pt-96 {
+  padding-top: 24rem;
+}
+
+.pt-80 {
+  padding-top: 20rem;
+}
+
 .text-center {
   text-align: center;
 }
@@ -1030,6 +1046,10 @@ video {
 }
 
 @media (min-width: 640px) {
+  .sm\:block {
+    display: block;
+  }
+
   .sm\:px-6 {
     padding-left: 1.5rem;
     padding-right: 1.5rem;
