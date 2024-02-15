@@ -25,7 +25,7 @@
 </script>
 
 <div class="">
-    <div id="sidebarContent" class=" w-42 bg-neutral-800 min-h-screen px-4 pt-2 text-white">
+    <div id="sidebarContent" class=" w-42 bg-neutral-800 min-h-screen px-4 pt-2 text-white hidden sm:block">
         <div class="mt-4 text-xl text-center font-medium rounded-lg  py-1 bg-neutral-600 hover:bg-gray-500">
             <a href="/create-project"> + Project</a>
         </div>
@@ -36,7 +36,7 @@
         </div>
     </div>
 
-    <button id="collapseButton" class="absolute bottom-3 left-28 ">
+    <button id="collapseButton" class="absolute bottom-3 left-3 sm:left-28 rotate-180 sm:rotate-0">
         <div class=" flex rounded-lg bg-neutral-600  hover:bg-gray-500">
             {% include "components/svg/arrow.svg" %}
         </div>
@@ -47,13 +47,20 @@
     // Watch for Toggle (after DOM has loaded)
     document.getElementById("collapseButton").addEventListener("click", function() {
         var sidebar = document.getElementById("sidebarContent");
-        sidebar.classList.toggle("hidden"); // Hides  sidebar 
+        // Hides  + shows sidebar (small screens default to hidden, large screens default to shown)
+        sidebar.classList.toggle("hidden"); 
+        sidebar.classList.toggle("sm:block"); 
+        sidebar.classList.toggle("sm:hidden"); 
 
 
-        // Changes button position
         collapseButton.classList.toggle("left-28");
         collapseButton.classList.toggle("left-3"); 
+        collapseButton.classList.toggle("sm:left-28");
+        collapseButton.classList.toggle("sm:left-3"); 
+
         collapseButton.classList.toggle("rotate-180"); 
+        collapseButton.classList.toggle("sm:rotate-180"); 
+        collapseButton.classList.toggle("sm:rotate-0"); 
 
     });
 </script>
