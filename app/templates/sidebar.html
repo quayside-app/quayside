@@ -1,15 +1,16 @@
 {% load static %}
 
 <script>
+    // Create sidebar project content
     (async function() {
         try {
-            const response = await fetch('{{ api_url }}/projects/?userIDs=6521d8581bcf69b7d260608b'); // TODO: REPLACE userID w/ reference
-            if (!response.ok) throw new Error('Network response was not ok');
+            const response = await fetch("{{ api_url }}/projects/?userIDs=6521d8581bcf69b7d260608b"); // TODO: REPLACE userID w/ reference
+            if (!response.ok) throw new Error("Network response was not ok");
             const projects = await response.json();
 
-            const projectListElement = document.getElementById('project-list');
+            const projectListElement = document.getElementById("project-list");
             projects.forEach(function(project) {
-                const listLink = document.createElement('a');
+                const listLink = document.createElement("a");
                 listLink.href = `/project/${project.id}`;
                 listLink.textContent = project.name;
                 listLink.className = "flex p-1  hover:text-gray-500  truncate w-32";
@@ -18,25 +19,41 @@
             });
 
         } catch (error) {
-            console.error('There has been a problem with fetching projects:', error);
+            console.error("There has been a problem with fetching projects:", error);
         }
     })();
 </script>
 
-<div class="bg-neutral-800 min-h-screen px-4 pt-2 text-white">
+<div class>
+    <div id="sidebarContent" class=" w-42 bg-neutral-800 min-h-screen px-4 pt-2 text-white">
+        <div class="mt-4 text-xl text-center font-medium rounded-lg  py-1 bg-neutral-600 hover:bg-gray-500">
+            <a href="/create-project"> + Project</a>
+        </div>
 
-    <!-- TODO Possibly put svg in static?? Need to look more into it-->
-    <div class="flex justify-end">
-        {% include 'components/svg/menu.svg' %}
+        <div class="mt-8">
+            <div class="text-xl font-medium pt-4 pb-2"> Projects</div>
+            <ul class id="project-list"></ul>
+        </div>
     </div>
 
-    <div class="mt-4 text-xl text-center font-medium rounded-lg  py-1 bg-neutral-600 hover:bg-gray-500">
-        <a href="/create-project"> + Project</a>
-    </div>
-
-    <div class="mt-8">
-        <div class="text-xl font-medium pt-4 pb-2"> Projects</div>
-        <ul class id="project-list"></ul>
-    </div>
+    <button id="collapseButton" class="absolute bottom-3 left-28 ">
+        <div class=" flex rounded-lg bg-neutral-600  hover:bg-gray-500">
+            {% include "components/svg/arrow.svg" %}
+        </div>
+    </button>
 
 </div>
+<script>
+    // Watch for Toggle (after DOM has loaded)
+    document.getElementById("collapseButton").addEventListener("click", function() {
+        var sidebar = document.getElementById("sidebarContent");
+        sidebar.classList.toggle("hidden"); // Hides  sidebar 
+
+
+        // Changes button position
+        collapseButton.classList.toggle("left-28");
+        collapseButton.classList.toggle("left-3"); 
+        collapseButton.classList.toggle("rotate-180"); 
+
+    });
+</script>
