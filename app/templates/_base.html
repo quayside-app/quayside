@@ -18,20 +18,22 @@
 
     <body class>
         <div class="w-full h-screen bg-black">
+
             <div class="fixed w-full h-14 z-40">
                 {% include "navbar.html" %}
             </div>
 
+            <div class="flex">
+                <div class="pt-14  h-screen ">
+                    {% include 'sidebar.html' %}
+                </div>
 
-            <div class=" fixed pt-14 w-40 h-screen ">
-                {% include 'sidebar.html' %}
+                <div class="w-full pt-14 ">
+                    <!-- <div class=" w-full pt-14 h-screen" style="background-image: url('{% static 'app/images/background.png' %}'); background-position:center"></div> -->
+                    {% block content %}
+                    {% endblock content %}
+                </div>
             </div>
-
-            <div class=" pt-14 sm:ml-40 h-screen" style="background-image: url('{% static 'app/images/background.png' %}'); background-position:center">
-                {% block content %}
-                {% endblock content %}
-            </div>
-
 
         </div>
     </body>
