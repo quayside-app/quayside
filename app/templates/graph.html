@@ -1,7 +1,7 @@
 {% extends "project.html" %}
 {% load static %}
 
-{% block projectView %}
+{% block projectContent %}
 <head>
     <!-- TODO use npm nodemanager instead of the headers -->
     <script src="https://unpkg.com/cytoscape@3.23.0/dist/cytoscape.min.js"></script>
@@ -87,6 +87,13 @@
 
 
             cy.autolock(true)
+            
+            // Clicking tasks pulls up task modal
+            cy.on('click', 'node', function(evt){
+                var node = evt.target;
+                window.location.href += `/task/${node.id()}`;
+
+            });
 
         } catch (error) {
             console.error('There has been a problem with fetching projects:', error);
@@ -94,8 +101,10 @@
     })();
 
 </script>
-<div class="flex justify-center">
-    
-    <div id="cytoscape-graph" style="height:900px; width:95%"></div>
+<div class="relative flex justify-center ">
+    {% block taskContent %}{% endblock %}
+    <div class="w-full">
+        <div id="cytoscape-graph" style="height:900px; width:95%" class="z-10"></div>
+    </div>
 </div>
 {% endblock %}
