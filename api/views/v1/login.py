@@ -6,7 +6,7 @@ from django.contrib import messages
 from rest_framework.response import Response
 
 def login(request):
-    clientID = '43241fcee91b3eb3cd53'
+    clientID = '/'
     client = WAC(clientID)
     
     authorization_url = 'https://github.com/login/oauth/authorize'
@@ -16,7 +16,7 @@ def login(request):
         authorization_url,
         redirectURL = 'http://127.0.0.1:8000',
         scope =[],
-        state = '1234-zyxa-9134-wpst'
+        state = '/'
     )
     
     return Response(url)
@@ -32,8 +32,8 @@ class Callback():
         #Get API token
         
         token_url = 'https://github.com/login/oauth/access_token'
-        clientID = '43241fcee91b3eb3cd53'
-        clientSecret = '73931e1ea1bf97ccfd52d92560dd7ffa15857f99'
+        clientID = '/'
+        clientSecret = '/'
         
         client = WAC(clientID)
         
