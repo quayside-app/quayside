@@ -3,9 +3,9 @@ import requests
 from django.contrib.auth.models import User
 from django.contrib.auth import login
 from django.contrib import messages
-from rest_framework.response import Response
+from django.http import HttpResponseRedirect
 
-def login(request):
+def RequestAuth(request):
     clientID = '/'
     client = WAC(clientID)
     
@@ -19,7 +19,7 @@ def login(request):
         state = '/'
     )
     
-    return Response(url)
+    return HttpResponseRedirect(url)
 
 class Callback():
     def get(self, request):
