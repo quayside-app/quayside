@@ -72,7 +72,16 @@ class TasksAPIView(APIView):
 
         @return: A Response object with the created task(s) data or an error message.
         """
-        response_data, http_status = self.createTasks(request.data)
+        
+    
+    def post(self, request):
+        """
+        Updates  task(s)
+
+        TODO comment
+        TODO TEST
+        """
+        response_data, http_status = self.updateTasks(request.data)
         return Response(response_data, status=http_status)
 
     def delete(self, request):
@@ -101,19 +110,33 @@ class TasksAPIView(APIView):
             serializer = TaskSerializer(data=taskData, many=True)
         else:
             serializer = TaskSerializer(data=taskData)
-        print("HEREEEE IN TASK CREATION")
+        
         if serializer.is_valid():
             serializer.save()  # Save the task(s) to the database
-            print(serializer.data)
             return serializer.data, status.HTTP_201_CREATED
         else:
-            print(serializer.errors)
             return serializer.errors, status.HTTP_400_BAD_REQUEST
 
     @staticmethod
+    def updateTasks(taskData):
+        """
+        TODO commentss
+        """
+        if isinstance(taskData, list):
+            serializer = TaskSerializer(data=taskData, many=True)
+        else:
+            serializer = TaskSerializer(data=taskData)
+        
+        if serializer.is_valid():
+            serializer.save()  # Updates tasks
+            return serializer.data, status.HTTP_200_OK
+        else:
+            return serializer.errors, status.HTTP_400_BAD_REQUEST
+        
+    @staticmethod
     def deleteTasks(taskData):
         """
-        TODO
+        TODO comments
         """
 
         # TODO try/accept??

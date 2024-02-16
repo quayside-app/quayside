@@ -17,9 +17,9 @@
         }
     })();
 </script>
-<div class=" w-full p-6 text-white">
+<div class=" text-white">
 
-    <div class="flex justify-between w-full bg-neutral-800 rounded-lg py-2 px-4">
+    <div class="flex justify-between bg-neutral-800 rounded-lg py-2 px-4 m-6">
         <div id="project-name" class="my-auto sm:text-2xl"></div>
 
         <button id="deleteProjectButton" class="text-center rounded-lg  px-2 py-1 bg-red-600 hover:bg-red-500">
@@ -27,9 +27,8 @@
         </button>
 
     </div>
-    
-    {% block projectView %}{% endblock %}
 
+    {% block projectContent %}{% endblock %}
 
 </div>
 <script>
