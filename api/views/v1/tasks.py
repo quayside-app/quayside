@@ -34,21 +34,10 @@ class TasksAPIView(APIView):
             GET /api/v1/tasks?projectID=1234
 
         """
-        try:
-            #! TODO: Authentication
-            query_params = request.query_params.dict()
+        responseData, httpStatus = self.getTasks(request.query_params.dict())
+        return Response(responseData, status=httpStatus)
 
-            #! TODO: Filter query params to prevent injection attack?!!
-
-            projects = Task.objects.filter(**query_params)  # Query mongo
-
-            serializer = TaskSerializer(projects, many=True)
-
-            return Response(serializer.data)
-        except:
-            return Response({'message': 'Tasks not found'}, status=404)
-
-    def post(self, request):
+    def patch(self, request):
         """
         Creates a single task or a list of tasks. MUST have projectID.
 
@@ -72,17 +61,18 @@ class TasksAPIView(APIView):
 
         @return: A Response object with the created task(s) data or an error message.
         """
-        
-    
-    def post(self, request):
+        responseData, httpStatus = self.createTasks(request.data)
+        return Response(responseData, status=httpStatus)
+
+    def put(self, request):
         """
-        Updates  task(s)
+        Updates single task
 
         TODO comment
         TODO TEST
         """
-        response_data, http_status = self.updateTasks(request.data)
-        return Response(response_data, status=http_status)
+        responseData, httpStatus = self.updateTask(request.data)
+        return Response(responseData, status=httpStatus)
 
     def delete(self, request):
         """
@@ -94,8 +84,27 @@ class TasksAPIView(APIView):
         @return: A Response object with the created task(s) data or an error message.
         """
 
-        responseData, httpStatus = self.createTasks(request.query_params)
+        responseData, httpStatus = self.deleteTasks(request.query_params)
         return Response(responseData, status=httpStatus)
+
+    @staticmethod
+    def getTasks(taskData):
+        """
+        Service API function that can be called internally as well as through the API to get tasks
+        Gets tasks based on  input parameters.
+        TODO COMMENTS
+
+        @param taskData      Dict for a single task or list of dicts for multiple tasks.
+        @return      A tuple of (response_data, http_status).
+        """
+
+        #! TODO: Filter query params to prevent injection attack?!!
+
+        projects = Task.objects.filter(**taskData)  # Query mongo
+
+        serializer = TaskSerializer(projects, many=True)
+
+        return serializer.data, status.HTTP_200_OK
 
     @staticmethod
     def createTasks(taskData):
@@ -103,14 +112,23 @@ class TasksAPIView(APIView):
         Service API function that can be called internally as well as through the API to create tasks
         Creates a single task or multiple tasks based on the input data.
 
-        @param task_data      Dict for a single task or list of dicts for multiple tasks.
+        TODO COMMENTS
+
+        @param taskData      Dict for a single task or list of dicts for multiple tasks.
         @return      A tuple of (response_data, http_status).
         """
+
         if isinstance(taskData, list):
             serializer = TaskSerializer(data=taskData, many=True)
+            for task in taskData:
+                # Not required in serializer (would mess up gets) so need to check ourselves
+                if "projectID" not in task:
+                    return "Error: Parameter 'projectID' required", status.HTTP_400_BAD_REQUEST
         else:
             serializer = TaskSerializer(data=taskData)
-        
+            if "projectID" not in taskData:
+                return "Error: Parameter 'projectID' required", status.HTTP_400_BAD_REQUEST
+
         if serializer.is_valid():
             serializer.save()  # Save the task(s) to the database
             return serializer.data, status.HTTP_201_CREATED
@@ -118,21 +136,27 @@ class TasksAPIView(APIView):
             return serializer.errors, status.HTTP_400_BAD_REQUEST
 
     @staticmethod
-    def updateTasks(taskData):
+    def updateTask(taskData):
         """
         TODO commentss
         """
-        if isinstance(taskData, list):
-            serializer = TaskSerializer(data=taskData, many=True)
-        else:
-            serializer = TaskSerializer(data=taskData)
-        
+        if "id" not in taskData:
+            return "Error: Parameter 'id' required", status.HTTP_400_BAD_REQUEST
+
+        try:
+            task = Task.objects.get(id=taskData["id"])
+        except Task.DoesNotExist:
+            return None, status.HTTP_404_NOT_FOUND 
+
+       
+        serializer = TaskSerializer(data=taskData, instance=task, partial=True)
+
         if serializer.is_valid():
             serializer.save()  # Updates tasks
             return serializer.data, status.HTTP_200_OK
         else:
             return serializer.errors, status.HTTP_400_BAD_REQUEST
-        
+
     @staticmethod
     def deleteTasks(taskData):
         """

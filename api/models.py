@@ -44,7 +44,7 @@ class Project(mongo.Document):
 
 
 class Task(mongo.Document):
-    projectID = mongo.ObjectIdField(required=True)
+    projectID = mongo.ObjectIdField()
     parentTaskID = mongo.ObjectIdField(null=True) # Allow null values
     name = mongo.StringField()
     objectives = mongo.ListField(mongo.StringField())
@@ -53,7 +53,7 @@ class Task(mongo.Document):
     contributorIDs = mongo.ListField(mongo.ObjectIdField())
     otherProjectDependencies = mongo.ListField(mongo.ObjectIdField())
     otherTaskDependencies = mongo.ListField(mongo.ObjectIdField())
-    description = mongo.StringField()
+    description = mongo.StringField(null=True)
     startDate = mongo.DateField()
     endDate = mongo.DateField()
 

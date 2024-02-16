@@ -4,23 +4,21 @@
 {% block taskContent %}
 
 <div class="absolute bg-black w-full h-full bg-opacity-75 z-50  ">
-    <div class="w-96 h-96 bg-neutral-800 mx-auto mt-20 px-5 py-2 rounded-lg sm:text-xl">
+    <div class="w-96 bg-neutral-800 mx-auto mt-20 px-5 py-2 rounded-lg sm:text-xl">
 
-        <form action="/task/{{taskID}}" method="post">
+        <form action="/project/{{project_ID}}/graph/task/{{taskID}}" method="post">
             {% csrf_token %}
 
             <div class="flex justify-end">
                 <a class=" hover:text-gray-500 " href="/project/{{project_ID}}/graph"> x</a> <!-- Go home if exit -->
             </div>
 
-            TASK: {{taskID}}
-
             {{ form }}
 
             <!-- Submit Button -->
             <div class="flex justify-end">
                 <button type='submit' class=" my-4 px-2 py-1 rounded-md  text-white bg-neutral-600 hover:bg-gray-500 text-center">
-                    Create
+                    Save
                 </button>
             </div>
         </form>
