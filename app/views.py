@@ -4,7 +4,10 @@ from django.http import HttpResponseRedirect
 from .forms import NewProjectForm
 from api.views.v1.generatedTasks import GeneratedTasks
 from api.views.v1.projects import ProjectsAPIView
+from api.views.v1.login import login
 
+def login(request):
+    return render(request,'login.html')
 def project(request, projectID):
     return render(request, 'project.html', {'project_ID': projectID})
 

@@ -20,6 +20,7 @@ urlpatterns = [
          views.project.ProjectAPIView.as_view(), name=f"{API_VERSION}-project-details"),
     path(f"{API_VERSION}/tasks/",
          views.tasks.TasksAPIView.as_view(), name=f"{API_VERSION}-tasks-list"),
+    
 
 ]
 
