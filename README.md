@@ -5,7 +5,7 @@ Welcome to our quayside.app, the project management tool that helps your team an
 ## Setup
 You need to install python3, pip, and npm (you can do this by installing [Node.js](https://nodejs.org/en/download)). Once that is done, set up your virtual environment (venv):
 ```bash
-python -m venv venv
+python3 -m venv venv
 ```
 Now activate your venv:
 ```bash
@@ -19,13 +19,15 @@ venv\Scripts\activate
 source venv\Scripts\activate
 ```
 
-Then run the following command in this directory to install all dependencies:
+Then run the following commands in this directory to install all dependencies:
 ```bash
 pip install -r requirements.txt
+```
+```bash
 npm install
 ``` 
 
-For accessing the mongo database locally, you will need the following generated database Atlas creds in an `.env` file (fyi, these creds are different than your creds to login to Mongo Atlas).Here is the format:
+For accessing the mongo database locally, you will need the following generated database Atlas creds in an `.env` file (fyi, these creds are different than your creds to login to Mongo Atlas). Here is the format:
 
 ```bash
 MONGO_USERNAME=<your username>
@@ -41,7 +43,7 @@ Then to start the development server, run:
 ```bash
 python manage.py rundev
 ``` 
-This custom command will allow you to see add tailwind classes properly (unlike `python manage.py runserver`).
+This custom command will allow you to add tailwind classes properly (unlike `python manage.py runserver`).
 
 Open [http://127.0.0.1:8000/](http://127.0.0.1:8000/) with your browser to see the result.
 
