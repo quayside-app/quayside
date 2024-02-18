@@ -51,7 +51,7 @@ def RequestAuth(request):
     url = client.prepare_request_uri(
         authorization_url,
         redirectURL = 'http://127.0.0.1:8000/callback',
-        scope =['user:email'],
+        scope =[],
         state = '/'
     )
     return HttpResponseRedirect(url)
