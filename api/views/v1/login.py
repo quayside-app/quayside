@@ -26,8 +26,6 @@ class Callback():
         data = self.request.GET
         authcode = data['code']
         state = data['state']
-        print(authcode)
-        print(state)
         
         #Get API token
         
