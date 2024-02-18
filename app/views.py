@@ -9,7 +9,6 @@ import requests
 from django.contrib.auth.models import User
 from django.contrib.auth import login
 from django.contrib import messages
-from django.http import HttpResponseRedirect
 import os
 from django.views.generic.base import TemplateView
 
@@ -51,8 +50,8 @@ def RequestAuth(request):
     
     url = client.prepare_request_uri(
         authorization_url,
-        redirectURL = 'http://127.0.0.1:8000',
-        scope =[],
+        redirectURL = 'http://127.0.0.1:8000/callback',
+        scope =['user:email'],
         state = '/'
     )
     return HttpResponseRedirect(url)
@@ -86,10 +85,10 @@ class Callback(TemplateView):
         
         header = {'Authorization': 'token {}'.format(client.token['access_token'])}
         
-        response = requests.get('https://api.github.com/user', headers=header)
+        response = requests.get('https://api.github.com/user/emails', headers=header)
         
         json_dict  = response.json()
         
-        print(json_dict['email'])
+        print(json_dict[0])
         
         return HttpResponseRedirect('http://127.0.0.1:8000')
