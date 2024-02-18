@@ -89,6 +89,4 @@ class Callback(TemplateView):
         
         json_dict  = response.json()
         
-        print(json_dict[0])
-        
         return HttpResponseRedirect('http://127.0.0.1:8000')
