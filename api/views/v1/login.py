@@ -54,7 +54,6 @@ class Callback():
         
         json_dict  = response.json()
         
-        print(json_dict['email'])
     
         
         
