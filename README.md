@@ -19,19 +19,22 @@ venv\Scripts\activate
 source venv\Scripts\activate
 ```
 
-Then run the following command in this directory to install all dependencies:
+Then run these following commands in this directory to install all dependencies:
 ```bash
 pip install -r requirements.txt
+```
+```bash
 npm install
 ``` 
 
-For accessing the mongo database locally, you will need the following generated database Atlas creds in an `.env` file (fyi, these creds are different than your creds to login to Mongo Atlas).Here is the format:
+For accessing the mongo database locally, you will need the following generated database Atlas creds in an `.env` file (fyi, these creds are different than your creds to login to Mongo Atlas). Here is the format:
 
 ```bash
 MONGO_USERNAME=<your username>
 MONGO_PASSWORD=<your password>
 CHATGPT_API_KEY=<your ChatGPT API key>
 ```
+
 
 
 ## Usage
@@ -49,3 +52,4 @@ Open [http://127.0.0.1:8000/](http://127.0.0.1:8000/) with your browser to see t
 
 If you add any other npm dependencies, please do it by running `npm install --save <my-dependency>` so it is added to package.json for the next person to install. Otherwise, add the package manually to package.json. If you install python dependencies, please add them to the requirements.txt by running `pip freeze > requirements.txt`.
 
+Note: If you are having issues with "[SSL: CERTIFICATE_VERIFY_FAILED]" you may need to upgrade pip.
