@@ -7,6 +7,7 @@ class User(mongo.Document):
     firstName = mongo.StringField()
     lastName = mongo.StringField()
     teamIDs = mongo.ListField(mongo.ObjectIdField())
+    apiKey = mongo.StringField()
     meta = {
         'collection': 'User', # Need to specify UPPER Case
         'strict': False  # If true, throws weird error for __v
