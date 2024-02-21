@@ -11,16 +11,10 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.stdout.write("Starting Tailwind CSS build process...")
         tailwind_process = subprocess.Popen(
-            [
-                "npx",
-                "tailwindcss",
-                "-i",
-                "./app/static/app/src/input.css",
-                "-o",
-                "./app/static/app/src/output.css",
-                "--watch",
-            ],
-            shell=True,
+            #['npx', 'tailwindcss', '-i', './app/static/app/src/input.css', '-o', './app/static/app/src/output.css', '--watch'],
+            # String required when shell=True (less safe though)
+            'npx tailwindcss -i ./app/static/app/src/input.css -o ./app/static/app/src/output.css --watch',
+            shell=True
         )
 
         self.stdout.write("Starting Django development server...")
