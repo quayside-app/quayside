@@ -19,7 +19,8 @@ class Command(BaseCommand):
                 "-o",
                 "./app/static/app/src/output.css",
                 "--watch",
-            ]
+            ],
+            shell=True
         )
 
         self.stdout.write("Starting Django development server...")
