@@ -4,6 +4,7 @@ from django.http import HttpResponseRedirect
 from .forms import NewProjectForm
 from api.views.v1.generatedTasks import GeneratedTasks
 from api.views.v1.projects import ProjectsAPIView
+from api.views.v1.login import LoginAPIView
 from oauthlib.oauth2 import WebApplicationClient as WAC
 import requests
 from django.contrib.auth.models import User
@@ -88,5 +89,5 @@ class Callback(TemplateView):
         response = requests.get(os.getenv('GITHUB_API_URL'), headers=header)
         
         json_dict  = response.json()
-        print(json_dict)
+        LoginAPIView.get({'email':json_dict[1]['email'] })
         return HttpResponseRedirect('http://127.0.0.1:8000')
