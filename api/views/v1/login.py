@@ -8,6 +8,7 @@ class  LoginAPIView(APIView):
         user = User.objects.filter(**query_params)
         serializer = UserSerializer(user, many=True)
         print(serializer.data)
+        return(serializer.data)
         
     
         

@@ -7,15 +7,17 @@ from api.views.v1.projects import ProjectsAPIView
 from api.views.v1.login import LoginAPIView
 from oauthlib.oauth2 import WebApplicationClient as WAC
 import requests
-from django.contrib.auth.models import User
-from django.contrib.auth import login
 from django.contrib import messages
 import os
 from django.views.generic.base import TemplateView
 
 def login(request):
     return render(request, 'login.html')
- 
+
+def user(request):
+    print(request)
+    return render(request, 'index.html')
+
 def project(request, projectID):
     return render(request, 'project.html', {'project_ID': projectID})
 
@@ -45,7 +47,7 @@ def createProject(request):
 def RequestAuth(request):
     clientID = os.getenv("GITHUB_CLIENT_ID")
     client = WAC(clientID)
-    
+    print(request)
     authorization_url = 'https://github.com/login/oauth/authorize'
     
     
@@ -87,9 +89,12 @@ class Callback(TemplateView):
         response = requests.get(os.getenv('GITHUB_API_URL_user'), headers=header)
         
         json_dict  = response.json()
+        #For Github, if user has no visible email, make second request for email
         if json_dict['email'] is None:
-            print('we went in here :D')
             response = requests.get(os.getenv('GITHUB_API_URL_email'), headers=header)
             json_dict['email'] = response.json()[0]['email']
-        LoginAPIView.get(json_dict)  
-        return HttpResponseRedirect('http://127.0.0.1:8000')
+            
+         
+        userInfo = LoginAPIView.get(json_dict)
+
+        return render(request, 'index.html')
