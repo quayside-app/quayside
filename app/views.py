@@ -52,7 +52,7 @@ def RequestAuth(request):
     url = client.prepare_request_uri(
         authorization_url,
         redirectURL = 'http://127.0.0.1:8000/callback',
-        scope =['user:email'],
+        scope =['user'],
         state = '/'
     )
     return HttpResponseRedirect(url)
@@ -62,8 +62,6 @@ class Callback(TemplateView):
         data = self.request.GET
         authcode = data['code']
         state = data['state']
-        print(authcode)
-        print(state)
         
         #Get API token
         
@@ -85,9 +83,13 @@ class Callback(TemplateView):
         client.parse_request_body_response(response.text)
         
         header = {'Authorization': 'token {}'.format(client.token['access_token'])}
-        
-        response = requests.get(os.getenv('GITHUB_API_URL'), headers=header)
+
+        response = requests.get(os.getenv('GITHUB_API_URL_user'), headers=header)
         
         json_dict  = response.json()
-        LoginAPIView.get({'email':json_dict[1]['email'] })
+        if json_dict['email'] is None:
+            print('we went in here :D')
+            response = requests.get(os.getenv('GITHUB_API_URL_email'), headers=header)
+            json_dict['email'] = response.json()[0]['email']
+        LoginAPIView.get(json_dict)  
         return HttpResponseRedirect('http://127.0.0.1:8000')
