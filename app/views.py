@@ -5,13 +5,19 @@ from .forms import NewProjectForm, TaskForm
 from api.views.v1.generatedTasks import GeneratedTasks
 from api.views.v1.projects import ProjectsAPIView
 from api.views.v1.login import LoginAPIView
+
+from api.views.v1.users import UserDetailAPIView
 from oauthlib.oauth2 import WebApplicationClient as WAC
 import requests
 from django.contrib import messages
 import os
 from django.views.generic.base import TemplateView
+from django.contrib.auth import login
+import jwt
+from dotenv import load_dotenv
+from django.http import JsonResponse
 
-def login(request):
+def user_login(request):
     return render(request, 'login.html')
 
 def user(request):
@@ -131,7 +137,36 @@ class Callback(TemplateView):
             response = requests.get(os.getenv('GITHUB_API_URL_email'), headers=header)
             json_dict['email'] = response.json()[0]['email']
             
-         
-        userInfo = LoginAPIView.get(json_dict)
+        
+        userInfo = LoginAPIView.get(json_dict)[0]
 
-        return render(request, 'index.html')
+
+        response = render(request, 'index.html')
+
+        print(userInfo)
+        print(userInfo["id"])
+
+        # Create api jwt key and save as a cookie
+        apiToken = create_api_key(userInfo["id"])
+        print("KEYYYY:", apiToken)
+        
+        
+        # Setting httponly is safer and doesn't let the key be accessed by js (to prevent xxs).
+        # Instead the browser will always pass the cookie to the server.
+        response.set_cookie('apiToken', apiToken, httponly=True)  # TODO set expiration age
+
+
+        # TODO if user doesn't exist, create user
+        return response
+    
+
+def create_api_key(userID:str) -> str:
+    load_dotenv()
+    secretKey = os.getenv('API_SECRET')
+    payload = {
+        "userID": userID,
+        #"exp": datetime.datetime.utcnow() + datetime.timedelta(days=1)  # TODO expiration time
+    }
+
+    apiKey = jwt.encode(payload, secretKey, algorithm="HS256")
+    return apiKey

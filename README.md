@@ -37,6 +37,7 @@ GITHUB_CLIENT_ID=<your client ID>
 GITHUB_CLIENT_SECRET=<your client secret>
 GITHUB_API_URL_email=https://api.github.com/user/emails
 GITHUB_API_URL_user=https://api.github.com/user
+API_SECRET=<key you make up to encrypt your jwt tokens>
 ```
 
 

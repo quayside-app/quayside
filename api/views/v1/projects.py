@@ -5,8 +5,11 @@ from api.serializers import ProjectSerializer
 from api.views.v1.tasks import TasksAPIView
 from rest_framework import status
 
+from django.utils.decorators import method_decorator
+from api.decorators import api_key_required
 
 
+@method_decorator(api_key_required, name='dispatch')  # TODO FIGURE OUT WHAT DISPATCH MEANS
 class ProjectsAPIView(APIView):
     def get(self, request):
         """
