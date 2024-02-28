@@ -18,7 +18,6 @@ def api_key_required(function):
         # Try cookies if there is not a token in the header
         if not token:
             token = request.COOKIES.get('apiToken')
-            print("TOKEN HERE:", token)
 
         # If no token anywhere, raise an error
         if not token:
@@ -36,7 +35,6 @@ def api_key_required(function):
 
         # Verify that the user is in the database (Can check perms if needed too)
         userID = decoded.get("userID")
-        print("decorator userID:", userID)
         try:
             # TODO USE user route instead!!!
             user = User.objects.filter(id=userID).first()

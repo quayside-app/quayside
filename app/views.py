@@ -143,18 +143,12 @@ class Callback(TemplateView):
 
         response = render(request, 'index.html')
 
-        print(userInfo)
-        print(userInfo["id"])
 
         # Create api jwt key and save as a cookie
-        apiToken = create_api_key(userInfo["id"])
-        print("KEYYYY:", apiToken)
-        
-        
+        apiToken = create_api_key(userInfo["id"])        
         # Setting httponly is safer and doesn't let the key be accessed by js (to prevent xxs).
         # Instead the browser will always pass the cookie to the server.
         response.set_cookie('apiToken', apiToken, httponly=True)  # TODO set expiration age
-
 
         # TODO if user doesn't exist, create user
         return response
