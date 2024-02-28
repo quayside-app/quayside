@@ -41,7 +41,7 @@ INSTALLED_APPS = [
     "api",
     "compressor",  # For tailwind
     "django_browser_reload",  # For automatic reload
-    "rest_framework"
+    "rest_framework",
 ]
 
 MIDDLEWARE = [

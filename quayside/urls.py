@@ -19,11 +19,10 @@ from django.urls import path, include
 from .views import index
 
 urlpatterns = [
-    path('', index, name='index'),
-    path("__reload__/", include("django_browser_reload.urls")), 
     path('', include('app.urls')),
-    path('api/', include('api.urls'))
-
+    path('', index, name='index'),
+    path("__reload__/", include("django_browser_reload.urls")),
+    path('api/', include('api.urls')),
 ] 
 
 

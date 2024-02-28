@@ -62,4 +62,5 @@ class Task(mongo.Document):
         'collection': 'Task', # Need to specify UPPER Case
         'strict': False  # If true, throws weird error for __v
         } 
+        
 

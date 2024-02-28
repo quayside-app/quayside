@@ -27,12 +27,16 @@ pip install -r requirements.txt
 npm install
 ``` 
 
-For accessing the mongo database locally, you will need the following generated database Atlas creds in an `.env` file (fyi, these creds are different than your creds to login to Mongo Atlas). Here is the format:
+For accessing the mongo database locally, you will need the following generated database Atlas, ChatGPT, and Github creds in an `.env` file (fyi, the Atlas creds are different than your creds to login to Mongo Atlas). You'll also need the following Github URLs. Here is the format:
 
 ```bash
 MONGO_USERNAME=<your username>
 MONGO_PASSWORD=<your password>
 CHATGPT_API_KEY=<your ChatGPT API key>
+GITHUB_CLIENT_ID=<your client ID>
+GITHUB_CLIENT_SECRET=<your client secret>
+GITHUB_API_URL_email=https://api.github.com/user/emails
+GITHUB_API_URL_user=https://api.github.com/user
 ```
 
 
