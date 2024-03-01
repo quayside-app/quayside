@@ -17,6 +17,7 @@ import jwt
 from dotenv import load_dotenv
 
 from cryptography.fernet import Fernet
+from api.decorators import api_key_required
 
 
 def user_login(request):
@@ -27,11 +28,11 @@ def user(request):
     print(request)
     return render(request, 'index.html')
 
-
+@api_key_required
 def projectGraphView(request, projectID):
     return render(request, "graph.html", {"project_ID": projectID})
 
-
+@api_key_required
 def taskView(request, projectID, taskID):
     print("IN CREATE TASK VEW")
     if request.method == "POST":
@@ -64,7 +65,7 @@ def taskView(request, projectID, taskID):
             form = TaskForm()
     return render(request, "taskModal.html", {"project_ID": projectID, "taskID": taskID, "form": form})
 
-
+@api_key_required
 def createProjectView(request):
 
     # If this is a POST request, process the form data
