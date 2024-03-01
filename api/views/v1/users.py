@@ -6,7 +6,10 @@ from api.models import User
 from api.serializers import UserSerializer
 from mongoengine.errors import NotUniqueError
 
+from django.utils.decorators import method_decorator
+from api.decorators import api_key_required
 
+@method_decorator(api_key_required, name='dispatch')  # dispatch protects all HTTP requests coming in
 class UsersAPIView(APIView):
     """
     User Detail API View

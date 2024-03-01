@@ -4,12 +4,10 @@ from api.models import Project
 from api.serializers import ProjectSerializer
 from api.views.v1.tasks import TasksAPIView
 from rest_framework import status
-
 from django.utils.decorators import method_decorator
 from api.decorators import api_key_required
 
-
-@method_decorator(api_key_required, name='dispatch')  # TODO FIGURE OUT WHAT DISPATCH MEANS
+@method_decorator(api_key_required, name='dispatch')  # dispatch protects all HTTP requests coming in
 class ProjectsAPIView(APIView):
     def get(self, request):
         """
@@ -73,7 +71,7 @@ class ProjectsAPIView(APIView):
         """
         responseData, httpStatus = self.createProjects(request.data)
         return Response(responseData, status=httpStatus)
-    
+
     def delete(self, request):
         """
         Deletes a project or list of projects
@@ -127,14 +125,14 @@ class ProjectsAPIView(APIView):
         # Check
         if "id" not in projectData:
             return "Error: Parameter 'id' required", status.HTTP_400_BAD_REQUEST
-        
+
         id = projectData["id"]
-        
+
         # Delete associated tasks
         ids = id
         if not isinstance(id, list):
             ids = [ids]
-            
+
         for id in ids:
             result = TasksAPIView.deleteTasks({"projectID": id})
             # TODO handle result if error
@@ -142,7 +140,7 @@ class ProjectsAPIView(APIView):
         numberObjectsDeleted = Project.objects(id=id).delete()
         if numberObjectsDeleted == 0:
             return "No project(s) found to delete.", status.HTTP_404_NOT_FOUND
-        
+
         return "Project(s) Deleted Successfully", status.HTTP_200_OK
 
 

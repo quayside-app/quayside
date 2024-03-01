@@ -4,7 +4,10 @@ from api.models import Task
 from api.serializers import TaskSerializer
 from rest_framework import status
 
+from django.utils.decorators import method_decorator
+from api.decorators import api_key_required
 
+@method_decorator(api_key_required, name='dispatch')  # dispatch protects all HTTP requests coming in
 class TasksAPIView(APIView):
     def get(self, request):
         """

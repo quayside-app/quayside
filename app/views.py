@@ -9,13 +9,13 @@ from api.views.v1.projects import ProjectsAPIView
 from api.views.v1.users import UsersAPIView
 from oauthlib.oauth2 import WebApplicationClient as WAC
 import requests
-from django.contrib import messages
+
 import os
 from django.views.generic.base import TemplateView
 from django.contrib.auth import login
 import jwt
 from dotenv import load_dotenv
-from django.http import JsonResponse
+
 from cryptography.fernet import Fernet
 
 

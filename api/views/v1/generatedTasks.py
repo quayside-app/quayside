@@ -9,7 +9,10 @@ import re
 
 from api.views.v1.tasks import TasksAPIView
 
+from django.utils.decorators import method_decorator
+from api.decorators import api_key_required
 
+@method_decorator(api_key_required, name='dispatch')  # dispatch protects all HTTP requests coming in
 class GeneratedTasks(APIView):
     """
     Generates and saves tasks with ChatGPT
