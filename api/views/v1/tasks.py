@@ -37,7 +37,7 @@ class TasksAPIView(APIView):
         responseData, httpStatus = self.getTasks(request.query_params.dict())
         return Response(responseData, status=httpStatus)
 
-    def patch(self, request):
+    def post(self, request):
         """
         Creates a single task or a list of tasks. MUST have projectID.
 

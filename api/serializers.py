@@ -6,8 +6,7 @@ from api.models import User, Project, Task
 class UserSerializer(DocumentSerializer):
     class Meta:
         model = User
-        fields = ['id', 'email', 'firstName',
-                  'lastName', 'username', 'teamIDs']
+        # Default to all fields
 
 
 class ProjectSerializer(DocumentSerializer):

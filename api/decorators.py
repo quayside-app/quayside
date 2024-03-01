@@ -3,6 +3,7 @@ import jwt
 from dotenv import load_dotenv
 import os
 from api.models import User
+from cryptography.fernet import Fernet
 
 
 def api_key_required(function):
@@ -22,7 +23,7 @@ def api_key_required(function):
         # If no token anywhere, raise an error
         if not token:
             return JsonResponse({'Error': 'No token provided'}, status=401)
-        
+
         load_dotenv()
         secretKey = os.getenv('API_SECRET')
 
@@ -33,13 +34,22 @@ def api_key_required(function):
         except jwt.InvalidTokenError:
             return JsonResponse({'Error': 'Invalid token'}, status=401)
 
-        # Verify that the user is in the database (Can check perms if needed too)
+        # Verify that the user is in the database + API key matches (Can check perms if needed too)
         userID = decoded.get("userID")
         try:
             # TODO USE user route instead!!!
             user = User.objects.filter(id=userID).first()
+
             if not user:
                 return JsonResponse({'Error': 'No user associated with that token'}, status=401)
+
+            # Check API keys match
+            fernetKey =  secretKey + "=" # .Env does NOT read "=" properly but fernet requires it
+            fernet = Fernet(fernetKey.encode())
+            decryptedApiToken = fernet.decrypt(user["apiKey"]).decode()
+            if token != decryptedApiToken:
+                return JsonResponse({'Error': 'No user associated with that token'}, status=401)
+            
         except Exception as e:
             return JsonResponse({'Error': 'Could not find user associated with token'}, status=401)
         return function(request, *args, **kwargs)  # Call original function
