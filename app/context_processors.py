@@ -12,11 +12,11 @@ def global_context(request):
     load_dotenv()
     secretKey = os.getenv('API_SECRET')
     token = request.COOKIES.get('apiToken')
-    decoded = jwt.decode(token, secretKey, algorithms=["HS256"])
-    userID = decoded.get("userID")
-    print(userID)
 
-    if not userID:
+    if token:
+        decoded = jwt.decode(token, secretKey, algorithms=["HS256"])
+        userID = decoded.get("userID")
+    else:
         userID = ""
     return {'api_url': '/api/v1',
             'userID': userID}
