@@ -18,6 +18,7 @@ from dotenv import load_dotenv
 
 from cryptography.fernet import Fernet
 from api.decorators import api_key_required
+from app.context_processors import global_context
 
 
 def user_login(request):
@@ -68,6 +69,10 @@ def taskView(request, projectID, taskID):
 @api_key_required
 def createProjectView(request):
 
+    # TODO: There might be a better way to get the userID (and be reusable)
+    context = global_context(request)
+    userId = context.get('userID')
+
     # If this is a POST request, process the form data
     if request.method == "POST":
         form = NewProjectForm(request.POST)
@@ -75,9 +80,9 @@ def createProjectView(request):
             # Process the data in form.cleaned_data as required
             name = form.cleaned_data["description"]
 
-            projectData, _ = ProjectsAPIView.createProjects({"name": name, "userIDs": [
-                                                            "6521d8581bcf69b7d260608b"]})  # ! TODO change to not-hardcoded
-            projectID = projectData["id"]
+            projectData, _ = ProjectsAPIView.createProjects({"name": name, "userIDs": [userId]}) 
+            projectID = projectData.get("id")
+            print(projectData)
             GeneratedTasks.generateTasks(
                 {"projectID": projectID, "name": name})
 

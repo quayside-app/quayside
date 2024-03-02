@@ -4,7 +4,7 @@
     // Create sidebar project content
     (async function() {
         try {
-            const response = await fetch("{{ api_url }}/projects/?userIDs=6521d8581bcf69b7d260608b"); // TODO: REPLACE userID w/ reference
+            const response = await fetch("{{ api_url }}/projects/?userIDs={{userID}}");
             
             if (!response.ok) throw new Error("Network response was not ok");
             const projects = await response.json();
