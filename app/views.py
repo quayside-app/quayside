@@ -160,9 +160,12 @@ class Callback(TemplateView):
 
         key = os.getenv('API_SECRET') + "=" # .Env does NOT read "=" properly but fernet requires it
         fernet = Fernet(key.encode())
-        apiToken = fernet.decrypt(userInfo.get("apiKey")).decode() # Get API key and decrypt/decode
+        apiToken = userInfo.get("apiKey") # Get API key 
+        
+        if apiToken:
+            apiToken = fernet.decrypt(apiToken).decode() # decrypt/decode
         # Create an api key if it doesn't exist in the db yet
-        if not apiToken:
+        else:
             # Create api jwt key and save as a cookie
             apiToken = create_api_key(userInfo["id"])
 
@@ -173,7 +176,7 @@ class Callback(TemplateView):
             userInfo, _ = UsersAPIView.updateUser({'id': userInfo["id"],
                                                 'apiKey': encryptedApiKey,
                                                 })
-            
+
         # Save api key to cookies
         # Setting httponly is safer and doesn't let the key be accessed by js (to prevent xxs).
         # Instead the browser will always pass the cookie to the server.
