@@ -1,12 +1,12 @@
 from django.http import JsonResponse
 import jwt
-from dotenv import load_dotenv
-import os
 from api.models import User
-from cryptography.fernet import Fernet
 
 
-def api_key_required(function):
+from api.utils import decodeApiKey, decryptApiKey
+
+
+def apiKeyRequired(function):
     """
     Citation: ChatGPT
 
@@ -24,18 +24,15 @@ def api_key_required(function):
         if not token:
             return JsonResponse({'Error': 'No token provided'}, status=401)
 
-        load_dotenv()
-        secretKey = os.getenv('API_SECRET')
-
         try:
-            decoded = jwt.decode(token, secretKey, algorithms=["HS256"])
+            decodedKey = decodeApiKey(token)
         except jwt.ExpiredSignatureError:
-            return JsonResponse({'Error': 'Token is expired'}, status=401)
+            return JsonResponse({'Error': 'API Key is expired'}, status=401)
         except jwt.InvalidTokenError:
-            return JsonResponse({'Error': 'Invalid token'}, status=401)
+            return JsonResponse({'Error': 'Invalid API Key'}, status=401)
 
         # Verify that the user is in the database + API key matches (Can check perms if needed too)
-        userID = decoded.get("userID")
+        userID = decodedKey.get("userID")
         try:
             # TODO USE user route instead!!!
             user = User.objects.filter(id=userID).first()
@@ -44,9 +41,7 @@ def api_key_required(function):
                 return JsonResponse({'Error': 'No user associated with that token'}, status=401)
 
             # Check API keys match
-            fernetKey =  secretKey + "=" # .Env does NOT read "=" properly but fernet requires it
-            fernet = Fernet(fernetKey.encode())
-            decryptedApiToken = fernet.decrypt(user["apiKey"]).decode()
+            decryptedApiToken = decryptApiKey(user["apiKey"])
             if token != decryptedApiToken:
                 return JsonResponse({'Error': 'No user associated with that token'}, status=401)
             

@@ -4,6 +4,9 @@ from api.models import Task
 
 
 class NewProjectForm(forms.Form):
+    """
+    A form for creating a new project with a description.
+    """
     description = forms.CharField(label="What is your project about?",
                                   widget=forms.TextInput(attrs={
                                       "placeholder": "I want to bake a cake!",
@@ -14,6 +17,9 @@ class NewProjectForm(forms.Form):
 
 
 class TaskForm(forms.Form):
+    """
+    A form for creating a new task with a name and description.
+    """
     # Can't use forms.ModelForm bc it's mongo
     name = forms.CharField(label="",
                            widget=forms.TextInput(attrs={

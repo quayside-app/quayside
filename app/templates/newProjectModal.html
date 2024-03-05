@@ -14,7 +14,7 @@
                 <a class="w-1/6 text-right  hover:text-gray-500 " href="/"> x</a> <!-- Go home if exit -->
             </div>
 
-            <form action="/create-project" method="post">
+            <form action="/create-project/" method="post">
                 {% csrf_token %} <!-- Required by Django to prevent Cross Site Scripting -->
 
                 <!-- Project Input(s) -->
@@ -29,7 +29,7 @@
                     </button>
                 </div>
             </form>
-            
+
         </div>
     </div>
 </div>

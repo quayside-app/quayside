@@ -1,6 +1,6 @@
 
 from api.views.v1.tasks import TasksAPIView
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import HttpResponseRedirect
 from .forms import NewProjectForm, TaskForm
 from api.views.v1.generatedTasks import GeneratedTasks
@@ -12,48 +12,64 @@ import requests
 
 import os
 from django.views.generic.base import TemplateView
-from django.contrib.auth import login
-import jwt
-from dotenv import load_dotenv
 
-from cryptography.fernet import Fernet
-from api.decorators import api_key_required
+from api.decorators import apiKeyRequired
 from app.context_processors import global_context
 
+from api.utils import decryptApiKey, createEncodedApiKey, encryptApiKey
 
-def user_login(request):
+
+
+def userLogin(request):
+    """
+    Renders the login model for the user.
+
+    @param {HttpRequest} request - The request object.
+    @returns {HttpResponse} - An HttpResponse object that renders the login.html template.
+    """
     return render(request, 'login.html')
 
 
-def user(request):
-    print(request)
-    return render(request, 'index.html')
 
-@api_key_required
+@apiKeyRequired
 def projectGraphView(request, projectID):
+    """
+    Renders the graph view for a specific project. This view requires an API key in the cookies.
+
+
+    @param {HttpRequest} request - The request object.
+    @param {str} projectID - The ID for the project whose graph is to be rendered.
+    @returns {HttpResponse} - An HttpResponse object that renders the 
+        graph.html template with the project ID context.
+    """
     return render(request, "graph.html", {"project_ID": projectID})
 
-@api_key_required
+@apiKeyRequired
 def taskView(request, projectID, taskID):
-    print("IN CREATE TASK VEW")
+    """
+    Renders the view for a specific task within a project as a form. 
+    If the request method is GET or any other method, a form populated with the task's existing 
+    data is provided for editing or a blank form for creation.
+    If the request method is POST and the form is valid, the task is updated with the provided data. 
+    This view requires an API key in the cookies.
+
+    @param {HttpRequest} request - The request object, which can be GET or POST.
+    @param {str} projectID - The ID for the project to which the task belongs.
+    @param {str} taskID - The ID for the task to be viewed or edited.
+    
+    @returns {HttpResponse} - An HttpResponse object that renders the taskModal.html 
+        template with the project ID, task ID, and task form context.
+    """
     if request.method == "POST":
         form = TaskForm(request.POST)
 
         if form.is_valid():
             newData = form.cleaned_data
             newData["id"] = taskID
-            print(newData)
-
             data, code = TasksAPIView.updateTask(newData)
 
-            print("UPDATED TASKS...")
-
-            print(data)
-            print(code)
-
-    # if a GET (or any other method) we"ll create a blank form
+    # If a GET (or any other method) we"ll create a blank form
     else:
-        print("HEREEEE")
         taskData = TasksAPIView.getTasks({"id": taskID})[0][0]
         # Populate initial form data
         if taskData is not None:
@@ -66,10 +82,20 @@ def taskView(request, projectID, taskID):
             form = TaskForm()
     return render(request, "taskModal.html", {"project_ID": projectID, "taskID": taskID, "form": form})
 
-@api_key_required
+@apiKeyRequired
 def createProjectView(request):
+    """
+    Renders the view for creating a new project. 
+    If the method is POST, it processes the submitted form data to create a new project. 
+    If the method is GET or any other, it presents a blank form for creating a project. 
+    This view requires an API key in the cookies.
 
-    # TODO: There might be a better way to get the userID (and be reusable)
+    @param {HttpRequest} request - The request object, which determines the behavior (GET or POST) of the view.
+    @returns {HttpResponse} - An HttpResponse object that either renders the newProjectModal.html template with the form or redirects to the project's graph view upon successful creation.
+
+    """
+
+    # Gets userID from global context
     context = global_context(request)
     userId = context.get('userID')
 
@@ -82,7 +108,6 @@ def createProjectView(request):
 
             projectData, _ = ProjectsAPIView.createProjects({"name": name, "userIDs": [userId]}) 
             projectID = projectData.get("id")
-            print(projectData)
             GeneratedTasks.generateTasks(
                 {"projectID": projectID, "name": name})
 
@@ -96,10 +121,16 @@ def createProjectView(request):
     return render(request, "newProjectModal.html", {"form": form})
 
 
-def RequestAuth(request):
+def requestAuth(request):
+    """
+    Initiates an OAuth authentication request (Github, etc).
+
+    @param {HttpRequest} request - The request object.
+    @returns {HttpResponseRedirect} - A redirect response that navigates the user to OAuth 
+        authorization page.
+    """
     clientID = os.getenv("GITHUB_CLIENT_ID")
     client = WAC(clientID)
-    print(request)
     authorization_url = 'https://github.com/login/oauth/authorize'
 
     url = client.prepare_request_uri(
@@ -113,6 +144,15 @@ def RequestAuth(request):
 
 class Callback(TemplateView):
     def get(self, request):
+        """
+        Handles the callback after GitHub authentication, creates the user in the db if they
+        don't exist, and retrieves the user's info and API key (generating it if it doesn't exist).
+        It then saves the API key to the user's cookies so it can be sent to the API routes in
+        future requests.
+
+        @param request: The HTTP request object containing the callback data from GitHub.
+        @returns: The rendered index.html page with the API token set in the cookies.
+        """
         data = self.request.GET
         authcode = data['code']
         state = data['state']
@@ -142,40 +182,37 @@ class Callback(TemplateView):
         response = requests.get(
             os.getenv('GITHUB_API_URL_user'), headers=header)
 
-        json_dict = response.json()
+        oathUserInfo = response.json()
         # For Github, if user has no visible email, make second request for email
-        if json_dict['email'] is None:
+        if not oathUserInfo.get('email'):
             response = requests.get(
                 os.getenv('GITHUB_API_URL_email'), headers=header)
-            json_dict['email'] = response.json()[0]['email']
+            oathUserInfo['email'] = response.json()[0]['email']
 
         
         userInfo = UsersAPIView.getUser(
-            {'email': json_dict.get('email')})[0].get("user")
+            {'email': oathUserInfo.get('email')})[0].get("user")
 
         # Create a user in our db if none exists
         if not userInfo:
-            names = json_dict.get('name').split()
-            userInfo, _ = UsersAPIView.createUser({'email': json_dict['email'],
-                                                'username': json_dict.get('login'),
+            names = oathUserInfo.get('name').split()
+            userInfo, _ = UsersAPIView.createUser({'email': oathUserInfo['email'],
+                                                'username': oathUserInfo.get('login'),
                                                 'firstName': names[0],
                                                 'lastName': names[-1],
                                                 })
-        response = render(request, 'index.html')
+        response = redirect('/')  # Redirect instead of rendering (to make it update)
 
-        key = os.getenv('API_SECRET') + "=" # .Env does NOT read "=" properly but fernet requires it
-        fernet = Fernet(key.encode())
+
         apiToken = userInfo.get("apiKey") # Get API key 
         
         if apiToken:
-            apiToken = fernet.decrypt(apiToken).decode() # decrypt/decode
+            apiToken = decryptApiKey(apiToken)
         # Create an api key if it doesn't exist in the db yet
         else:
-            # Create api jwt key and save as a cookie
-            apiToken = create_api_key(userInfo["id"])
-
-            # Encrypt key to store in db
-            encryptedApiKey = fernet.encrypt(apiToken.encode()).decode() # Encode and turn back into a string
+            # Create/encrypt API key
+            apiToken = createEncodedApiKey(userInfo["id"])
+            encryptedApiKey = encryptApiKey(apiToken)
 
             # Save api Key to DB
             userInfo, _ = UsersAPIView.updateUser({'id': userInfo["id"],
@@ -189,14 +226,3 @@ class Callback(TemplateView):
 
         return response
 
-
-def create_api_key(userID: str) -> str:
-    load_dotenv()
-    secretKey = os.getenv('API_SECRET')
-    payload = {
-        "userID": userID,
-        # "exp": datetime.datetime.utcnow() + datetime.timedelta(days=1)  # TODO expiration time
-    }
-
-    apiKey = jwt.encode(payload, secretKey, algorithm="HS256")
-    return apiKey
