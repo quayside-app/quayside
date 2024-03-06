@@ -23,4 +23,4 @@ class TaskSerializer(DocumentSerializer):
 
 class GeneratedTaskSerializer(serializers.Serializer):
     projectID = serializers.CharField(required=True)
-    name = serializers.CharField(required=True)   # project name
+    name = serializers.CharField(required=True)  # project name

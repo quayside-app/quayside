@@ -1,22 +1,22 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
-from api.models import User
-from api.serializers import UserSerializer
+
 from mongoengine.errors import NotUniqueError
 
 from django.utils.decorators import method_decorator
+
+from api.models import User
+from api.serializers import UserSerializer
 from api.decorators import apiKeyRequired
 
 
 # dispatch protects all HTTP requests coming in
-@method_decorator(apiKeyRequired, name='dispatch')
+@method_decorator(apiKeyRequired, name="dispatch")
 class UsersAPIView(APIView):
     """
     Create, get, and update users.
     """
-
 
     def get(self, request):
         """
@@ -35,10 +35,10 @@ class UsersAPIView(APIView):
         @example Javascript:
             // To fetch all users
             fetch('/api/v1/users');
-            
+
             // To fetch a user by ID
             fetch('/api/v1/users?id=1234');
-            
+
             // To fetch a user by email
             fetch('/api/v1/users?email=user@example.com');
         """
@@ -51,11 +51,14 @@ class UsersAPIView(APIView):
             return Response(responseData, httpStatus)
 
         except Exception as e:
-            return Response({'message': f'Error getting user details: {e}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(
+                {"message": f"Error getting user details: {e}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
     def post(self, request):
         """
-        Handles the POST request to create a new user based on the provided body parameters. 
+        Handles the POST request to create a new user based on the provided body parameters.
         Requires 'apiToken' passed in auth header or cookies.
 
         @param {HttpRequest} request - The request object.
@@ -84,21 +87,17 @@ class UsersAPIView(APIView):
                 })
             });
         """
-        if request.content_type != 'application/json':
-            return Response({'error': 'Invalid Content-Type. Use application/json.'}, status=status.HTTP_400_BAD_REQUEST)
+        if request.content_type != "application/json":
+            return Response(
+                {"error": "Invalid Content-Type. Use application/json."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         responseData, httpStatus = self.createUser(request.data)
 
         return Response(responseData, httpStatus)
 
     def put(self, request):
-        """
-        Updates single user.  Requires 'apiToken' passed in auth header or cookies.
-
-        TODO comment
-        TODO TEST
-        """
-
         """
         Updates a single user. 
         Requires 'apiToken' passed in auth header or cookies.
@@ -131,7 +130,7 @@ class UsersAPIView(APIView):
     @staticmethod
     def updateUser(userData):
         """
-        Service API function that can be called internally as well as through the API to update 
+        Service API function that can be called internally as well as through the API to update
         a user based on input data.
 
         @param task_data      Dict for a single project dict or list of dicts for multiple tasks.
@@ -150,8 +149,8 @@ class UsersAPIView(APIView):
         if serializer.is_valid():
             serializer.save()  # Updates users
             return serializer.data, status.HTTP_200_OK
-        else:
-            return serializer.errors, status.HTTP_400_BAD_REQUEST
+
+        return serializer.errors, status.HTTP_400_BAD_REQUEST
 
     @staticmethod
     def getUser(userData):
@@ -162,11 +161,13 @@ class UsersAPIView(APIView):
         @return      A tuple of (response_data, http_status).
         """
 
-        user_id = userData.get('id') or None
-        email = userData.get('email') or None
+        user_id = userData.get("id") or None
+        email = userData.get("email") or None
 
         if user_id and email:
-            return {'message': 'Only user id or email needed. Hint: remove email=<> from the url'}, status.HTTP_400_BAD_REQUEST
+            return {
+                "message": "Only user id or email needed. Hint: remove email=<> from the url"
+            }, status.HTTP_400_BAD_REQUEST
 
         user = None
         if user_id:
@@ -177,10 +178,10 @@ class UsersAPIView(APIView):
             user = User.objects.filter(None)
 
         if not user:
-            return {'message': 'User(s) not found.'}, status.HTTP_400_BAD_REQUEST
+            return {"message": "User(s) not found."}, status.HTTP_400_BAD_REQUEST
 
         serialized_user = UserSerializer(user).data
-        return {'user': serialized_user}, status.HTTP_200_OK
+        return {"user": serialized_user}, status.HTTP_200_OK
 
     @staticmethod
     def createUser(userData):
@@ -201,12 +202,20 @@ class UsersAPIView(APIView):
 
         except NotUniqueError as e:
             error_message = str(e)
-            if 'email' in error_message:
-                return {'error': 'Email address is already in use.'}, status.HTTP_400_BAD_REQUEST
-#           elif 'username' in error_message:
-#               return Response({'error': 'Username is already taken.'}, status=status.HTTP_400_BAD_REQUEST)
-            else:
-                return {'error': 'Duplicate key error.', 'details': error_message}, status.HTTP_400_BAD_REQUEST
+            if "email" in error_message:
+                return {
+                    "error": "Email address is already in use."
+                }, status.HTTP_400_BAD_REQUEST
+            #           elif 'username' in error_message:
+            #               return Response({'error': 'Username is already taken.'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            return {
+                    "error": "Duplicate key error.",
+                    "details": error_message,
+                }, status.HTTP_400_BAD_REQUEST
 
         except Exception as e:
-            return {'error': 'Internal server error.', 'details': str(e)}, status.HTTP_500_INTERNAL_SERVER_ERROR
+            return {
+                "error": "Internal server error.",
+                "details": str(e),
+            }, status.HTTP_500_INTERNAL_SERVER_ERROR

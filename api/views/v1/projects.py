@@ -1,20 +1,25 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from api.models import Project
-from api.serializers import ProjectSerializer
-from api.views.v1.tasks import TasksAPIView
 from rest_framework import status
 from django.utils.decorators import method_decorator
-from api.decorators import apiKeyRequired
 
-@method_decorator(apiKeyRequired, name='dispatch')  # dispatch protects all HTTP requests coming in
+from api.decorators import apiKeyRequired
+from api.serializers import ProjectSerializer
+from api.views.v1.tasks import TasksAPIView
+from api.models import Project
+
+
+@method_decorator(
+    apiKeyRequired, name="dispatch"
+)  # dispatch protects all HTTP requests coming in
 class ProjectsAPIView(APIView):
     """
     Create, get, and update your project.
     """
+
     def get(self, request):
         """
-        Retrieves a list of Project objects from MongoDB, filtered based on query parameters 
+        Retrieves a list of Project objects from MongoDB, filtered based on query parameters
         provided in the request. Requires 'apiToken' passed in auth header or cookies.
 
         @param {HttpRequest} request - The request object.
@@ -43,7 +48,7 @@ class ProjectsAPIView(APIView):
                 - teams (list[ObjectId])
 
 
-        @return A Response object containing a JSON array of serialized Project objects that 
+        @return A Response object containing a JSON array of serialized Project objects that
         match the query parameters.
 
         @example Javascript:
@@ -56,8 +61,8 @@ class ProjectsAPIView(APIView):
             serializer = ProjectSerializer(projects, many=True)
 
             return Response(serializer.data)
-        except:
-            return Response({'message': 'Projects not found'}, status=404)
+        except Exception:
+            return Response({"message": "Projects not found"}, status=404)
 
     def post(self, request):
         """
@@ -142,15 +147,15 @@ class ProjectsAPIView(APIView):
             serializer.save()  # Save the project(s) to the database
             # Returns data including new primary key
             return serializer.data, status.HTTP_201_CREATED
-        else:
-            return serializer.errors, status.HTTP_400_BAD_REQUEST
+                
+        return serializer.errors, status.HTTP_400_BAD_REQUEST
 
     @staticmethod
     def deleteProjects(projectData):
         """
         Service API function that can be called internally as well as through the API to delete
         project(s) and all associated tasks.
-        
+
         @param projectData      Dict for a single project dict or list of dicts for multiple tasks.
         @return      A tuple of (response_data, http_status).
         """
@@ -167,11 +172,10 @@ class ProjectsAPIView(APIView):
             ids = [ids]
 
         for id in ids:
-            result = TasksAPIView.deleteTasks({"projectID": id})
+            TasksAPIView.deleteTasks({"projectID": id})
 
         numberObjectsDeleted = Project.objects(id=id).delete()
         if numberObjectsDeleted == 0:
             return "No project(s) found to delete.", status.HTTP_404_NOT_FOUND
 
         return "Project(s) Deleted Successfully", status.HTTP_200_OK
-

@@ -3,18 +3,19 @@ import mongoengine as mongo
 
 class User(mongo.Document):
     email = mongo.EmailField(required=True, unique=True)
-    username = mongo.StringField(required=True)     #     , unique=True)
+    username = mongo.StringField(required=True)  #     , unique=True)
     firstName = mongo.StringField()
     lastName = mongo.StringField()
     teamIDs = mongo.ListField(mongo.ObjectIdField())
     apiKey = mongo.StringField()
     meta = {
-        'collection': 'User', # Need to specify UPPER Case
-        'strict': False  # If true, throws weird error for __v
-        } 
-    
+        "collection": "User",  # Need to specify UPPER Case
+        "strict": False,  # If true, throws weird error for __v
+    }
+
     class Meta:
-        ordering = ['created']
+        ordering = ["created"]
+
 
 class Project(mongo.Document):
     name = mongo.StringField()
@@ -39,14 +40,14 @@ class Project(mongo.Document):
     completionStatus = mongo.StringField()
     teams = mongo.ListField(mongo.ObjectIdField())
     meta = {
-        'collection': 'Project', # Need to specify UPPER Case
-        'strict': False  # If true, throws weird error for __v
-        } 
+        "collection": "Project",  # Need to specify UPPER Case
+        "strict": False,  # If true, throws weird error for __v
+    }
 
 
 class Task(mongo.Document):
     projectID = mongo.ObjectIdField()
-    parentTaskID = mongo.ObjectIdField(null=True) # Allow null values
+    parentTaskID = mongo.ObjectIdField(null=True)  # Allow null values
     name = mongo.StringField()
     objectives = mongo.ListField(mongo.StringField())
     scopesIncluded = mongo.ListField(mongo.StringField())
@@ -59,8 +60,6 @@ class Task(mongo.Document):
     endDate = mongo.DateField()
 
     meta = {
-        'collection': 'Task', # Need to specify UPPER Case
-        'strict': False  # If true, throws weird error for __v
-        } 
-        
-
+        "collection": "Task",  # Need to specify UPPER Case
+        "strict": False,  # If true, throws weird error for __v
+    }

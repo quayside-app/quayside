@@ -1,15 +1,15 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework import status
+from django.utils.decorators import method_decorator
+
 from api.models import Task
 from api.serializers import TaskSerializer
-from rest_framework import status
-
-from django.utils.decorators import method_decorator
 from api.decorators import apiKeyRequired
 
 
 # dispatch protects all HTTP requests coming in
-@method_decorator(apiKeyRequired, name='dispatch')
+@method_decorator(apiKeyRequired, name="dispatch")
 class TasksAPIView(APIView):
     """
     Create, get, update, and delete tasks.
@@ -17,13 +17,13 @@ class TasksAPIView(APIView):
 
     def get(self, request):
         """
-        Retrieves a list of Project objects from MongoDB, filtered based on query parameters 
+        Retrieves a list of Project objects from MongoDB, filtered based on query parameters
         provided in the request. Requires 'apiToken' passed in auth header or cookies.
 
         @param {HttpRequest} request - The request object.
             Query Parameters:
-                - id (objectId str) 
-                - parentTaskID (objectId str) 
+                - id (objectId str)
+                - parentTaskID (objectId str)
                 - name (str)
                 - objectives (list[str])
                 - scopesIncluded (list[str])
@@ -37,7 +37,7 @@ class TasksAPIView(APIView):
                 - endDate (date, 'YYYY-MM-DD')
 
 
-        @return: A Response object containing a JSON array of serialized Task objects that 
+        @return: A Response object containing a JSON array of serialized Task objects that
         match the query parameters.
 
         @example Javascript:
@@ -49,7 +49,7 @@ class TasksAPIView(APIView):
 
     def post(self, request):
         """
-        Creates a single task or a list of tasks. 
+        Creates a single task or a list of tasks.
         Requires 'apiToken' passed in auth header or cookies.
 
         @param {HttpRequest} request - The request object.
@@ -82,7 +82,7 @@ class TasksAPIView(APIView):
 
     def put(self, request):
         """
-        Updates a single task. 
+        Updates a single task.
         Requires 'apiToken' passed in auth header or cookies.
 
 
@@ -106,7 +106,7 @@ class TasksAPIView(APIView):
 
         @example javascript
             await fetch(`/api/v1/tasks/`, {
-                method: 'PUT', 
+                method: 'PUT',
                 headers: { 'Content-Type': 'application/json'},
                 body: JSON.stringify({id: '1234, name: 'Task2'},
             });
@@ -167,17 +167,22 @@ class TasksAPIView(APIView):
             for task in taskData:
                 # Not required in serializer (would mess up gets) so need to check ourselves
                 if "projectID" not in task:
-                    return "Error: Parameter 'projectID' required", status.HTTP_400_BAD_REQUEST
+                    return (
+                        "Error: Parameter 'projectID' required",
+                        status.HTTP_400_BAD_REQUEST,
+                    )
         else:
             serializer = TaskSerializer(data=taskData)
             if "projectID" not in taskData:
-                return "Error: Parameter 'projectID' required", status.HTTP_400_BAD_REQUEST
+                return (
+                    "Error: Parameter 'projectID' required",
+                    status.HTTP_400_BAD_REQUEST,
+                )
 
         if serializer.is_valid():
             serializer.save()  # Save the task(s) to the database
-            return serializer.data, status.HTTP_201_CREATED
-        else:
-            return serializer.errors, status.HTTP_400_BAD_REQUEST
+            return serializer.data, status.HTTP_201_CREATED        
+        return serializer.errors, status.HTTP_400_BAD_REQUEST
 
     @staticmethod
     def updateTask(taskData):
@@ -200,8 +205,8 @@ class TasksAPIView(APIView):
         if serializer.is_valid():
             serializer.save()  # Updates tasks
             return serializer.data, status.HTTP_200_OK
-        else:
-            return serializer.errors, status.HTTP_400_BAD_REQUEST
+
+        return serializer.errors, status.HTTP_400_BAD_REQUEST
 
     @staticmethod
     def deleteTasks(taskData):
@@ -214,13 +219,17 @@ class TasksAPIView(APIView):
 
         # Check
         if "id" not in taskData and "projectID" not in taskData:
-            return "Error: Parameter 'id' or 'projectID' required", status.HTTP_400_BAD_REQUEST
+            return (
+                "Error: Parameter 'id' or 'projectID' required",
+                status.HTTP_400_BAD_REQUEST,
+            )
 
         if "id" in taskData:
             numberObjectsDeleted = Task.objects(id=taskData["id"]).delete()
         else:  # projectIDs
             numberObjectsDeleted = Task.objects(
-                projectID=taskData["projectID"]).delete()
+                projectID=taskData["projectID"]
+            ).delete()
 
         if numberObjectsDeleted == 0:
             return "No tasks found to delete.", status.HTTP_404_NOT_FOUND

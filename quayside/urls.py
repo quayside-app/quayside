@@ -19,12 +19,8 @@ from django.urls import path, include
 from .views import index
 
 urlpatterns = [
-    path('', include('app.urls')),
-    path('', index, name='index'),
+    path("", include("app.urls")),
+    path("", index, name="index"),
     path("__reload__/", include("django_browser_reload.urls")),
-    path('api/', include('api.urls')),
-] 
-
-
-
-
+    path("api/", include("api.urls")),
+]
