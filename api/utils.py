@@ -4,7 +4,6 @@ from dotenv import load_dotenv
 from cryptography.fernet import Fernet
 
 
-
 def createEncodedApiKey(userID: str) -> str:
     """
     Generates an encoded API key for a given user ID using JWT encoding.

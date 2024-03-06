@@ -3,7 +3,6 @@ import jwt
 from dotenv import load_dotenv
 
 
-
 def global_context(request):
     """
     Sets context variables used by EVERY HTML template.

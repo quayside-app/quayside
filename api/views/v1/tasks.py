@@ -181,7 +181,7 @@ class TasksAPIView(APIView):
 
         if serializer.is_valid():
             serializer.save()  # Save the task(s) to the database
-            return serializer.data, status.HTTP_201_CREATED        
+            return serializer.data, status.HTTP_201_CREATED
         return serializer.errors, status.HTTP_400_BAD_REQUEST
 
     @staticmethod

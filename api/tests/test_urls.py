@@ -17,7 +17,6 @@ class TestUrls(SimpleTestCase):
         resolver = resolve(url)
         self.assertEqual(resolver.func.view_class, views.projects.ProjectsAPIView)
 
-
     def test_tasks_list_url(self):
         url = reverse("v1-tasks-list")
         self.assertEqual(url, "/api/v1/tasks")

@@ -17,8 +17,6 @@ from .context_processors import global_context
 from .forms import NewProjectForm, TaskForm
 
 
-
-
 def userLogin(request):
     """
     Renders the login model for the user.
@@ -160,7 +158,7 @@ class Callback(TemplateView):
         """
         data = self.request.GET
         authcode = data["code"]
-        #state = data["state"]
+        # state = data["state"]
 
         # Get API token
 
@@ -183,12 +181,16 @@ class Callback(TemplateView):
 
         header = {"Authorization": f"token {client.token['access_token']}"}
 
-        response = requests.get(os.getenv("GITHUB_API_URL_user"), headers=header, timeout=10)
+        response = requests.get(
+            os.getenv("GITHUB_API_URL_user"), headers=header, timeout=10
+        )
 
         oathUserInfo = response.json()
         # For Github, if user has no visible email, make second request for email
         if not oathUserInfo.get("email"):
-            response = requests.get(os.getenv("GITHUB_API_URL_email"), headers=header, timeout=10)
+            response = requests.get(
+                os.getenv("GITHUB_API_URL_email"), headers=header, timeout=10
+            )
             oathUserInfo["email"] = response.json()[0]["email"]
 
         userInfo = UsersAPIView.getUser({"email": oathUserInfo.get("email")})[0].get(

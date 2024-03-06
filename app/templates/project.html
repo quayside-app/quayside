@@ -3,23 +3,22 @@
 
 {% block content %}
 <script>
-    /*
-    * Updates project name.
-    */
-    (async function() {
-        try {
-            const response = await fetch('{{apiUrl}}/projects?id={{projectID}}');
-            if (!response.ok) throw new Error('Network response was not ok');
-            const projects = await response.json();
-            const project = projects[0];
+/*
+* Updates project name.
+*/
+(async function () {
+  try {
+    const response = await fetch('{{apiUrl}}/projects?id={{projectID}}')
+    if (!response.ok) throw new Error('Network response was not ok')
+    const projects = await response.json()
+    const project = projects[0]
 
-            const projectNameElement = document.getElementById('project-name');
-            projectNameElement.textContent = "Project: " + project.name;
-
-        } catch (error) {
-            console.error('There has been a problem with fetching projects:', error);
-        }
-    })();
+    const projectNameElement = document.getElementById('project-name')
+    projectNameElement.textContent = 'Project: ' + project.name
+  } catch (error) {
+    console.error('There has been a problem with fetching projects:', error)
+  }
+})()
 </script>
 <div class=" text-white">
 
@@ -36,19 +35,18 @@
 
 </div>
 <script>
-    /*
-    * Deletes project when buttton is clicked.
-    */
-    document.getElementById("deleteProjectButton").addEventListener("click", async function() {
-    
-    console.log("CLICKED DELETE BUTTON");
+/*
+* Deletes project when buttton is clicked.
+*/
+document.getElementById('deleteProjectButton').addEventListener('click', async function () {
+  console.log('CLICKED DELETE BUTTON')
 
-    const response = await fetch("{{apiUrl}}/projects/?id={{projectID}}", {method: 'DELETE'}); 
-    if (!response.ok) throw new Error("Network response was not ok");
+  const response = await fetch('{{apiUrl}}/projects/?id={{projectID}}', { method: 'DELETE' })
+  if (!response.ok) throw new Error('Network response was not ok')
 
-    // Navigate Home after deleting
-    window.location.href = '/';
-    });
+  // Navigate Home after deleting
+  window.location.href = '/'
+})
 </script>
 
 {% endblock %}

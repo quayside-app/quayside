@@ -147,7 +147,7 @@ class ProjectsAPIView(APIView):
             serializer.save()  # Save the project(s) to the database
             # Returns data including new primary key
             return serializer.data, status.HTTP_201_CREATED
-                
+
         return serializer.errors, status.HTTP_400_BAD_REQUEST
 
     @staticmethod

@@ -9,97 +9,91 @@
     <script src="https://unpkg.com/cytoscape-dagre@2.5.0/cytoscape-dagre.js"></script>
 </head>
 <script>
-    //import cytoscape from 'cytoscape';
-    (async function() {
-        try {
+(async function () {
+  try {
+    const response = await fetch('{{ apiUrl }}/tasks/?projectID={{projectID}}')
+    if (!response.ok) throw new Error('REST tasks response was not ok.')
+    const tasks = await response.json()
 
-            const response = await fetch('{{ apiUrl }}/tasks/?projectID={{projectID}}'); 
-            if (!response.ok) throw new Error('REST tasks response was not ok.');
-            const tasks = await response.json();
+    const elements = []
 
-            const elements = []
+    tasks.forEach(task => {
+      // Assume task has id, name, and parent fields
+      elements.push({
+        data: { id: task.id, label: task.name }
+      })
 
-            tasks.forEach(task => {
-                // Assume task has id, name, and parent fields
-                elements.push({
-                    data: { id: task.id, label: task.name }
-                })
+      // If the task has a parent, create an edge
+      if (task.parentTaskID) {
+        elements.push({
+          data: { id: task.id + '-' + task.parent, source: task.parentTaskID, target: task.id }
+        })
+      }
+    })
 
-                // If the task has a parent, create an edge
-                if (task.parentTaskID) {
-                    elements.push({
-                    data: { id: task.id + '-' + task.parent, source: task.parentTaskID, target: task.id }
-                    })
-                }
-            })
+    /* eslint-disable no-undef */
+    const cy = cytoscape({
+      container: document.getElementById('cytoscape-graph'),
+      elements,
+      style: [
+        {
+          selector: 'node',
+          style: {
+            shape: 'round-rectangle',
+            width: 1500,
+            height: 'label',
+            'background-color': '#262626',
+            'text-valign': 'center',
+            label: 'data(label)',
+            'text-wrap': 'wrap',
+            'text-max-width': 1500,
+            padding: 75,
+            color: 'white',
+            'font-size': 80, // Adjust font size as needed
+            'border-color': 'white',
+            'border-width': '10px'
 
-            //cytoscape.use(dagre);
-            const cy = cytoscape({
-                container: document.getElementById('cytoscape-graph'),
-                elements,
-                style: [
-                    {
-                    selector: 'node',
-                    style: {
-                        shape: 'round-rectangle',
-                        width: 1500,
-                        height: 'label',
-                        'background-color': '#262626',
-                        'text-valign': 'center',
-                        label: 'data(label)',
-                        'text-wrap': 'wrap',
-                        'text-max-width': 1500,
-                        padding: 75,
-                        color: 'white',
-                        'font-size': 80, // Adjust font size as needed
-                        'border-color': 'white',
-                        'border-width': '10px'
-
-                    }
-                    },
-                    {
-                    selector: 'edge',
-                    style: {
-                        'curve-style': 'haystack',
-                        'line-color': 'white',
-                        'taxi-turn-min-distance': '50px',
-                        'taxi-turn': '1000px',
-                        width: 10
-                    }
-                    }
-                ],
-                layout: {
-                    name: 'dagre',
-                    spacingFactor: 1.4,
-                    padding: 10,
-                    directed: true,
-                    avoidOverlap: true,
-                    levelSpacing: 50,
-                    rankDir: 'LR',
-                    nodeSep: 50,
-                    rankSep: 150
-
-                },
-                minZoom: 0.08, // Minimum zoom level (e.g., 0.5 means the graph can be zoomed out to half its original size)
-                maxZoom: 1, // Maximum zoom level (e.g., 2 means the graph can be zoomed in to twice its original size)
-                wheelSensitivity: 0.1
-            })
-
-
-            cy.autolock(true)
-            
-            // Clicking tasks pulls up task modal
-            cy.on('click', 'node', function(evt){
-                var node = evt.target;
-                window.location.href += `task/${node.id()}`;
-
-            });
-
-        } catch (error) {
-            console.error('There has been a problem with fetching projects:', error);
+          }
+        },
+        {
+          selector: 'edge',
+          style: {
+            'curve-style': 'haystack',
+            'line-color': 'white',
+            'taxi-turn-min-distance': '50px',
+            'taxi-turn': '1000px',
+            width: 10
+          }
         }
-    })();
+      ],
+      layout: {
+        name: 'dagre',
+        spacingFactor: 1.4,
+        padding: 10,
+        directed: true,
+        avoidOverlap: true,
+        levelSpacing: 50,
+        rankDir: 'LR',
+        nodeSep: 50,
+        rankSep: 150
 
+      },
+      minZoom: 0.08, // Minimum zoom level (e.g., 0.5 means the graph can be zoomed out to half its original size)
+      maxZoom: 1, // Maximum zoom level (e.g., 2 means the graph can be zoomed in to twice its original size)
+      wheelSensitivity: 0.1
+    })
+
+    cy.autolock(true)
+
+    // Clicking tasks pulls up task modal
+    cy.on('click', 'node', function (evt) {
+      const node = evt.target
+      window.location.href += `task/${node.id()}`
+    })
+  } catch (error) {
+    console.error('There has been a problem with fetching projects:', error)
+  }
+})()
 </script>
 <div class="relative flex justify-center ">
     {% block taskContent %}{% endblock %}

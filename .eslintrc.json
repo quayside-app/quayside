@@ -4,16 +4,6 @@
         "es2021": true
     },
     "extends": "standard",
-    "parserOptions": {
-        "ecmaVersion": 2021,
-        "sourceType": "module"
-    },
     "rules": {},
-    "plugins": ["html"],
-    "overrides": [
-        {
-            "files": ["*.html"],
-            "processor": "html/html"
-        }
-    ]
+    "plugins": ["html"]
 }

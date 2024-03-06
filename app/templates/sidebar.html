@@ -1,30 +1,28 @@
 {% load static %}
 
 <script>
-    /*
-    * Create/Updates sidebar project content
-    */
-    (async function() {
-        try {
-            const response = await fetch("{{ apiUrl }}/projects/?userIDs={{userID}}");
-            
-            if (!response.ok) throw new Error("Network response was not ok");
-            const projects = await response.json();
+/*
+* Create/Updates sidebar project content
+*/
+(async function () {
+  try {
+    const response = await fetch('{{ apiUrl }}/projects/?userIDs={{userID}}')
 
-            const projectListElement = document.getElementById("projectList");
-            projects.forEach(function(project) {
-                const listLink = document.createElement("a");
-                listLink.href = `/project/${project.id}/graph`;
-                listLink.textContent = project.name;
-                listLink.className = "flex pb-1  hover:text-neutral-500  truncate w-22";
-                projectListElement.appendChild(listLink);
-                
-            });
+    if (!response.ok) throw new Error('Network response was not ok')
+    const projects = await response.json()
 
-        } catch (error) {
-            console.error("There has been a problem with fetching projects:", error);
-        }
-    })();
+    const projectListElement = document.getElementById('projectList')
+    projects.forEach(function (project) {
+      const listLink = document.createElement('a')
+      listLink.href = `/project/${project.id}/graph`
+      listLink.textContent = project.name
+      listLink.className = 'flex pb-1  hover:text-neutral-500  truncate w-22'
+      projectListElement.appendChild(listLink)
+    })
+  } catch (error) {
+    console.error('There has been a problem with fetching projects:', error)
+  }
+})()
 </script>
 
 <div class>
@@ -55,39 +53,36 @@
 
 </div>
 <script>
+  /*
+  * Allows sidebar toggle button to work (after DOM has loaded).
+  */
+  document.getElementById('collapseButton').addEventListener('click', function () {
+    // Hides  + shows sidebar (small screens default to hidden, large screens default to shown)
+    const sidebar = document.getElementById('sidebarContent')
+    sidebar.classList.toggle('hidden')
+    sidebar.classList.toggle('sm:block')
+    sidebar.classList.toggle('sm:hidden')
 
-    /*
-    * Allows sidebar toggle button to work (after DOM has loaded).
-    */
-    document.getElementById("collapseButton").addEventListener("click", function() {
-        var sidebar = document.getElementById("sidebarContent");
-        // Hides  + shows sidebar (small screens default to hidden, large screens default to shown)
-        sidebar.classList.toggle("hidden"); 
-        sidebar.classList.toggle("sm:block"); 
-        sidebar.classList.toggle("sm:hidden"); 
+    const collapseButton = document.getElementById('collapseButton')
+    collapseButton.classList.toggle('left-32')
+    collapseButton.classList.toggle('left-3')
+    collapseButton.classList.toggle('sm:left-32')
+    collapseButton.classList.toggle('sm:left-3')
 
+    collapseButton.classList.toggle('rotate-180')
+    collapseButton.classList.toggle('sm:rotate-180')
+    collapseButton.classList.toggle('sm:rotate-0')
+})
 
-        collapseButton.classList.toggle("left-32");
-        collapseButton.classList.toggle("left-3"); 
-        collapseButton.classList.toggle("sm:left-32");
-        collapseButton.classList.toggle("sm:left-3"); 
+/*
+* Shows/hides projects with the dropdown.
+*/
+document.getElementById('projectDropdownButton').addEventListener('click', function () {
+    const dropdown = document.getElementById('projectDropdown')
+    dropdown.classList.toggle('-rotate-90')
+    dropdown.classList.toggle('rotate-180')
 
-        collapseButton.classList.toggle("rotate-180"); 
-        collapseButton.classList.toggle("sm:rotate-180"); 
-        collapseButton.classList.toggle("sm:rotate-0"); 
-
-    });
-
-    /*
-    * Shows/hides projects with the dropdown.
-    */
-    document.getElementById("projectDropdownButton").addEventListener("click", function() {
-        var dropdown = document.getElementById("projectDropdown");
-        dropdown.classList.toggle("-rotate-90"); 
-        dropdown.classList.toggle("rotate-180"); 
-
-        var projectListDiv = document.getElementById("projectListDiv");
-        projectListDiv.classList.toggle("hidden"); 
-
-    });
+    const projectListDiv = document.getElementById('projectListDiv')
+    projectListDiv.classList.toggle('hidden')
+})
 </script>

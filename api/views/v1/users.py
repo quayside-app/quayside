@@ -99,7 +99,7 @@ class UsersAPIView(APIView):
 
     def put(self, request):
         """
-        Updates a single user. 
+        Updates a single user.
         Requires 'apiToken' passed in auth header or cookies.
 
 
@@ -112,13 +112,13 @@ class UsersAPIView(APIView):
                 - lastName (str): The last name of the user.
                 - username (str) : The username for the user.
                 - teamIDs (list[str]): List of team IDs the user is associated with.
-        
-        
+
+
         @return: A Response object with the updated task data or an error message.
 
         @example javascript
             await fetch(`quayside.app/api/v1/users/`, {
-                method: 'PUT', 
+                method: 'PUT',
                 headers: { 'Content-Type': 'application/json'},
                 body: JSON.stringify({id: '1234, name: 'Task2'},
             });
@@ -208,11 +208,11 @@ class UsersAPIView(APIView):
                 }, status.HTTP_400_BAD_REQUEST
             #           elif 'username' in error_message:
             #               return Response({'error': 'Username is already taken.'}, status=status.HTTP_400_BAD_REQUEST)
-            
+
             return {
-                    "error": "Duplicate key error.",
-                    "details": error_message,
-                }, status.HTTP_400_BAD_REQUEST
+                "error": "Duplicate key error.",
+                "details": error_message,
+            }, status.HTTP_400_BAD_REQUEST
 
         except Exception as e:
             return {
