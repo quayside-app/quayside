@@ -3,7 +3,7 @@ from api.views.v1.tasks import TasksAPIView
 from django.shortcuts import render, redirect
 from django.http import HttpResponseRedirect
 from .forms import NewProjectForm, TaskForm
-from api.views.v1.generatedTasks import GeneratedTasks
+from api.views.v1.generatedTasks import GeneratedTasksAPIView
 from api.views.v1.projects import ProjectsAPIView
 
 from api.views.v1.users import UsersAPIView
@@ -42,7 +42,7 @@ def projectGraphView(request, projectID):
     @returns {HttpResponse} - An HttpResponse object that renders the 
         graph.html template with the project ID context.
     """
-    return render(request, "graph.html", {"project_ID": projectID})
+    return render(request, "graph.html", {"projectID": projectID})
 
 @apiKeyRequired
 def taskView(request, projectID, taskID):
@@ -80,7 +80,7 @@ def taskView(request, projectID, taskID):
             form = TaskForm(initial=initialData)
         else:
             form = TaskForm()
-    return render(request, "taskModal.html", {"project_ID": projectID, "taskID": taskID, "form": form})
+    return render(request, "taskModal.html", {"projectID": projectID, "taskID": taskID, "form": form})
 
 @apiKeyRequired
 def createProjectView(request):
@@ -108,7 +108,7 @@ def createProjectView(request):
 
             projectData, _ = ProjectsAPIView.createProjects({"name": name, "userIDs": [userId]}) 
             projectID = projectData.get("id")
-            GeneratedTasks.generateTasks(
+            GeneratedTasksAPIView.generateTasks(
                 {"projectID": projectID, "name": name})
 
             # Redirect to project

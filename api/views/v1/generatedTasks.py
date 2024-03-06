@@ -12,23 +12,46 @@ from api.views.v1.tasks import TasksAPIView
 from django.utils.decorators import method_decorator
 from api.decorators import apiKeyRequired
 
-@method_decorator(apiKeyRequired, name='dispatch')  # dispatch protects all HTTP requests coming in
-class GeneratedTasks(APIView):
+
+# dispatch protects all HTTP requests coming in
+@method_decorator(apiKeyRequired, name='dispatch')
+class GeneratedTasksAPIView(APIView):
     """
-    Generates and saves tasks with ChatGPT
+    Generates and saves tasks with ChatGPT. Requires apiKey.
     """
 
     def post(self, request):
-        response_data, http_status = self.generateTasks(request.data)
-        return Response(response_data, status=http_status)
+        """
+        Generate and saves tasks for a project. 
+        Requires 'apiToken' passed in auth header or cookies.
+
+        @param {HttpRequest} request - The request object.
+            The request body should include:
+            - name: A string with the name/description of the project.
+            - projectID: A string of the project ID.
+
+        @returns {Response} - A Response object containing a JSON array of serialized Task objects.
+
+
+        @example Javascript:
+
+            fetch('quayside.app/api/v1/GeneratedTasks', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: 'New Project', projectID: '12345' }),
+            });
+        """
+        responseData, httpStatus = self.generateTasks(request.data)
+        return Response(responseData, status=httpStatus)
 
     @staticmethod
     def generateTasks(projectData):
         """
         Service API function that can be called internally as well as through the API to generate 
         and save tasks.
+        @param {dict} projectData -  Requires 'name' and 'projectID' keys.
+        @returns {tuple} - A tuple containing the list of created tasks and the HTTP status code.
         """
-        #! TODO needs authorization - pass API key?
 
         # Check
         serializer = GeneratedTaskSerializer(data=projectData)
@@ -43,7 +66,6 @@ class GeneratedTasks(APIView):
         openai.api_key = os.getenv('CHATGPT_API_KEY')
 
         # Call ChatGPT
-        # TODO add exception handleing
         completion = openai.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
@@ -105,12 +127,11 @@ class GeneratedTasks(APIView):
                     })
 
         # Save tasks
-        # TODO Revise this to combine with upper portion
 
         # Function for Parsing Tasks
         def parseTask(task: dict, parentID: str, projectID: str):
             taskData, _ = TasksAPIView.createTasks(
-                {"projectID": projectID, "parentTaskID":parentID, "name": task["name"]})
+                {"projectID": projectID, "parentTaskID": parentID, "name": task["name"]})
 
             if "subtasks" in task:
                 for subtask in task["subtasks"]:
@@ -132,5 +153,3 @@ class GeneratedTasks(APIView):
             createdTasks.append(taskData)
 
         return createdTasks, status.HTTP_201_CREATED
-
-# TODO TEST API route

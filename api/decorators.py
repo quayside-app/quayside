@@ -34,7 +34,7 @@ def apiKeyRequired(function):
         # Verify that the user is in the database + API key matches (Can check perms if needed too)
         userID = decodedKey.get("userID")
         try:
-            # TODO USE user route instead!!!
+
             user = User.objects.filter(id=userID).first()
 
             if not user:

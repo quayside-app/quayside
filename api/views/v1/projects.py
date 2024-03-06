@@ -9,52 +9,51 @@ from api.decorators import apiKeyRequired
 
 @method_decorator(apiKeyRequired, name='dispatch')  # dispatch protects all HTTP requests coming in
 class ProjectsAPIView(APIView):
+    """
+    Create, get, and update your project.
+    """
     def get(self, request):
         """
         Retrieves a list of Project objects from MongoDB, filtered based on query parameters 
-        provided in the request. 
+        provided in the request. Requires 'apiToken' passed in auth header or cookies.
 
-        Query Parameters:
-            - id (objectID str)
-            - name (str)
-            - types (list[str])
-            - objectives (list[str])
-            - startDate (date, 'YYYY-MM-DD')
-            - endDate (date, 'YYYY-MM-DD')
-            - budget (str)
-            - assumptions (list[str])
-            - scopesIncluded (list[str])
-            - scopesExcluded (list[str])
-            - risks (list[str])
-            - userIDs (list[ObjectId])
-            - projectManagerIDs (list[ObjectId])
-            - sponsors (list[str])
-            - contributorIDs (list[ObjectId])
-            - completionRequirements (list[str])
-            - qualityAssurance (list[str])
-            - KPIs (list[str])
-            - otherProjectDependencies (list[ObjectId])
-            - informationLinks (list[str])
-            - completionStatus (str)
-            - teams (list[ObjectId])
+        @param {HttpRequest} request - The request object.
+            The query parameters can be:
+                - id (objectID str)
+                - name (str)
+                - types (list[str])
+                - objectives (list[str])
+                - startDate (date, 'YYYY-MM-DD')
+                - endDate (date, 'YYYY-MM-DD')
+                - budget (str)
+                - assumptions (list[str])
+                - scopesIncluded (list[str])
+                - scopesExcluded (list[str])
+                - risks (list[str])
+                - userIDs (list[ObjectId])
+                - projectManagerIDs (list[ObjectId])
+                - sponsors (list[str])
+                - contributorIDs (list[ObjectId])
+                - completionRequirements (list[str])
+                - qualityAssurance (list[str])
+                - KPIs (list[str])
+                - otherProjectDependencies (list[ObjectId])
+                - informationLinks (list[str])
+                - completionStatus (str)
+                - teams (list[ObjectId])
 
 
-        @return: A Response object containing a JSON array of serialized Project objects that 
+        @return A Response object containing a JSON array of serialized Project objects that 
         match the query parameters.
 
-        @example:
-            # Example request using query parameters for filtering projects by userID
-            GET /api/v1/projects?userIDs=1234
-
+        @example Javacript:
+            // GET request using query parameters for filtering projects by userID
+            fetch('quayside.app/api/v1/projects?userIDs=1234');
         """
+
         try:
-            #! TODO: Authentication
             queryParams = request.query_params.dict()
-
-            #! TODO: Filter query params to prevent injection attack?!!
-
             projects = Project.objects.filter(**queryParams)  # Query mongo
-
             serializer = ProjectSerializer(projects, many=True)
 
             return Response(serializer.data)
@@ -63,23 +62,63 @@ class ProjectsAPIView(APIView):
 
     def post(self, request):
         """
-        Creates a project or list of projectss
+        Creates project(s). Requires 'apiToken' passed in auth header or cookies.
 
-        TODO MORE COMMENTS
+        @param {HttpRequest} request - The request object.
+            The request body can contain:
+                - id (objectID str)
+                - name (str)
+                - types (list[str])
+                - objectives (list[str])
+                - startDate (date, 'YYYY-MM-DD')
+                - endDate (date, 'YYYY-MM-DD')
+                - budget (str)
+                - assumptions (list[str])
+                - scopesIncluded (list[str])
+                - scopesExcluded (list[str])
+                - risks (list[str])
+                - userIDs (list[ObjectId])
+                - projectManagerIDs (list[ObjectId])
+                - sponsors (list[str])
+                - contributorIDs (list[ObjectId])
+                - completionRequirements (list[str])
+                - qualityAssurance (list[str])
+                - KPIs (list[str])
+                - otherProjectDependencies (list[ObjectId])
+                - informationLinks (list[str])
+                - completionStatus (str)
+                - teams (list[ObjectId])
 
-        @return: A Response object with the created prject(s) data or an error message.
+
+        @return A Response object containing a JSON array of the created project.
+
+        @example javascript:
+
+            fetch('quayside.app/api/v1/projects', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: 'New Project' }),
+            });
+
         """
         responseData, httpStatus = self.createProjects(request.data)
         return Response(responseData, status=httpStatus)
 
     def delete(self, request):
         """
-        Deletes a project or list of projects
+        Deletes a project or list of projects. Requires 'apiToken' passed in auth header or cookies.
 
-        TODO MORE COMMENTS
-        TODO TEST
+        @param {HttpRequest} request - The request object.
+            The query parameters MUST be:
+                - id (objectID str)
 
-        @return: A Response object with the created prject(s) data or an error message.
+        @return: A Response object with a success or an error message.
+
+        @example javascript:
+
+            fetch(`/api/v1/projects?id=${projectID}`, {
+                method: 'DELETE',
+            });
         """
 
         responseData, httpStatus = self.deleteProjects(request.query_params)
@@ -88,14 +127,13 @@ class ProjectsAPIView(APIView):
     @staticmethod
     def createProjects(projectData):
         """
-        Service API function that can be called internally as well as through the API to create tasks
-        Creates a single task or multiple tasks based on the input data.
+        Service API function that can be called internally as well as through the API to create
+        project(s) based on input data.
 
         @param task_data      Dict for a single project dict or list of dicts for multiple tasks.
         @return      A tuple of (response_data, http_status).
         """
 
-        #! TODO Authenticate
         if isinstance(projectData, list):
             serializer = ProjectSerializer(data=projectData, many=True)
         else:
@@ -113,14 +151,10 @@ class ProjectsAPIView(APIView):
         """
         Service API function that can be called internally as well as through the API to delete
         project(s) and all associated tasks.
-        TODO
-
+        
         @param projectData      Dict for a single project dict or list of dicts for multiple tasks.
         @return      A tuple of (response_data, http_status).
         """
-
-        #! TODO Authenticate
-        # TODO error handling
 
         # Check
         if "id" not in projectData:
@@ -135,7 +169,6 @@ class ProjectsAPIView(APIView):
 
         for id in ids:
             result = TasksAPIView.deleteTasks({"projectID": id})
-            # TODO handle result if error
 
         numberObjectsDeleted = Project.objects(id=id).delete()
         if numberObjectsDeleted == 0:
@@ -143,8 +176,3 @@ class ProjectsAPIView(APIView):
 
         return "Project(s) Deleted Successfully", status.HTTP_200_OK
 
-
-"""
-TEST
-http://127.0.0.1:8000/api/v1/tasks/?projectID=65530c4d3f9666ab932b59e2
-"""

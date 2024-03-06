@@ -13,7 +13,7 @@
     (async function() {
         try {
 
-            const response = await fetch('{{ apiUrl }}/tasks/?projectID={{project_ID}}'); 
+            const response = await fetch('{{ apiUrl }}/tasks/?projectID={{projectID}}'); 
             if (!response.ok) throw new Error('REST tasks response was not ok.');
             const tasks = await response.json();
 
@@ -91,7 +91,7 @@
             // Clicking tasks pulls up task modal
             cy.on('click', 'node', function(evt){
                 var node = evt.target;
-                window.location.href += `/task/${node.id()}`;
+                window.location.href += `task/${node.id()}`;
 
             });
 

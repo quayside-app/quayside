@@ -5,9 +5,10 @@
 <script>
     (async function() {
         try {
-            const response = await fetch('{{apiUrl}}/project/{{project_ID}}');
+            const response = await fetch('{{apiUrl}}/projects?id={{projectID}}');
             if (!response.ok) throw new Error('Network response was not ok');
-            const project = await response.json();
+            const projects = await response.json();
+            const project = projects[0];
 
             const projectNameElement = document.getElementById('project-name');
             projectNameElement.textContent = "Project: " + project.name;
@@ -36,7 +37,7 @@
     
     console.log("CLICKED DELETE BUTTON");
 
-    const response = await fetch("{{apiUrl}}/projects/?id={{project_ID}}", {method: 'DELETE'}); 
+    const response = await fetch("{{apiUrl}}/projects/?id={{projectID}}", {method: 'DELETE'}); 
     if (!response.ok) throw new Error("Network response was not ok");
 
     // Navigate Home after deleting
