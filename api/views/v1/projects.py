@@ -46,8 +46,7 @@ class ProjectsAPIView(APIView):
         @return A Response object containing a JSON array of serialized Project objects that 
         match the query parameters.
 
-        @example Javacript:
-            // GET request using query parameters for filtering projects by userID
+        @example Javascript:
             fetch('quayside.app/api/v1/projects?userIDs=1234');
         """
 
@@ -110,13 +109,13 @@ class ProjectsAPIView(APIView):
 
         @param {HttpRequest} request - The request object.
             The query parameters MUST be:
-                - id (objectID str)
+                - id (objectID str) [REQUIRED]
 
         @return: A Response object with a success or an error message.
 
         @example javascript:
 
-            fetch(`/api/v1/projects?id=${projectID}`, {
+            fetch(`/api/v1/projects?id=1234`, {
                 method: 'DELETE',
             });
         """

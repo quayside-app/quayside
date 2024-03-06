@@ -7,84 +7,129 @@ from rest_framework import status
 from django.utils.decorators import method_decorator
 from api.decorators import apiKeyRequired
 
-@method_decorator(apiKeyRequired, name='dispatch')  # dispatch protects all HTTP requests coming in
+
+# dispatch protects all HTTP requests coming in
+@method_decorator(apiKeyRequired, name='dispatch')
 class TasksAPIView(APIView):
+    """
+    Create, get, update, and delete tasks.
+    """
+
     def get(self, request):
         """
         Retrieves a list of Project objects from MongoDB, filtered based on query parameters 
-        provided in the request. 
+        provided in the request. Requires 'apiToken' passed in auth header or cookies.
 
-        Query Parameters:
-            - parentTaskID (objectId str)
-            - name (str)
-            - objectives (list[str])
-            - scopesIncluded (list[str])
-            - scopesExcluded (list[str])
-            - contributorIDs (list[objectId str])
-            - otherProjectDependencies (list[objectId str])
-            - otherTaskDependencies (list[objectId str])
-            - projectID (objectId str)
-            - description (str)
-            - startDate (date, 'YYYY-MM-DD')
-            - endDate (date, 'YYYY-MM-DD')
+        @param {HttpRequest} request - The request object.
+            Query Parameters:
+                - id (objectId str) 
+                - parentTaskID (objectId str) 
+                - name (str)
+                - objectives (list[str])
+                - scopesIncluded (list[str])
+                - scopesExcluded (list[str])
+                - contributorIDs (list[objectId str])
+                - otherProjectDependencies (list[objectId str])
+                - otherTaskDependencies (list[objectId str])
+                - projectID (objectId str)
+                - description (str)
+                - startDate (date, 'YYYY-MM-DD')
+                - endDate (date, 'YYYY-MM-DD')
 
 
-        @return: A Response object containing a JSON array of serialized Project objects that 
+        @return: A Response object containing a JSON array of serialized Task objects that 
         match the query parameters.
 
-        Example:
-            # Example request using query parameters for filtering projects by userID
-            GET /api/v1/tasks?projectID=1234
-
+        @example Javascript:
+            fetch('quayside.app/api/v1/tasks?parentTaskID=1234');
         """
+
         responseData, httpStatus = self.getTasks(request.query_params.dict())
         return Response(responseData, status=httpStatus)
 
     def post(self, request):
         """
-        Creates a single task or a list of tasks. MUST have projectID.
+        Creates a single task or a list of tasks. 
+        Requires 'apiToken' passed in auth header or cookies.
 
-        Expected JSON Body Format:
-            Single Task:
-                {
-                    "projectID": "objectId str",
-                    "name": "str",
-                    ...
-                }
-
-            List of Tasks:
-                [
-                    {
-                        "projectID": "objectId str",
-                        "name": "str",
-                        ...
-                    },
-                    ...
-                ]
+        @param {HttpRequest} request - The request object.
+            The request body can contain:
+                - parentTaskID (objectId str) [REQUIRED]
+                - name (str)
+                - objectives (list[str])
+                - scopesIncluded (list[str])
+                - scopesExcluded (list[str])
+                - contributorIDs (list[objectId str])
+                - otherProjectDependencies (list[objectId str])
+                - otherTaskDependencies (list[objectId str])
+                - projectID (objectId str)
+                - description (str)
+                - startDate (date, 'YYYY-MM-DD')
+                - endDate (date, 'YYYY-MM-DD')
 
         @return: A Response object with the created task(s) data or an error message.
+
+        @example Javascript:
+
+            fetch('quayside.app/api/v1/tasks', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ parentTaskID: '1234',  name:'mya'}),
+            });
         """
         responseData, httpStatus = self.createTasks(request.data)
         return Response(responseData, status=httpStatus)
 
     def put(self, request):
         """
-        Updates single task
+        Updates a single task. 
+        Requires 'apiToken' passed in auth header or cookies.
 
-        TODO comment
-        TODO TEST
+
+        @param {HttpRequest} request - The request object.
+                @param {HttpRequest} request - The request object.
+            The request body can contain:
+                - id (objectId str) [REQUIRED]
+                - parentTaskID (objectId str)
+                - name (str)
+                - objectives (list[str])
+                - scopesIncluded (list[str])
+                - scopesExcluded (list[str])
+                - contributorIDs (list[objectId str])
+                - otherProjectDependencies (list[objectId str])
+                - otherTaskDependencies (list[objectId str])
+                - projectID (objectId str)
+                - description (str)
+                - startDate (date, 'YYYY-MM-DD')
+                - endDate (date, 'YYYY-MM-DD')
+        @return: A Response object with the updated task data or an error message.
+
+        @example javascript
+            await fetch(`/api/v1/tasks/`, {
+                method: 'PUT', 
+                headers: { 'Content-Type': 'application/json'},
+                body: JSON.stringify({id: '1234, name: 'Task2'},
+            });
+
         """
         responseData, httpStatus = self.updateTask(request.data)
         return Response(responseData, status=httpStatus)
 
     def delete(self, request):
         """
-        Deletes a task or list of tasks
+        Deletes a task or list of task. Requires 'apiToken' passed in auth header or cookies.
 
-        TODO MORE COMMENTS
-        TODO TEST
+        @param {HttpRequest} request - The request object.
+            The query parameters MUST be:
+                - id (objectID str) [REQUIRED]
 
-        @return: A Response object with the created task(s) data or an error message.
+        @return: A Response object with a success or an error message.
+
+        @example javascript:
+
+            fetch(`/api/v1/tasks?id=12345`, {
+                method: 'DELETE',
+            });
         """
 
         responseData, httpStatus = self.deleteTasks(request.query_params)
@@ -95,13 +140,10 @@ class TasksAPIView(APIView):
         """
         Service API function that can be called internally as well as through the API to get tasks
         Gets tasks based on  input parameters.
-        TODO COMMENTS
 
         @param taskData      Dict for a single task or list of dicts for multiple tasks.
         @return      A tuple of (response_data, http_status).
         """
-
-        #! TODO: Filter query params to prevent injection attack?!!
 
         projects = Task.objects.filter(**taskData)  # Query mongo
 
@@ -115,7 +157,6 @@ class TasksAPIView(APIView):
         Service API function that can be called internally as well as through the API to create tasks
         Creates a single task or multiple tasks based on the input data.
 
-        TODO COMMENTS
 
         @param taskData      Dict for a single task or list of dicts for multiple tasks.
         @return      A tuple of (response_data, http_status).
@@ -141,7 +182,10 @@ class TasksAPIView(APIView):
     @staticmethod
     def updateTask(taskData):
         """
-        TODO commentss
+        Service API function that can be called internally as well as through the API to update task.
+
+        @param taskData      Dict for a single task or list of dicts for multiple tasks.
+        @return      A tuple of (response_data, http_status).
         """
         if "id" not in taskData:
             return "Error: Parameter 'id' required", status.HTTP_400_BAD_REQUEST
@@ -149,9 +193,8 @@ class TasksAPIView(APIView):
         try:
             task = Task.objects.get(id=taskData["id"])
         except Task.DoesNotExist:
-            return None, status.HTTP_404_NOT_FOUND 
+            return None, status.HTTP_404_NOT_FOUND
 
-       
         serializer = TaskSerializer(data=taskData, instance=task, partial=True)
 
         if serializer.is_valid():
@@ -163,10 +206,11 @@ class TasksAPIView(APIView):
     @staticmethod
     def deleteTasks(taskData):
         """
-        TODO comments
-        """
+        Service API function that can be called internally as well as through the API to delete tasks.
 
-        # TODO try/accept??
+        @param taskData      Dict for a single task or list of dicts for multiple tasks.
+        @return      A tuple of (response_data, http_status).
+        """
 
         # Check
         if "id" not in taskData and "projectID" not in taskData:
