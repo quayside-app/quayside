@@ -3,6 +3,9 @@
 
 {% block content %}
 <script>
+    /*
+    * Updates project name.
+    */
     (async function() {
         try {
             const response = await fetch('{{apiUrl}}/projects?id={{projectID}}');
@@ -33,6 +36,9 @@
 
 </div>
 <script>
+    /*
+    * Deletes project when buttton is clicked.
+    */
     document.getElementById("deleteProjectButton").addEventListener("click", async function() {
     
     console.log("CLICKED DELETE BUTTON");

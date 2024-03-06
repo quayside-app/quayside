@@ -8,10 +8,11 @@ from api.utils import decodeApiKey, decryptApiKey
 
 def apiKeyRequired(function):
     """
-    Citation: ChatGPT
-
+    Wraps function to authenticate it. 
     Allows token to be passed in the authorization header OR through cookies (header good for scripts,
     cookies good for websites).
+
+    @param function Function to be wrapped.
     """
     def wrap(request, *args, **kwargs):
         token = request.META.get('HTTP_AUTHORIZATION')

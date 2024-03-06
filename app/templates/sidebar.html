@@ -1,7 +1,9 @@
 {% load static %}
 
 <script>
-    // Create sidebar project content
+    /*
+    * Create/Updates sidebar project content
+    */
     (async function() {
         try {
             const response = await fetch("{{ apiUrl }}/projects/?userIDs={{userID}}");
@@ -53,7 +55,10 @@
 
 </div>
 <script>
-    // Watch for Toggle (after DOM has loaded)
+
+    /*
+    * Allows sidebar toggle button to work (after DOM has loaded).
+    */
     document.getElementById("collapseButton").addEventListener("click", function() {
         var sidebar = document.getElementById("sidebarContent");
         // Hides  + shows sidebar (small screens default to hidden, large screens default to shown)
@@ -73,7 +78,9 @@
 
     });
 
-    // Show and hide the projects
+    /*
+    * Shows/hides projects with the dropdown.
+    */
     document.getElementById("projectDropdownButton").addEventListener("click", function() {
         var dropdown = document.getElementById("projectDropdown");
         dropdown.classList.toggle("-rotate-90"); 
