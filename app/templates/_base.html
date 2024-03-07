@@ -30,7 +30,7 @@
                 </div>
 
                 <div class="w-full pt-14">
-                    {% with theme=user.settings.theme|default:"default" %}
+                    {% with theme=user.settings.theme|default:"dark" %}
                     <div class="" style="background-image: url('{% static 'app/images/backgrounds/' %}{{ theme }}.png'); background-position:center center; background-size:cover;">
                         {% block content %}
                         {% endblock content %}

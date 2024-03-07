@@ -1,0 +1,53 @@
+{% extends '_base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+input[type="radio"]:checked + label {
+  border: 2px solid #00d062;
+}
+label {
+  user-select: none;
+  cursor: pointer;
+}
+</style>
+
+<div class="w-full h-screen bg-gray-600">
+  <div class="container mx-auto p-4 flex">
+    <div class="w-1/3 pr-4">
+      <div class="mb-4">
+        <button class="bg-blue-500 text-white px-4 py-2 rounded-full w-full">Background</button>
+      </div>
+      <div class="mb-4">
+        <button class="bg-green-500 text-white px-4 py-2 rounded-full w-full">Button 2</button>
+      </div>
+      <div class="mb-4">
+        <button class="bg-yellow-500 text-white px-4 py-2 rounded-full w-full">Button 3</button>
+      </div>
+    </div>
+
+    <div class="w-2/3 border border-black p-10 grid grid-cols-2 gap-4">
+      <div class="mb-4">
+        <input type="radio" name="background" id="dark" class="hidden">
+        <label for="dark" class="flex items-center rounded-lg cursor-pointer">
+          <img src="/static/app/images/backgrounds/dark.png" alt="dark background" class="w-full h-full object-cover rounded-lg" draggable="false">
+        </label>
+      </div>
+
+      <div class="mb-4">
+        <input type="radio" name="background" id="light" class="hidden">
+        <label for="light" class="flex items-center rounded-lg cursor-pointer">
+          <img src="/static/app/images/backgrounds/light.png" alt="dark background" class="w-full h-full rounded-lg" draggable="false">
+        </label>
+      </div>
+
+      <div class="mb-4">
+        <input type="radio" name="background" id="kais_variant" class="hidden">
+        <label for="kais_variant" class="flex items-center rounded-lg p-0.5 cursor-pointer">
+          <img src="/static/app/images/backgrounds/kais_variant.png" alt="dark background" class="w-full h-full rounded-lg" draggable="false">
+        </label>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
