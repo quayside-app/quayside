@@ -27,7 +27,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['quayside-fh3id5ag7q-uc.a.run.app','localhost','quayside.app']
 
-
+CSRF_TRUSTED_ORIGINS = ['https://quayside.app/']
 # Application definition
 
 INSTALLED_APPS = [
