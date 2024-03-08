@@ -121,11 +121,11 @@ def createProjectView(request):
     return render(request, "newProjectModal.html", {"form": form})
 
 
-@apiKeyRequired
+# @apiKeyRequired
 def userSettingsView(request):
     """
     Renders the view for user settings.
-    """
+    """ 
     return render(request, "userSettings.html")
 
 
