@@ -25,9 +25,9 @@ SECRET_KEY = "django-insecure-7-v^y$8s=y#5l166vha=8z^h&f(94z-yw!$ueg6cm&_c)2wgn)
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['quayside-fh3id5ag7q-uc.a.run.app','localhost','quayside.app']
+ALLOWED_HOSTS = ['quayside-fh3id5ag7q-uc.a.run.app','localhost','quayside.app', '127.0.0.1']
 
-CSRF_TRUSTED_ORIGINS = ['https://quayside.app/']
+CSRF_TRUSTED_ORIGINS = ['https://quayside.app/',]
 # Application definition
 
 INSTALLED_APPS = [
