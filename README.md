@@ -78,3 +78,4 @@ npx eslint app/**/*.html --fix
 If you add any other npm dependencies, please do it by running `npm install --save <my-dependency>` so it is added to package.json for the next person to install. Otherwise, add the package manually to package.json. If you install python dependencies, please add them to the requirements.txt by running `pip freeze > requirements.txt`.
 
 Note: If you are having issues with "[SSL: CERTIFICATE_VERIFY_FAILED]" you may need to upgrade pip.
+
