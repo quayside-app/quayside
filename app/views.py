@@ -138,7 +138,7 @@ def requestAuth(_request):
 
     url = client.prepare_request_uri(
         authorization_url,
-        redirectURL="http://127.0.0.1:8000/callback",
+        redirectURL="https://quayside.app/callback",
         scope=["user"],
         state="/",
     )
@@ -170,7 +170,7 @@ class Callback(TemplateView):
 
         data = client.prepare_request_body(
             code=authcode,
-            redirect_uri="http://127.0.0.1:8000/callback",
+            redirect_uri="https://quayside.app/callback",
             client_id=clientID,
             client_secret=clientSecret,
         )
