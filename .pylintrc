@@ -1,0 +1,9 @@
+[MESSAGES CONTROL]
+disable=missing-docstring, line-too-long
+
+[BASIC]
+function-naming-style=any
+variable-naming-style=any
+argument-naming-style=any
+method-naming-style=any
+module-naming-style=any

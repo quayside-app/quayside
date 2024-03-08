@@ -1,0 +1,88 @@
+{% load static %}
+
+<script>
+/*
+* Create/Updates sidebar project content
+*/
+(async function () {
+  try {
+    const response = await fetch('{{ apiUrl }}/projects/?userIDs={{userID}}')
+
+    if (!response.ok) throw new Error('Network response was not ok')
+    const projects = await response.json()
+
+    const projectListElement = document.getElementById('projectList')
+    projects.forEach(function (project) {
+      const listLink = document.createElement('a')
+      listLink.href = `/project/${project.id}/graph`
+      listLink.textContent = project.name
+      listLink.className = 'flex pb-1  hover:text-neutral-500  truncate w-22'
+      projectListElement.appendChild(listLink)
+    })
+  } catch (error) {
+    console.error('There has been a problem with fetching projects:', error)
+  }
+})()
+</script>
+
+<div class>
+    <div id="sidebarContent" class=" w-44 bg-neutral-800 min-h-screen px-4 pt-2 text-white hidden sm:block">
+        <div class="mt-4 sm:text-xl text-center font-medium rounded-lg  py-1 bg-neutral-600 hover:bg-neutral-500">
+            <a href="/create-project"> + Project</a>
+        </div>
+
+        <div class="mt-8">
+            <button id="projectDropdownButton" class="flex pt-4 pb-2 hover:text-neutral-500 stroke-white hover:stroke-neutral-500">
+
+                <div class="sm:text-xl font-medium pr-2">Projects</div>
+                <div class="-rotate-90 my-auto" id="projectDropdown">{% include "components/svg/arrow.svg" %}</div>
+
+            </button>
+
+            <div id="projectListDiv" class="pl-2  overflow-scroll max-h-[60dvh]">
+                <ul id="projectList"></ul>
+            </div>
+        </div>
+    </div>
+
+    <button id="collapseButton" class="absolute p-1 bottom-3 left-3 sm:left-32 rotate-180 sm:rotate-0">
+        <div class="flex rounded-md stroke-white  bg-neutral-600  hover:bg-neutral-500">
+            {% include "components/svg/arrow.svg" %}
+        </div>
+    </button>
+
+</div>
+<script>
+  /*
+  * Allows sidebar toggle button to work (after DOM has loaded).
+  */
+  document.getElementById('collapseButton').addEventListener('click', function () {
+    // Hides  + shows sidebar (small screens default to hidden, large screens default to shown)
+    const sidebar = document.getElementById('sidebarContent')
+    sidebar.classList.toggle('hidden')
+    sidebar.classList.toggle('sm:block')
+    sidebar.classList.toggle('sm:hidden')
+
+    const collapseButton = document.getElementById('collapseButton')
+    collapseButton.classList.toggle('left-32')
+    collapseButton.classList.toggle('left-3')
+    collapseButton.classList.toggle('sm:left-32')
+    collapseButton.classList.toggle('sm:left-3')
+
+    collapseButton.classList.toggle('rotate-180')
+    collapseButton.classList.toggle('sm:rotate-180')
+    collapseButton.classList.toggle('sm:rotate-0')
+})
+
+/*
+* Shows/hides projects with the dropdown.
+*/
+document.getElementById('projectDropdownButton').addEventListener('click', function () {
+    const dropdown = document.getElementById('projectDropdown')
+    dropdown.classList.toggle('-rotate-90')
+    dropdown.classList.toggle('rotate-180')
+
+    const projectListDiv = document.getElementById('projectListDiv')
+    projectListDiv.classList.toggle('hidden')
+})
+</script>
