@@ -1,104 +1,224 @@
-{% extends "project.html" %}
+{#{% extends "project.html" %}#} <!--GRAPH DOES NOT SHOW UP IF THIS IS UNCOMMENTED-->
 {% load static %}
 
 {% block projectContent %}
 <head>
-    <!-- TODO use npm nodemanager instead of the headers -->
-    <script src="https://unpkg.com/cytoscape@3.23.0/dist/cytoscape.min.js"></script>
-    <script src="https://unpkg.com/dagre@0.7.4/dist/dagre.js"></script>
-    <script src="https://unpkg.com/cytoscape-dagre@2.5.0/cytoscape-dagre.js"></script>
+  <!-- TODO use npm nodemanager instead of the headers -->
+  <script src="https://unpkg.com/cytoscape@3.23.0/dist/cytoscape.min.js"></script>
+  <script src="https://unpkg.com/dagre@0.7.4/dist/dagre.js"></script>
+  <script src="https://unpkg.com/cytoscape-dagre@2.5.0/cytoscape-dagre.js"></script>
+
+  <!-- TODO use npm nodemanager instead of the headers -->
+  <script src="https://d3js.org/d3.v7.min.js"></script>
 </head>
+<body>
+  <div class="relative flex justify-center ">
+    {% block taskContent %}{% endblock %}
+    <div class="w-full">
+      <div id="graph" style="height:900px; width:95%" class="z-50"></div>
+    </div>
+  </div>
+</body>
+{% endblock %}
+
 <script>
-(async function () {
-  try {
+  document.addEventListener("DOMContentLoaded", async function() {
+  
     const response = await fetch('{{ apiUrl }}/tasks/?projectID={{projectID}}')
     if (!response.ok) throw new Error('REST tasks response was not ok.')
     const tasks = await response.json()
-
-    const elements = []
-
+  
+    console.log(tasks)
+    
+  
+    const taskTree = createTaskTree(tasks)
+    console.log(taskTree)
+  
+    const treeChart = Tree(taskTree, {
+      label: d => d.name,
+      link: (d, n) => ``,//`task/${d.id}`,
+      width: 2000
+    })
+  
+  
+    document.getElementById("graph").appendChild(treeChart);
+    
+  });
+  
+  // Created with ChatGPT
+  function createTaskTree(tasks) {
+    const taskMap = {};
+  
+    // Step 1: Create a map of all tasks by their ID
     tasks.forEach(task => {
-      // Assume task has id, name, and parent fields
-      elements.push({
-        data: { id: task.id, label: task.name }
-      })
-
-      // If the task has a parent, create an edge
-      if (task.parentTaskID) {
-        elements.push({
-          data: { id: task.id + '-' + task.parent, source: task.parentTaskID, target: task.id }
-        })
-      }
-    })
-
-    /* eslint-disable no-undef */
-    const cy = cytoscape({
-      container: document.getElementById('cytoscape-graph'),
-      elements,
-      style: [
-        {
-          selector: 'node',
-          style: {
-            shape: 'round-rectangle',
-            width: 1500,
-            height: 'label',
-            'background-color': '#262626',
-            'text-valign': 'center',
-            label: 'data(label)',
-            'text-wrap': 'wrap',
-            'text-max-width': 1500,
-            padding: 75,
-            color: 'white',
-            'font-size': 80, // Adjust font size as needed
-            'border-color': 'white',
-            'border-width': '10px'
-
-          }
-        },
-        {
-          selector: 'edge',
-          style: {
-            'curve-style': 'haystack',
-            'line-color': 'white',
-            'taxi-turn-min-distance': '50px',
-            'taxi-turn': '1000px',
-            width: 10
-          }
+      taskMap[task.id] = {...task, children: []};
+    });
+  
+    // Step 2: Build the tree by assigning children to their parents
+    let root = null;
+    tasks.forEach(task => {
+      if (task.parentTaskID === null) {
+        // If there is no parentTaskID, this is the top-level node
+        root = taskMap[task.id];
+      } else {
+        // If there is a parentTaskID, add this task to its parent's children array
+        if(taskMap[task.parentTaskID]) {
+          taskMap[task.parentTaskID].children.push(taskMap[task.id]);
         }
-      ],
-      layout: {
-        name: 'dagre',
-        spacingFactor: 1.4,
-        padding: 10,
-        directed: true,
-        avoidOverlap: true,
-        levelSpacing: 50,
-        rankDir: 'LR',
-        nodeSep: 50,
-        rankSep: 150
-
-      },
-      minZoom: 0.08, // Minimum zoom level (e.g., 0.5 means the graph can be zoomed out to half its original size)
-      maxZoom: 1, // Maximum zoom level (e.g., 2 means the graph can be zoomed in to twice its original size)
-      wheelSensitivity: 0.1
-    })
-
-    cy.autolock(true)
-
-    // Clicking tasks pulls up task modal
-    cy.on('click', 'node', function (evt) {
-      const node = evt.target
-      window.location.href += `task/${node.id()}`
-    })
-  } catch (error) {
-    console.error('There has been a problem with fetching projects:', error)
+      }
+    });
+  
+    // Ensure there is a single root node in the dataset
+    if (!root) {
+      throw new Error("No root node found");
+    }
+  
+    // Step 3: Convert the tree to the desired format (name instead of id)
+    const convertToNameFormat = (node) => {
+      const newNode = { name: node.name };
+      if (node.children.length) {
+        newNode.children = node.children.map(convertToNameFormat);
+      }
+      return newNode;
+    };
+  
+    return convertToNameFormat(root);
   }
-})()
-</script>
-<div class="relative flex justify-center ">
-    {% block taskContent %}{% endblock %}
-    <div class="w-full">
-        <div id="cytoscape-graph" style="height:900px; width:95%" class="z-10"></div>
-    </div>
-</div>
-{% endblock %}
+  
+  
+  function Tree(data, {
+      tree = d3.tree, // layout algorithm (typically d3.tree or d3.cluster)
+      label, // given a node d, returns the display nam
+      link, // given a node d, its link (if any)
+      width =20000, // outer width, in pixels
+      height = 20000, // outer height, in pixels
+      fill = "#FFFFFF", // fill for nodes
+      stroke = "#FFFFFF", // stroke for links
+      strokeWidth = 2, // stroke width for links
+      strokeOpacity = 0.4, // stroke opacity for links
+      curve = d3.curveBumpX, // curve for the link
+    } = {}) {
+  
+    
+      const root = d3.hierarchy(data);
+  
+      // Compute labels
+      const descendants = root.descendants();
+      const L = label == null ? null : descendants.map(d => label(d.data, d));
+    
+      // Compute the layout.
+      const dx = 60; // vertical distance
+      //const dy = width / (root.height + padding);
+      const dy = 200;
+      tree().nodeSize([dx, dy])(root);
+    
+      // Center the tree.
+      let x0 = Infinity;
+      let x1 = -x0;
+      root.each(d => {
+        if (d.x > x1) x1 = d.x;
+        if (d.x < x0) x0 = d.x;
+      });
+    
+      // Use the required curve
+      if (typeof curve !== "function") throw new Error(`Unsupported curve`);
+    
+      const svg = d3.create("svg")
+          .attr("viewBox", [-300, x0 - dx, width, height])
+          .attr("width", width)
+          .attr("height", height)
+          .attr("style", "max-width: 100%; height: auto; height: intrinsic;")
+          .attr("font-family", "sans-serif")
+          .attr("font-size", 10)
+          .style("background-color", "red") // Set the background color to red;
+    
+      svg.append("g")
+          .attr("fill", "none")
+          .attr("stroke", stroke)
+          .attr("stroke-opacity", strokeOpacity)
+          .attr("stroke-width", strokeWidth)
+        .selectAll("path")
+          .data(root.links())
+          .join("path")
+            .attr("d", d3.link(curve)
+                .x(d => d.y)
+                .y(d => d.x));
+    
+      const node = svg.append("g")
+        .selectAll("a")
+        .data(root.descendants())
+        .join("a")
+          .attr("xlink:href", link == null ? null : d => link(d.data, d))
+          .attr("transform", d => `translate(${d.y},${d.x})`);
+      
+      const nodeHeight = 50; //30;
+  
+      const maxTextLength = 18
+      node.append("rect")
+          .attr("fill", d => d.children ? stroke : fill)
+          .attr("rx", 5)
+          .attr("width",  `${maxTextLength*0.85}em`)
+          .attr("height", nodeHeight)
+          .attr("y", -nodeHeight / 2)
+  
+      if (L) {
+        text = node.append("text")
+          .attr("paint-order", "stroke")
+          .attr("fill", "black")
+          .style("font-size", "14px");
+        
+        // Add text, wrapping it to up to 3 lines
+        text.each(function(d, i) {
+          const MAXLINES = 3;
+          let lineIndex = 0
+          let lineNumber = 0
+          let line = ""
+  
+          let words = L[i].split(" ");
+          
+          for (word of words) {
+            // Check if need to move to next line
+            if (word.length + lineIndex > maxTextLength) {
+  
+              // Last line
+              if (lineNumber == MAXLINES - 1) {
+                // Replace last 3 characters with ...
+                if (lineIndex > maxTextLength - 3) {
+                  line = line.substring(0, line.length - 3) + '...';
+                } else {
+                  line += '...'
+                }
+              }
+  
+              d3.select(this).append("tspan")
+              .attr("x", 5)
+              .attr("dy", lineNumber== 0 ? -nodeHeight/6 : "1em") // Move the tspan to the next line if not first line
+              .text(line); 
+  
+              lineNumber += 1
+              lineIndex = 0
+              line = ""
+  
+              if (lineNumber >= MAXLINES) break
+            }
+  
+            line += word + " "
+            lineIndex += word.length + 1
+  
+          }
+  
+          // Append Last line if max words not reached
+          if (lineNumber < MAXLINES) {
+            d3.select(this).append("tspan")
+            .attr("x", 5)
+            .attr("dy", lineNumber == 0 ? -nodeHeight/6 : "1em") // Move the tspan to the next line if not first line
+            .text(line); 
+          }
+  
+        });
+      }
+    
+  
+      return svg.node();
+    }
+  </script>
