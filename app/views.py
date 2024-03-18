@@ -199,7 +199,9 @@ class Callback(TemplateView):
 
         # Create a user in our db if none exists
         if not userInfo:
-            names = oathUserInfo.get("name").split()
+            names = oathUserInfo.get("name", "").split()
+            if not names:
+                names=[""]
             userInfo, _ = UsersAPIView.createUser(
                 {
                     "email": oathUserInfo["email"],
