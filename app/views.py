@@ -37,9 +37,8 @@ def userLogout(request): #name change needed when more options added to logout.h
     return render(request, "logout.html")
 
 def logout(request):
-    response = render(request, 'Welcome.html')
+    response = redirect('/')
     response.delete_cookie('apiToken')
-    global_context(request)
     return response
 
 @apiKeyRequired
