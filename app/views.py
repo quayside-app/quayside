@@ -17,6 +17,7 @@ from .context_processors import global_context
 from .forms import NewProjectForm, TaskForm
 
 
+
 def userLogin(request):
     """
     Renders the login model for the user.
@@ -26,6 +27,20 @@ def userLogin(request):
     """
     return render(request, "login.html")
 
+def userLogout(request): #name change needed when more options added to logout.html(will also need a name change)
+    """
+    Renders the logout model for the user.
+
+    @param {HttpRequest} request - The request object.
+    @returns {HttpResponse} - An HttpResponse object that renders the logout.html template.
+    """
+    return render(request, "logout.html")
+
+def logout(request):
+    response = render(request, 'Welcome.html')
+    response.delete_cookie('apiToken')
+    global_context(request)
+    return response
 
 @apiKeyRequired
 def projectGraphView(request, projectID):
@@ -227,7 +242,6 @@ class Callback(TemplateView):
                     "apiKey": encryptedApiKey,
                 }
             )
-
         # Save api key to cookies
         # Setting httponly is safer and doesn't let the key be accessed by js (to prevent xxs).
         # Instead the browser will always pass the cookie to the server.

@@ -23,6 +23,8 @@ def global_context(request):
         userID = decoded.get("userID")
         username = UsersAPIView.getUser({"id": userID})[0].get("user").get("username")
     else:
+        print(':P')
         userID = ""
+        username = ''
 
     return {"apiUrl": "/api/v1", "userID": userID, 'username': username}

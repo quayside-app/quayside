@@ -8,7 +8,8 @@
         </div>
         <div class='flex w-6/12 justify-end mx-1 my-auto text-xl font-bold'>
             {%if username %}
-            <a href='/login' >Welcome {{ username }}!</a>
+            <a href='/logout' >Welcome {{ username }}!</a>
+            <div class="-rotate-90 my-auto" id="projectDropdown">{% include "components/svg/arrow.svg" %}</div>
             {%else%}
             <a href='/login' >Sign up/Login</a>
             {%endif%}
