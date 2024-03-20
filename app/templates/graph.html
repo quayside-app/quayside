@@ -1,4 +1,4 @@
-{% extends "project.html" %} <!--GRAPH DOES NOT SHOW UP IF THIS IS UNCOMMENTED-->
+{% extends "project.html" %}
 {% load static %}
 {% block projectContent %}
 <head>
@@ -15,253 +15,29 @@
   </div>
 </body>
 
+<script src="{% static 'app/js/tree.js' %}"></script>
 <script>
-  ( async function() {
-  
+  // Renders graph using tree.js
+  (async function () {
     const response = await fetch('{{ apiUrl }}/tasks/?projectID={{projectID}}')
     if (!response.ok) throw new Error('REST tasks response was not ok.')
     const tasks = await response.json()
-    
-    let graphElement = document.getElementById("graph")
+  
+    const graphElement = document.getElementById('graph')
 
+    // eslint-disable-next-line no-undef
     const taskTree = createTaskTree(tasks)
 
+    // eslint-disable-next-line no-undef
     const treeChart = Tree(taskTree, {
       label: d => d.name,
       link: (d, n) => `task/${d.id}`,
       width: graphElement.offsetWidth,
-      height: screen.height * 0.85
+      height: screen.height
     })
   
-  
-    graphElement.appendChild(treeChart);
-    
-  })();
+    graphElement.appendChild(treeChart)
+})()
+</script>
 
-  // https://www.geeksforgeeks.org/how-to-zoom-an-image-on-scroll-using-javascript/
-  // https://stackoverflow.com/questions/76644219/how-to-zoom-and-scroll-an-svg-element
-
-
-  let currentZoom = 1; 
-  let minZoom = 0.5; 
-  let maxZoom = 3; 
-  let stepSize = 0.1;
-  let HEIGHT = screen.height
-
-  let container = document.getElementById('graph'); 
-  let WIDTH = container.offsetWidth
-    
-  container.addEventListener('wheel', function (event) { 
-    event.preventDefault(); // Prevents scrolling
-    // Zoom in or out based on the scroll direction 
-    let direction = event.deltaY > 0 ? -1 : 1; 
-    zoomGraph(direction); 
-  });
-
-
-  function zoomGraph(direction) { 
-    let newZoom = currentZoom + direction * stepSize; 
-    
-  
-    // Limit the zoom level to the minimum and maximum values 
-    if (newZoom < minZoom || newZoom > maxZoom) { 
-        return; 
-    } 
-  
-    currentZoom = newZoom; 
-    //console.log(currentZoom)
-  
-    // Update the CSS transform of the image to scale it 
-    let svg = document.getElementById('graph-svg'); 
-    //svg.setAttribute('transform', `scale(${currentZoom})`);
-    // let svgWidth = parseInt(svg.getAttribute('width'));
-    // svg.setAttribute('width', `${(svgWidth * newZoom)}`);
-    let svgHeight = parseInt(svg.getAttribute('height'));
-    //svg.setAttribute('height', `${(HEIGHT * newZoom)}`);
-    svg.setAttribute('viewBox', `${-200} ${-HEIGHT/2}, ${WIDTH*1/newZoom} ${HEIGHT}`);
-    //.attr("viewBox", [-200, -height/2 + 60, width, height])
-    console.log(HEIGHT * newZoom)
-
-
-
-  }
-
-  // Created with ChatGPT
-  function createTaskTree(tasks) {
-    const taskMap = {};
-  
-    // Step 1: Create a map of all tasks by their ID
-    tasks.forEach(task => {
-      taskMap[task.id] = {...task, children: []};
-    });
-  
-    // Step 2: Build the tree by assigning children to their parents
-    let root = null;
-    tasks.forEach(task => {
-      if (task.parentTaskID === null) {
-        // If there is no parentTaskID, this is the top-level node
-        root = taskMap[task.id];
-      } else {
-        // If there is a parentTaskID, add this task to its parent's children array
-        if(taskMap[task.parentTaskID]) {
-          taskMap[task.parentTaskID].children.push(taskMap[task.id]);
-        }
-      }
-    });
-  
-    // Ensure there is a single root node in the dataset
-    if (!root) {
-      throw new Error("No root node found");
-    }
-  
-    // Step 3: Convert the tree to the desired format (name instead of id)
-    const convertToNameFormat = (node) => {
-      const newNode = { name: node.name, id: node.id};
-      if (node.children.length) {
-        newNode.children = node.children.map(convertToNameFormat);
-      }
-      return newNode;
-    };
-  
-    return convertToNameFormat(root);
-  }
-  
-  // https://observablehq.com/@d3/tree
-  function Tree(data, {
-      tree = d3.tree, // layout algorithm (typically d3.tree or d3.cluster)
-      label, // given a node d, returns the display nam
-      link, // given a node d, its link (if any)
-      width =20000, // outer width, in pixels
-      height = 20000, // outer height, in pixels
-      fill = "#323232", // fill for nodes
-      stroke = "#FFFFFF", // stroke for links
-      strokeWidth = 2, // stroke width for links
-      strokeOpacity = 0.4, // stroke opacity for links
-      curve = d3.curveBumpX, // curve for the link
-    } = {}) {
-  
-    
-      const root = d3.hierarchy(data);
-  
-      // Compute labels
-      const descendants = root.descendants();
-      const L = label == null ? null : descendants.map(d => label(d.data, d));
-    
-      // Compute the layout.
-      const dx = 60; // vertical distance
-      //const dy = width / (root.height + padding);
-      const dy = 200;
-      tree().nodeSize([dx, dy])(root);
-    
-      // Center the tree.
-      let x0 = Infinity;
-      let x1 = -x0;
-      root.each(d => {
-        if (d.x > x1) x1 = d.x;
-        if (d.x < x0) x0 = d.x;
-      });
-    
-      // Use the required curve
-      if (typeof curve !== "function") throw new Error(`Unsupported curve`);
-      
-      const svg = d3.create("svg")
-          .attr("viewBox", [-dy, -height/2, width, height])
-          .attr("width", width)
-          .attr("height", height)
-          //.attr("style", "max-width: 100%; height:90%;") // Ensure it doesn't exceed the bounds
-          .attr("font-family", "sans-serif")
-          .attr("font-size", 10)
-          .attr("id", "graph-svg")
-          
-          
-      svg.append("g")
-          .attr("fill", "none")
-          .attr("stroke", stroke)
-          .attr("stroke-opacity", strokeOpacity)
-          .attr("stroke-width", strokeWidth)
-        .selectAll("path")
-          .data(root.links())
-          .join("path")
-            .attr("d", d3.link(curve)
-                .x(d => d.y)
-                .y(d => d.x));
-    
-      const node = svg.append("g")
-        .selectAll("a")
-        .data(root.descendants())
-        .join("a")
-          .attr("xlink:href", link == null ? null : d => link(d.data, d))
-          .attr("transform", d => `translate(${d.y},${d.x})`);
-      
-      const nodeHeight = 50; //30;
-  
-      const maxTextLength = 18
-      node.append("rect")
-          .attr("fill", d => fill)
-          .attr("rx", 5)
-          .attr("width",  `${maxTextLength*0.85}em`)
-          .attr("height", nodeHeight)
-          .attr("y", -nodeHeight / 2)
-  
-      if (L) {
-        text = node.append("text")
-          .attr("paint-order", "stroke")
-          .attr("fill", "white")
-          .style("font-size", "14px");
-        
-        // Add text, wrapping it to up to 3 lines
-        text.each(function(d, i) {
-          const MAXLINES = 3;
-          let lineIndex = 0
-          let lineNumber = 0
-          let line = ""
-  
-          let words = L[i].split(" ");
-          
-          for (word of words) {
-            // Check if need to move to next line
-            if (word.length + lineIndex > maxTextLength) {
-  
-              // Last line
-              if (lineNumber == MAXLINES - 1) {
-                // Replace last 3 characters with ...
-                if (lineIndex > maxTextLength - 3) {
-                  line = line.substring(0, line.length - 3) + '...';
-                } else {
-                  line += '...'
-                }
-              }
-  
-              d3.select(this).append("tspan")
-              .attr("x", 5)
-              .attr("dy", lineNumber== 0 ? -nodeHeight/6 : "1em") // Move the tspan to the next line if not first line
-              .text(line); 
-  
-              lineNumber += 1
-              lineIndex = 0
-              line = ""
-  
-              if (lineNumber >= MAXLINES) break
-            }
-  
-            line += word + " "
-            lineIndex += word.length + 1
-  
-          }
-  
-          // Append Last line if max words not reached
-          if (lineNumber < MAXLINES) {
-            d3.select(this).append("tspan")
-            .attr("x", 5)
-            .attr("dy", lineNumber == 0 ? -nodeHeight/6 : "1em") // Move the tspan to the next line if not first line
-            .text(line); 
-          }
-  
-        });
-      }
-    
-  
-      return svg.node();
-    }
-  </script>
 {% endblock %}

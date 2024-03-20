@@ -138,7 +138,7 @@ def requestAuth(_request):
 
     url = client.prepare_request_uri(
         authorization_url,
-        redirectURL= os.getenv('REDIRECT_URL'),
+        redirectURL=os.getenv("REDIRECT_URL"),
         scope=["user"],
         state="/",
     )
@@ -170,7 +170,7 @@ class Callback(TemplateView):
 
         data = client.prepare_request_body(
             code=authcode,
-            redirect_uri= os.getenv('REDIRECT_URL'),
+            redirect_uri=os.getenv("REDIRECT_URL"),
             client_id=clientID,
             client_secret=clientSecret,
         )
