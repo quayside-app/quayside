@@ -26,10 +26,11 @@ class TaskForm(forms.Form):
     # Can't use forms.ModelForm bc it's mongo
     name = forms.CharField(
         label="",
-        widget=forms.TextInput(
+        widget=forms.Textarea(
             attrs={
                 "type": "text",
                 "class": "w-full block bg-neutral-800 outline-none sm:text-2xl font-bold",
+                'rows':2,
             }
         ),
     )
@@ -42,6 +43,7 @@ class TaskForm(forms.Form):
                 "placeholder": "Description...",
                 "type": "text",
                 "class": "w-full block p-2 mt-4 rounded-md  bg-neutral-600 outline-none placeholder-gray-400",
+
             }
         ),
     )
