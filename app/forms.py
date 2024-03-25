@@ -30,10 +30,45 @@ class TaskForm(forms.Form):
             attrs={
                 "type": "text",
                 "class": "w-full block bg-neutral-800 outline-none sm:text-2xl font-bold",
-                'rows':2,
+                'rows': 1,
             }
         ),
     )
+
+    status = forms.ChoiceField(
+        label="",
+        required=False,
+        choices=(("Todo", "Todo"), ( "In-Progress", "In-Progress"), ("Done", "Done")),
+        widget=forms.Select(
+            attrs={
+                "class": "inline-block p-1 mt-4 rounded-md  bg-neutral-600 outline-none placeholder-gray-400",
+            }
+        ),
+    )
+
+    startDate = forms.DateField(
+        label="",
+        required=False,
+        widget=forms.DateInput(
+            attrs={
+                "class": " inline-block p-1 ml-3 mt-4 rounded-md  bg-neutral-600 outline-none placeholder-gray-400",
+                "type": "date",
+            }
+        ),
+    )
+
+    endDate = forms.DateField(
+        label="",
+        required=False,
+        widget=forms.DateInput(
+            attrs={
+                "class": " inline-block p-1 ml-3 mt-4 rounded-md  bg-neutral-600 outline-none placeholder-gray-400",
+                "type": "date",
+            }
+        ),
+    )
+
+
 
     description = forms.CharField(
         label="",

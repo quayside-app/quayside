@@ -15,15 +15,22 @@
 
             <div>
 
-            {{ form }}
 
-            <!-- Submit Button -->
-            <div class="flex justify-end">
-                <button type='submit' class=" my-4 px-2 py-1 rounded-md  text-white bg-neutral-600 hover:bg-gray-500 text-center">
-                    Save
-                </button>
+                <!-- Manually render form for formatting to take effect -->
+
+                {{ form.name}}
+                {{ form.status }}
+                <div class="inline pl-4"> {{ form.startDate }} - {{ form.endDate }} </div>
+                {{ form.description }}
+
+
+                <!-- Submit Button -->
+                <div class="flex justify-end">
+                    <button type='submit' class=" my-4 px-2 py-1 rounded-md  text-white bg-neutral-600 hover:bg-gray-500 text-center">
+                        Save
+                    </button>
+                </div>
             </div>
-        </div>
         </form>
 
     </div>

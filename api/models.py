@@ -56,8 +56,8 @@ class Task(mongo.Document):
     otherProjectDependencies = mongo.ListField(mongo.ObjectIdField())
     otherTaskDependencies = mongo.ListField(mongo.ObjectIdField())
     description = mongo.StringField(null=True)
-    startDate = mongo.DateField()
-    endDate = mongo.DateField()
+    startDate = mongo.DateField(null=True)
+    endDate = mongo.DateField(null=True)
     status = mongo.StringField(choices=('In-Progress', 'Todo', 'Done'))
 
     meta = {
