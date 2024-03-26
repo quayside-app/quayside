@@ -28,6 +28,7 @@ class TaskForm(forms.Form):
         label="",
         widget=forms.Textarea(
             attrs={
+                "placeholder": "Name",
                 "type": "text",
                 "class": "w-full block bg-neutral-800 outline-none sm:text-2xl font-bold",
                 'rows': 1,

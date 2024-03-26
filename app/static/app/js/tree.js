@@ -161,16 +161,12 @@ function Tree(data, {
     // "+"" Icon
     const iconGroup = node.append("g")
                     .attr("transform", `translate(${nodeWidth} 0)`) // Does not allow em as a unit 
-                    // Add link to all nodes
-                    .selectAll("a")
-                    .data(root.descendants())
-                    .join("a")
-                    .attr("xlink:href", link == null ? null : d => createTaskLink(d.data, d))
-                    
-    iconGroup.append("circle")
+    const iconLink = iconGroup.append("a")
+                    .attr("xlink:href", createTaskLink == null ? null : d => createTaskLink(d.data, d));
+    iconLink.append("circle")
         .attr("fill", "#555555")
         .attr("r", 10)
-    iconGroup.append("text")
+    iconLink.append("text")
         .attr("dominant-baseline", "middle")
         .attr("text-anchor", "middle")
         .attr("paint-order", "stroke")

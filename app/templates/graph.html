@@ -32,7 +32,7 @@
     const treeChart = Tree(taskTree, {
       label: (d, n) => d.name,
       link: (d, n)  => `task/${d.id}`,
-      createTaskLink: (d, n)  => `create-task/${d.id}`,
+      createTaskLink: (d, n)  =>  `create-task/${d.id}`,
       fill: (d, n)  => {
         if(d.status === "In-Progress") return '#EFA610' // Yellow
         else if (d.status === "Done") return '#01796E' // Teal

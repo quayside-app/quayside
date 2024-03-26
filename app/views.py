@@ -88,7 +88,10 @@ def taskView(request, projectID, taskID):
     return render(
         request,
         "taskModal.html",
-        {"projectID": projectID, "taskID": taskID, "form": form},
+        {"form": form, 
+         "projectID": projectID,
+         "submitLink": f"/project/{projectID}/graph/task/{taskID}",
+         "exitLink": f"/project/{projectID}/graph"},
     )
 
 
@@ -99,18 +102,32 @@ def createTaskView(request, projectID, parentTaskID):
 
 
     """
-    html_content = f"""
-    <html>
-        <body>
-            <h1>
-                Create Task!
-                <div> projectID: {projectID} </div>
-                <div> parentTaskID: {parentTaskID} </div>
-            </h1>   
-        </body>
-    </html>"
-    """
-    return HttpResponse(html_content)
+
+    # Create new task on post
+    if request.method == "POST":
+        form = TaskForm(request.POST)
+
+        if form.is_valid():
+            newData = form.cleaned_data
+            newData["projectID"] = projectID
+            newData["parentTaskID"] = parentTaskID
+            message, status_code = TasksAPIView.createTasks(newData)
+
+            if status_code != status.HTTP_201_CREATED:
+                print(f"Task creation failed: {message}")
+                return HttpResponseServerError(f"An error occurred: {message}")
+
+    # If a GET (or any other method) we"ll create a blank form for them to render
+    else:
+            form = TaskForm()
+    return render(
+        request,
+        "taskModal.html",
+        {"form": form, 
+         "projectID": projectID,
+         "submitLink": f"/project/{projectID}/graph/create-task/{parentTaskID}",
+         "exitLink": f"/project/{projectID}/graph"},
+    )
 
 
 @apiKeyRequired
