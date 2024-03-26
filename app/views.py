@@ -140,7 +140,7 @@ def createProjectView(request):
     return render(request, "newProjectModal.html", {"form": form})
 
 
-def requestAuth(_request):
+def requestAuth(_request, provider):
     """
     Initiates an OAuth authentication request (Github, etc).
 
@@ -149,15 +149,27 @@ def requestAuth(_request):
         authorization page.
     """
     clientID = os.getenv("GITHUB_CLIENT_ID")
-    client = WAC(clientID)
     authorization_url = "https://github.com/login/oauth/authorize"
-
+    
+    if(provider == 'GitHub'):
+        clientID = os.getenv("GITHUB_CLIENT_ID")
+        authorization_url = "https://github.com/login/oauth/authorize"
+    elif(provider == 'Google'):
+            clientID = os.getenv("GOOGLE_CLIENT_ID")
+            authorization_url = 'https://accounts.google.com/o/oauth2/v2/auth'
+    print(clientID)
+    print(authorization_url)
+         
+    client = WAC(clientID)
+    
     url = client.prepare_request_uri(
         authorization_url,
-        redirectURL= os.getenv('REDIRECT_URL'),
-        scope=["user"],
-        state="/",
+        redirect_uri= 'http://127.0.0.1:8000/callback',
+        scope=["https://www.googleapis.com/auth/userinfo.profile"],
+        state="test",
+        access_type = 'offline'
     )
+    print(url)
     return HttpResponseRedirect(url)
 
 
@@ -172,6 +184,7 @@ class Callback(TemplateView):
         @param request: The HTTP request object containing the callback data from GitHub.
         @returns: The rendered index.html page with the API token set in the cookies.
         """
+        print(self.request)
         data = self.request.GET
         authcode = data["code"]
         # state = data["state"]

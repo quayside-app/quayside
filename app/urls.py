@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, re_path
 
 from . import views
 
@@ -17,7 +17,8 @@ urlpatterns = [
     path("login/", views.userLogin, name="login_view"),
     path("logout/", views.userLogout, name="logout_view"),
     path("welcome", views.logout, name="logout_view"),
-    path("auth/", views.requestAuth, name="authorize"),
+    path("auth/<str:provider>", views.requestAuth, name="authorize"),
     path("callback/", views.Callback.as_view(), name="callback"),
-    path('redirect/', views.redirectOffSite,name='offsite_redirect')
+    path('redirect/', views.redirectOffSite,name='offsite_redirect'),
+    #re_path(r'^auth(?P<provider>)', views.requestAuth, name="authorize")
 ]
