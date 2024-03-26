@@ -78,6 +78,9 @@ function Tree(data, {
     let strokeWidth = 2 // stroke width for links
     let strokeOpacity = 0.4 // stroke opacity for links
     let curve = d3.curveBumpX // curve for the link
+    const nodeWidth = 150 //Pixels
+    const nodeHeight = 50;  // Pixels
+    const maxTextLength = 18
 
 
     const root = d3.hierarchy(data);
@@ -143,15 +146,32 @@ function Tree(data, {
         .attr("transform", d => `translate(${d.y},${d.x})`);
 
 
-    const nodeHeight = 50; //30;
 
-    const maxTextLength = 18
+
+
     node.append("rect")
         .attr("fill", d => fill(d.data, d))
         .attr("rx", 5)
-        .attr("width",  `${maxTextLength*0.85}em`)
+        .attr("width",  nodeWidth)// .attr("width",  `${maxTextLength*0.85}em`)
         .attr("height", nodeHeight)
         .attr("y", -nodeHeight / 2)
+
+    // "+"" Icon
+    const iconGroup = node.append("g")
+                    .attr("transform", `translate(${nodeWidth} 0)`); // Does not allow em as a unit 
+                    
+    iconGroup.append("circle")
+        .attr("fill", "#555555")
+        .attr("r", 10)
+    iconGroup.append("text")
+        .attr("dominant-baseline", "middle")
+        .attr("text-anchor", "middle")
+        .attr("paint-order", "stroke")
+        .attr("fill", "white")
+        .style("font-size", "14px")
+        .text("+")
+
+        
 
     if (L) {
     text = node.append("text")
