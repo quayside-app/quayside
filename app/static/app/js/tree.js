@@ -59,6 +59,7 @@ function createTaskTree(tasks) {
  * @param {Object} [options] - Configuration options for the tree visualization.
  * @param {Function} [options.label] - A function that, given a node d, returns the display name for that node.
  * @param {Function} [options.link] - A function that, given a node d, returns its link (if any).
+ * @param {Function} [options.createTaskLink] - A function that, given a node d, returns its link to create a child task
  * @param {Function} [options.fill] - A function that, given a node d, returns its fill color
  * @param {number} [options.width=200] - The outer width of the tree, in pixels.
  * @param {number} [options.height=200] - The outer height of the tree, in pixels.
@@ -143,8 +144,8 @@ function Tree(data, {
     .selectAll("a")
     .data(root.descendants())
     .join("a")
-        .attr("xlink:href", link == null ? null : d => link(d.data, d))
-        .attr("transform", d => `translate(${d.y},${d.x})`);
+    .attr("xlink:href", link == null ? null : d => link(d.data, d))
+    .attr("transform", d => `translate(${d.y},${d.x})`);
 
 
 
@@ -159,7 +160,12 @@ function Tree(data, {
 
     // "+"" Icon
     const iconGroup = node.append("g")
-                    .attr("transform", `translate(${nodeWidth} 0)`); // Does not allow em as a unit 
+                    .attr("transform", `translate(${nodeWidth} 0)`) // Does not allow em as a unit 
+                    // Add link to all nodes
+                    .selectAll("a")
+                    .data(root.descendants())
+                    .join("a")
+                    .attr("xlink:href", link == null ? null : d => createTaskLink(d.data, d))
                     
     iconGroup.append("circle")
         .attr("fill", "#555555")
@@ -171,11 +177,6 @@ function Tree(data, {
         .attr("fill", "white")
         .style("font-size", "14px")
         .text("+")
-
-    iconGroup.on("click", () => {
-        window.open(createTaskLink); // This will open the URL in a new tab
-        // For opening the URL in the same tab, use: window.location.href = url;
-    });
         
 
     if (L) {

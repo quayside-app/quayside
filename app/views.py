@@ -93,13 +93,23 @@ def taskView(request, projectID, taskID):
 
 
 @apiKeyRequired
-def createTaskView(request, projectID):
+def createTaskView(request, projectID, parentTaskID):
     """
     Blah Blah
 
 
     """
-    html_content = "<html><body><h1>Create Task!</h1></body></html>"
+    html_content = f"""
+    <html>
+        <body>
+            <h1>
+                Create Task!
+                <div> projectID: {projectID} </div>
+                <div> parentTaskID: {parentTaskID} </div>
+            </h1>   
+        </body>
+    </html>"
+    """
     return HttpResponse(html_content)
 
 
