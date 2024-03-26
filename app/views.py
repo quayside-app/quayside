@@ -4,8 +4,7 @@ import requests
 from rest_framework import status
 
 from django.shortcuts import render, redirect
-from django.http import HttpResponseRedirect
-from django.http import HttpResponseServerError
+from django.http import HttpResponseRedirect, HttpResponseServerError, HttpResponse
 from django.views.generic.base import TemplateView
 
 from api.decorators import apiKeyRequired
@@ -94,6 +93,17 @@ def taskView(request, projectID, taskID):
 
 
 @apiKeyRequired
+def createTaskView(request, projectID):
+    """
+    Blah Blah
+
+
+    """
+    html_content = "<html><body><h1>Create Task!</h1></body></html>"
+    return HttpResponse(html_content)
+
+
+@apiKeyRequired
 def createProjectView(request):
     """
     Renders the view for creating a new project.
@@ -121,7 +131,8 @@ def createProjectView(request):
                 {"name": name, "userIDs": [userId]}
             )
             projectID = projectData.get("id")
-            GeneratedTasksAPIView.generateTasks({"projectID": projectID, "name": name})
+            GeneratedTasksAPIView.generateTasks(
+                {"projectID": projectID, "name": name})
 
             # Redirect to project
             return HttpResponseRedirect(f"/project/{projectID}/graph")
@@ -210,7 +221,7 @@ class Callback(TemplateView):
         if not userInfo:
             names = oathUserInfo.get("name", "").split()
             if not names:
-                names=[""]
+                names = [""]
             userInfo, _ = UsersAPIView.createUser(
                 {
                     "email": oathUserInfo["email"],
@@ -219,7 +230,8 @@ class Callback(TemplateView):
                     "lastName": names[-1],
                 }
             )
-        response = redirect("/")  # Redirect instead of rendering (to make it update)
+        # Redirect instead of rendering (to make it update)
+        response = redirect("/")
 
         apiToken = userInfo.get("apiKey")  # Get API key
 

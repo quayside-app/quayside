@@ -68,6 +68,7 @@ function createTaskTree(tasks) {
 function Tree(data, {
     label, // given a node d, returns the display name
     link, // given a node d, its link (if any)
+    createTaskLink,
     fill, // given a node d, its color (if any)
     width = 200, // outer width, in pixels
     height = 200, // outer height, in pixels
@@ -171,6 +172,10 @@ function Tree(data, {
         .style("font-size", "14px")
         .text("+")
 
+    iconGroup.on("click", () => {
+        window.open(createTaskLink); // This will open the URL in a new tab
+        // For opening the URL in the same tab, use: window.location.href = url;
+    });
         
 
     if (L) {

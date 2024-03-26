@@ -14,6 +14,11 @@ urlpatterns = [
         views.taskView,
         name="task-detail-view",
     ),
+    path(
+        "project/<str:projectID>/graph/create-task",
+        views.createTaskView,
+        name="create-task-view",
+    ),
     path("login/", views.userLogin, name="login_view"),
     path("auth/", views.requestAuth, name="authorize"),
     path("callback/", views.Callback.as_view(), name="callback"),
