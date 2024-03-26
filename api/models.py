@@ -56,10 +56,9 @@ class Task(mongo.Document):
     otherProjectDependencies = mongo.ListField(mongo.ObjectIdField())
     otherTaskDependencies = mongo.ListField(mongo.ObjectIdField())
     description = mongo.StringField(null=True)
-    startDate = mongo.DateField()
-    endDate = mongo.DateField()
+    startDate = mongo.DateField(null=True)
+    endDate = mongo.DateField(null=True)
     kanbanStatus = mongo.StringField(default="Todo")
-    
 
     meta = {
         "collection": "Task",  # Need to specify UPPER Case

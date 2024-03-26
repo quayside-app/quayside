@@ -42,7 +42,7 @@ function createTaskTree(tasks) {
 
     // Step 3: Convert the tree to the desired format (name instead of id)
     const convertToNameFormat = (node) => {
-        const newNode = { name: node.name, id: node.id};
+        const newNode = { name: node.name, id: node.id, status: node.status};
         if (node.children.length) {
         newNode.children = node.children.map(convertToNameFormat);
         }
@@ -59,19 +59,21 @@ function createTaskTree(tasks) {
  * @param {Object} [options] - Configuration options for the tree visualization.
  * @param {Function} [options.label] - A function that, given a node d, returns the display name for that node.
  * @param {Function} [options.link] - A function that, given a node d, returns its link (if any).
+ * @param {Function} [options.fill] - A function that, given a node d, returns its fill color
  * @param {number} [options.width=200] - The outer width of the tree, in pixels.
  * @param {number} [options.height=200] - The outer height of the tree, in pixels.
  * @returns {Object} The SVG node representing the tree visualization.
  * 
  */
 function Tree(data, {
-    label, // given a node d, returns the display nam
+    label, // given a node d, returns the display name
     link, // given a node d, its link (if any)
+    fill, // given a node d, its color (if any)
     width = 200, // outer width, in pixels
     height = 200, // outer height, in pixels
 } = {}) {
+    
     let tree = d3.tree // layout algorithm
-    let fill = "#323232" // fill for nodes
     let stroke = "#FFFFFF" // stroke for links
     let strokeWidth = 2 // stroke width for links
     let strokeOpacity = 0.4 // stroke opacity for links
@@ -83,6 +85,7 @@ function Tree(data, {
     // Compute labels
     const descendants = root.descendants();
     const L = label == null ? null : descendants.map(d => label(d.data, d));
+    //const node_fill = fill == null ? null : descendants.map(d => fill(d.data, d));
 
     // Compute the layout.
     const dx = 60; // vertical distance
@@ -144,7 +147,7 @@ function Tree(data, {
 
     const maxTextLength = 18
     node.append("rect")
-        .attr("fill", d => fill)
+        .attr("fill", d => fill(d.data, d))
         .attr("rx", 5)
         .attr("width",  `${maxTextLength*0.85}em`)
         .attr("height", nodeHeight)

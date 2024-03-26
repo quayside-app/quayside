@@ -27,11 +27,16 @@
 
     // eslint-disable-next-line no-undef
     const taskTree = createTaskTree(tasks)
-
+    
     // eslint-disable-next-line no-undef
     const treeChart = Tree(taskTree, {
-      label: d => d.name,
-      link: (d, n) => `task/${d.id}`,
+      label: (d, n) => d.name,
+      link: (d, n)  => `task/${d.id}`,
+      fill: (d, n)  => {
+        if(d.status === "In-Progress") return '#EFA610' // Yellow
+        else if (d.status === "Done") return '#01796E' // Teal
+        else return'#323232'
+      }, 
       width: graphElement.offsetWidth,
       height: screen.height
     })

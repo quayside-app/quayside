@@ -1,9 +1,11 @@
 import os
 from oauthlib.oauth2 import WebApplicationClient as WAC
 import requests
+from rest_framework import status
 
 from django.shortcuts import render, redirect
 from django.http import HttpResponseRedirect
+from django.http import HttpResponseServerError
 from django.views.generic.base import TemplateView
 
 from api.decorators import apiKeyRequired
@@ -63,7 +65,11 @@ def taskView(request, projectID, taskID):
         if form.is_valid():
             newData = form.cleaned_data
             newData["id"] = taskID
-            _, _ = TasksAPIView.updateTask(newData)
+            message, status_code = TasksAPIView.updateTask(newData)
+
+            if status_code != status.HTTP_200_OK:
+                print(f"Task update failed: {message}")
+                return HttpResponseServerError(f"An error occurred: {message}")
 
     # If a GET (or any other method) we"ll create a blank form
     else:
@@ -73,6 +79,9 @@ def taskView(request, projectID, taskID):
             initialData = {
                 "name": taskData.get("name", ""),
                 "description": taskData.get("description", ""),
+                "status": taskData.get("status", ""),
+                "startDate": taskData.get("startDate", ""),
+                "endDate": taskData.get("endDate", ""),
             }
             form = TaskForm(initial=initialData)
         else:

@@ -638,6 +638,10 @@ video {
   display: block;
 }
 
+.inline {
+  display: inline;
+}
+
 .flex {
   display: flex;
 }
@@ -820,6 +824,11 @@ video {
   padding-bottom: 0.5rem;
 }
 
+.py-5 {
+  padding-top: 1.25rem;
+  padding-bottom: 1.25rem;
+}
+
 .pb-1 {
   padding-bottom: 0.25rem;
 }
@@ -830,6 +839,10 @@ video {
 
 .pl-2 {
   padding-left: 0.5rem;
+}
+
+.pl-4 {
+  padding-left: 1rem;
 }
 
 .pr-2 {
@@ -978,5 +991,11 @@ video {
   .md\:text-xl {
     font-size: 1.25rem;
     line-height: 1.75rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .lg\:w-\[50rem\] {
+    width: 50rem;
   }
 }
