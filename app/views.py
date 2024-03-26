@@ -17,6 +17,8 @@ from .context_processors import global_context
 from .forms import NewProjectForm, TaskForm
 
 
+def redirectOffSite(request):
+    return redirect('https://github.com/quayside-app/quayside')
 
 def userLogin(request):
     """
