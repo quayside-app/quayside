@@ -35,6 +35,7 @@ class TasksAPIView(APIView):
                 - description (str)
                 - startDate (date, 'YYYY-MM-DD')
                 - endDate (date, 'YYYY-MM-DD')
+                - kanbanStatus (str)
 
 
         @return: A Response object containing a JSON array of serialized Task objects that
