@@ -16,6 +16,8 @@ from api.views.v1.users import UsersAPIView
 from .context_processors import global_context
 from .forms import NewProjectForm, TaskForm
 
+import urllib.parse
+import json
 
 def redirectOffSite(request):
     return redirect('https://github.com/quayside-app/quayside')
@@ -161,7 +163,7 @@ def requestAuth(_request, provider):
     elif(provider == 'Google'):
             clientID = os.getenv("GOOGLE_CLIENT_ID")
             authorization_url = 'https://accounts.google.com/o/oauth2/v2/auth'
-            providerScope=["https://www.googleapis.com/auth/userinfo.profile"]
+            providerScope=["https://www.googleapis.com/auth/userinfo.profile","https://www.googleapis.com/auth/userinfo.email"]
     else:
         raise AttributeError('Unsupported ouath provider')
     
@@ -172,7 +174,7 @@ def requestAuth(_request, provider):
     
     url = client.prepare_request_uri(
         authorization_url,
-        redirect_uri= 'http://127.0.0.1:8000/callback',
+        redirect_uri= os.getenv("REDIRECT_URI"),
         scope=providerScope,
         state="test",
     )
@@ -195,7 +197,7 @@ class Callback(TemplateView):
         data = self.request.GET
         authcode = data["code"]
         provider = self.request.session['provider']
-        print(authcode)
+
         # state = data["state"]
 
         # Get API token
@@ -203,78 +205,88 @@ class Callback(TemplateView):
             token_url = "https://github.com/login/oauth/access_token"
             clientID = os.getenv("GITHUB_CLIENT_ID")
             clientSecret = os.getenv("GITHUB_CLIENT_SECRET")
+            username = 'login'
+            apiRequestURL = os.getenv("GITHUB_API_URL_user")
             
         elif(provider == 'Google'):
             token_url = 'https://accounts.google.com/o/oauth2/token'
             clientID = os.getenv('GOOGLE_CLIENT_ID')
             clientSecret = os.getenv("GOOGLE_CLIENT_SECRET")
-
+            username = 'name'
+            apiRequestURL = os.getenv("GOOGLE_API_URL_userprofile")
         client = WAC(clientID)
 
-        params = client.prepare_request_body(
-            access_token=authcode,
-            redirect_uri= 'http://127.0.0.1:8000/callback',
-            client_id=clientID,
-            client_secret=clientSecret,
-            scope =["https://www.googleapis.com/auth/userinfo.profile"]
+        data = client.prepare_request_body(
+            code = authcode,
+            redirect_uri = os.getenv("REDIRECT_URI"),
+            client_id = clientID,
+            client_secret = clientSecret
+        )
+        
+        if(provider == 'Google'):                                       #caters request and header to google specifications
+            data = dict(urllib.parse.parse_qsl(data))
+            response = requests.post(token_url, json = data, timeout=10)
+            client.parse_request_body_response(response.text)
+            header = {"Authorization": f"Bearer {client.token['access_token']}"}
+        else:                                                           #caters to GitHub specifications
+            response = requests.post(token_url, data = data, timeout=10)
+            client.parse_request_body_response(response.text)
+            header = {"Authorization": f"token {client.token['access_token']}"}
+            
+
+        response = requests.get(
+            apiRequestURL, headers=header, timeout=10
         )
 
-        response = requests.post(token_url, json=params, timeout=10)
-        print(response)
-        client.parse_request_body_response(response.text)
+        oauthUserInfo = response.json()
 
-        header = {"Authorization": f"token {client.token['access_token']}"}
 
-        # response = requests.get(
-        #     os.getenv("GITHUB_API_URL_user"), headers=header, timeout=10
-        # )
+        # For Github, if user has no visible email, make second request for email
+        if not oauthUserInfo.get("email"):
+            response = requests.get(
+                os.getenv("GITHUB_API_URL_email"), headers=header, timeout=10
+            )
+            oauthUserInfo["email"] = response.json()[0]["email"]
 
-        # oathUserInfo = response.json()
-        # # For Github, if user has no visible email, make second request for email
-        # if not oathUserInfo.get("email"):
-        #     response = requests.get(
-        #         os.getenv("GITHUB_API_URL_email"), headers=header, timeout=10
-        #     )
-        #     oathUserInfo["email"] = response.json()[0]["email"]
+        userInfo = UsersAPIView.getUser({"email": oauthUserInfo.get("email")})[0].get(
+            "user"
+        )
 
-        # userInfo = UsersAPIView.getUser({"email": oathUserInfo.get("email")})[0].get(
-        #     "user"
-        # )
+        # Create a user in our db if none exists
+        if not userInfo:
+            
+            names = oauthUserInfo.get("name").split()
+            userInfo, _ = UsersAPIView.createUser(
+                {
+                    "email": oauthUserInfo["email"],
+                    "username": oauthUserInfo.get(username),
+                    "firstName": names[0],
+                    "lastName": names[-1],
+                }
+            )
+        response = redirect("/")  # Redirect instead of rendering (to make it update)
 
-        # # Create a user in our db if none exists
-        # if not userInfo:
-        #     names = oathUserInfo.get("name").split()
-        #     userInfo, _ = UsersAPIView.createUser(
-        #         {
-        #             "email": oathUserInfo["email"],
-        #             "username": oathUserInfo.get("login"),
-        #             "firstName": names[0],
-        #             "lastName": names[-1],
-        #         }
-        #     )
-        # response = redirect("/")  # Redirect instead of rendering (to make it update)
+        apiToken = userInfo.get("apiKey")  # Get API key
 
-        # apiToken = userInfo.get("apiKey")  # Get API key
+        if apiToken:
+            apiToken = decryptApiKey(apiToken)
+        # Create an api key if it doesn't exist in the db yet
+        else:
+            # Create/encrypt API key
+            apiToken = createEncodedApiKey(userInfo["id"])
+            encryptedApiKey = encryptApiKey(apiToken)
 
-        # if apiToken:
-        #     apiToken = decryptApiKey(apiToken)
-        # # Create an api key if it doesn't exist in the db yet
-        # else:
-        #     # Create/encrypt API key
-        #     apiToken = createEncodedApiKey(userInfo["id"])
-        #     encryptedApiKey = encryptApiKey(apiToken)
+            # Save api Key to DB
+            userInfo, _ = UsersAPIView.updateUser(
+                {
+                    "id": userInfo["id"],
+                    "apiKey": encryptedApiKey,
+                }
+            )
+        # Save api key to cookies
+        # Setting httponly is safer and doesn't let the key be accessed by js (to prevent xxs).
+        # Instead the browser will always pass the cookie to the server.
+        response.set_cookie("apiToken", apiToken, httponly=True)
 
-        #     # Save api Key to DB
-        #     userInfo, _ = UsersAPIView.updateUser(
-        #         {
-        #             "id": userInfo["id"],
-        #             "apiKey": encryptedApiKey,
-        #         }
-        #     )
-        # # Save api key to cookies
-        # # Setting httponly is safer and doesn't let the key be accessed by js (to prevent xxs).
-        # # Instead the browser will always pass the cookie to the server.
-        # response.set_cookie("apiToken", apiToken, httponly=True)
+        return response
 
-        # return response
-        return 0
