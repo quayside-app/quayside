@@ -1,4 +1,4 @@
-from django.urls import path, re_path
+from django.urls import path
 
 from . import views
 
@@ -20,5 +20,4 @@ urlpatterns = [
     path("auth/<str:provider>", views.requestAuth, name="authorize"),
     path("callback/", views.Callback.as_view(), name="callback"),
     path('redirect/', views.redirectOffSite,name='offsite_redirect'),
-    #re_path(r'^auth(?P<provider>)', views.requestAuth, name="authorize")
 ]
