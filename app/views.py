@@ -16,6 +16,11 @@ from api.views.v1.users import UsersAPIView
 from .context_processors import global_context
 from .forms import NewProjectForm, TaskForm
 
+import urllib.parse
+import json
+
+def redirectOffSite(request):
+    return redirect('https://github.com/quayside-app/quayside')
 
 def userLogin(request):
     """
@@ -26,6 +31,19 @@ def userLogin(request):
     """
     return render(request, "login.html")
 
+def userLogout(request): #name change needed when more options added to logout.html(will also need a name change)
+    """
+    Renders the logout model for the user.
+
+    @param {HttpRequest} request - The request object.
+    @returns {HttpResponse} - An HttpResponse object that renders the logout.html template.
+    """
+    return render(request, "logout.html")
+
+def logout(request):
+    response = redirect('/')
+    response.delete_cookie('apiToken')
+    return response
 
 @apiKeyRequired
 def projectGraphView(request, projectID):
@@ -124,7 +142,7 @@ def createProjectView(request):
     return render(request, "newProjectModal.html", {"form": form})
 
 
-def requestAuth(_request):
+def requestAuth(_request, provider):
     """
     Initiates an OAuth authentication request (Github, etc).
 
@@ -132,15 +150,33 @@ def requestAuth(_request):
     @returns {HttpResponseRedirect} - A redirect response that navigates the user to OAuth
         authorization page.
     """
-    clientID = os.getenv("GITHUB_CLIENT_ID")
-    client = WAC(clientID)
-    authorization_url = "https://github.com/login/oauth/authorize"
+    clientID = ''
+    authorization_url = ''
+    providerScope = []
+    _request.session['provider'] = provider
+    
+    if(provider == 'GitHub'):
+        clientID = os.getenv("GITHUB_CLIENT_ID")
+        authorization_url = "https://github.com/login/oauth/authorize"
+        providerScope=["user"]
 
+    elif(provider == 'Google'):
+            clientID = os.getenv("GOOGLE_CLIENT_ID")
+            authorization_url = 'https://accounts.google.com/o/oauth2/v2/auth'
+            providerScope=["https://www.googleapis.com/auth/userinfo.profile","https://www.googleapis.com/auth/userinfo.email"]
+    else:
+        raise AttributeError('Unsupported ouath provider')
+    
+    print(clientID)
+    print(authorization_url)
+         
+    client = WAC(clientID)
+    
     url = client.prepare_request_uri(
         authorization_url,
-        redirectURL=os.getenv("REDIRECT_URL"),
-        scope=["user"],
-        state="/",
+        redirect_uri= os.getenv("REDIRECT_URI"),
+        scope=providerScope,
+        state="test",
     )
     return HttpResponseRedirect(url)
 
@@ -153,59 +189,77 @@ class Callback(TemplateView):
         It then saves the API key to the user's cookies so it can be sent to the API routes in
         future requests.
 
-        @param request: The HTTP request object containing the callback data from GitHub.
+        @param request: The HTTP request object containing the callback data from GitHub or Google.
         @returns: The rendered index.html page with the API token set in the cookies.
         """
+        print(self.request)
         data = self.request.GET
         authcode = data["code"]
+        provider = self.request.session['provider']
+
         # state = data["state"]
 
         # Get API token
-
-        token_url = "https://github.com/login/oauth/access_token"
-        clientID = os.getenv("GITHUB_CLIENT_ID")
-        clientSecret = os.getenv("GITHUB_CLIENT_SECRET")
-
+        if(provider == 'GitHub'):
+            token_url = "https://github.com/login/oauth/access_token"
+            clientID = os.getenv("GITHUB_CLIENT_ID")
+            clientSecret = os.getenv("GITHUB_CLIENT_SECRET")
+            username = 'login'
+            apiRequestURL = os.getenv("GITHUB_API_URL_user")
+            
+        elif(provider == 'Google'):
+            token_url = 'https://accounts.google.com/o/oauth2/token'
+            clientID = os.getenv('GOOGLE_CLIENT_ID')
+            clientSecret = os.getenv("GOOGLE_CLIENT_SECRET")
+            username = 'name'
+            apiRequestURL = os.getenv("GOOGLE_API_URL_userprofile")
         client = WAC(clientID)
 
         data = client.prepare_request_body(
-            code=authcode,
-            redirect_uri=os.getenv("REDIRECT_URL"),
-            client_id=clientID,
-            client_secret=clientSecret,
+            code = authcode,
+            redirect_uri = os.getenv("REDIRECT_URI"),
+            client_id = clientID,
+            client_secret = clientSecret
         )
-
-        response = requests.post(token_url, data=data, timeout=10)
-
-        client.parse_request_body_response(response.text)
-
-        header = {"Authorization": f"token {client.token['access_token']}"}
+        
+        if(provider == 'Google'):                                       #caters request and header to google specifications
+            data = dict(urllib.parse.parse_qsl(data))
+            response = requests.post(token_url, json = data, timeout=10)
+            client.parse_request_body_response(response.text)
+            header = {"Authorization": f"Bearer {client.token['access_token']}"}
+        else:                                                           #caters to GitHub specifications
+            response = requests.post(token_url, data = data, timeout=10)
+            client.parse_request_body_response(response.text)
+            header = {"Authorization": f"token {client.token['access_token']}"}
+            
 
         response = requests.get(
-            os.getenv("GITHUB_API_URL_user"), headers=header, timeout=10
+            apiRequestURL, headers=header, timeout=10
         )
 
-        oathUserInfo = response.json()
+        oauthUserInfo = response.json()
+
+
         # For Github, if user has no visible email, make second request for email
-        if not oathUserInfo.get("email"):
+        if not oauthUserInfo.get("email"):
             response = requests.get(
                 os.getenv("GITHUB_API_URL_email"), headers=header, timeout=10
             )
-            oathUserInfo["email"] = response.json()[0]["email"]
+            oauthUserInfo["email"] = response.json()[0]["email"]
 
-        userInfo = UsersAPIView.getUser({"email": oathUserInfo.get("email")})[0].get(
+        userInfo = UsersAPIView.getUser({"email": oauthUserInfo.get("email")})[0].get(
             "user"
         )
 
         # Create a user in our db if none exists
         if not userInfo:
-            names = oathUserInfo.get("name", "").split()
+            names = oauthUserInfo.get("name", "").split()
             if not names:
                 names=[""]
             userInfo, _ = UsersAPIView.createUser(
                 {
-                    "email": oathUserInfo["email"],
-                    "username": oathUserInfo.get("login"),
+                    "email": oauthUserInfo["email"],
+                    "username": oauthUserInfo.get(username),
                     "firstName": names[0],
                     "lastName": names[-1],
                 }
@@ -229,10 +283,11 @@ class Callback(TemplateView):
                     "apiKey": encryptedApiKey,
                 }
             )
-
+            
         # Save api key to cookies
         # Setting httponly is safer and doesn't let the key be accessed by js (to prevent xxs).
         # Instead the browser will always pass the cookie to the server.
         response.set_cookie("apiToken", apiToken, httponly=True)
 
         return response
+

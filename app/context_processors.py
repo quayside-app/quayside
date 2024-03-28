@@ -1,7 +1,7 @@
 import os
 import jwt
 from dotenv import load_dotenv
-
+from api.views.v1.users import UsersAPIView
 
 def global_context(request):
     """
@@ -21,7 +21,9 @@ def global_context(request):
     if token:
         decoded = jwt.decode(token, secretKey, algorithms=["HS256"])
         userID = decoded.get("userID")
+        username = UsersAPIView.getUser({"id": userID})[0].get("user").get("username")
     else:
         userID = ""
+        username = ''
 
-    return {"apiUrl": "/api/v1", "userID": userID}
+    return {"apiUrl": "/api/v1", "userID": userID, 'username': username}
