@@ -13,44 +13,79 @@
  * and a children array.
  * 
  */
-function createTaskTree(tasks) {
+// function createTaskTree(tasks) {
+//     const taskMap = {};
+
+//     // Step 1: Create a map of all tasks by their ID
+//     tasks.forEach(task => {
+//         taskMap[task.id] = {...task, children: []};
+//     });
+
+//     // Step 2: Build the tree by assigning children to their parents
+//     let root = null;
+//     tasks.forEach(task => {
+//         if (task.parentTaskID === null) {
+//         // If there is no parentTaskID, this is the top-level node
+//         root = taskMap[task.id];
+//         } else {
+//         // If there is a parentTaskID, add this task to its parent's children array
+//         if(taskMap[task.parentTaskID]) {
+//             taskMap[task.parentTaskID].children.push(taskMap[task.id]);
+//         }
+//         }
+//     });
+
+//     // Ensure there is a single root node in the dataset
+//     if (!root) {
+//         throw new Error("No root node found");
+//     }
+
+//     // Step 3: Convert the tree to the desired format (name instead of id)
+//     const convertToNameFormat = (node) => {
+//         const newNode = { name: node.name, id: node.id, status: node.status};
+//         if (node.children.length) {
+//         newNode.children = node.children.map(convertToNameFormat);
+//         }
+//         return newNode;
+//     };
+
+//     return convertToNameFormat(root);
+// }
+
+function createTaskTrees(tasks) {
     const taskMap = {};
+    const roots = [];
 
     // Step 1: Create a map of all tasks by their ID
     tasks.forEach(task => {
-        taskMap[task.id] = {...task, children: []};
+        taskMap[task.id] = { ...task, children: [] };
     });
 
-    // Step 2: Build the tree by assigning children to their parents
-    let root = null;
+    // Step 2: Build the trees by assigning children to their parents
     tasks.forEach(task => {
         if (task.parentTaskID === null) {
-        // If there is no parentTaskID, this is the top-level node
-        root = taskMap[task.id];
+            // If there is no parentTaskID, this is a root node
+            roots.push(taskMap[task.id]);
         } else {
-        // If there is a parentTaskID, add this task to its parent's children array
-        if(taskMap[task.parentTaskID]) {
-            taskMap[task.parentTaskID].children.push(taskMap[task.id]);
-        }
+            // If there is a parentTaskID, add this task to its parent's children array
+            if (taskMap[task.parentTaskID]) {
+                taskMap[task.parentTaskID].children.push(taskMap[task.id]);
+            }
         }
     });
 
-    // Ensure there is a single root node in the dataset
-    if (!root) {
-        throw new Error("No root node found");
-    }
-
-    // Step 3: Convert the tree to the desired format (name instead of id)
+    // Step 3: Convert each tree to the desired format (name instead of id)
     const convertToNameFormat = (node) => {
-        const newNode = { name: node.name, id: node.id, status: node.status};
+        const newNode = { name: node.name, id: node.id, status: node.status, children: [] };
         if (node.children.length) {
-        newNode.children = node.children.map(convertToNameFormat);
+            newNode.children = node.children.map(convertToNameFormat);
         }
         return newNode;
     };
 
-    return convertToNameFormat(root);
+    return roots.map(root => convertToNameFormat(root));
 }
+
 
 /**
  * Creates a tree visualization using D3.js. Source: https://observablehq.com/@d3/tree
@@ -72,7 +107,6 @@ function Tree(data, {
     createTaskLink,
     fill, // given a node d, its color (if any)
     width = 200, // outer width, in pixels
-    height = 200, // outer height, in pixels
 } = {}) {
     
     let tree = d3.tree // layout algorithm
@@ -83,6 +117,7 @@ function Tree(data, {
     const nodeWidth = 150 //Pixels
     const nodeHeight = 50;  // Pixels
     const maxTextLength = 18
+    
 
 
     const root = d3.hierarchy(data);
@@ -105,6 +140,8 @@ function Tree(data, {
     if (d.x > x1) x1 = d.x;
     if (d.x < x0) x0 = d.x;
     });
+
+    const height = x1 - x0 + dx * 2;
 
     // Use the required curve
     if (typeof curve !== "function") throw new Error(`Unsupported curve`);

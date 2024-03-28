@@ -9,8 +9,9 @@
 <body>
   <div class="relative flex justify-center ">
     {% block taskContent %}{% endblock %}
-    <div class="w-full">
-      <div id="graph" class=" w-full" style="height: 85vh;"></div>
+
+    <div class="w-full h-full" style="height: 100vh;">
+      <div id="graph" class=" w-full" ></div>
     </div>
   </div>
 </body>
@@ -25,11 +26,30 @@
   
     const graphElement = document.getElementById('graph')
 
-    // eslint-disable-next-line no-undef
-    const taskTree = createTaskTree(tasks)
+    // // eslint-disable-next-line no-undef
+    // const taskTree = createTaskTree(tasks)
     
-    // eslint-disable-next-line no-undef
-    const treeChart = Tree(taskTree, {
+    // // eslint-disable-next-line no-undef
+    // const treeChart = Tree(taskTree, {
+    //   label: (d, n) => d.name,
+    //   link: (d, n)  => `task/${d.id}`,
+    //   createTaskLink: (d, n)  =>  `create-task/${d.id}`,
+    //   fill: (d, n)  => {
+    //     if(d.status === "In-Progress") return '#EFA610' // Yellow
+    //     else if (d.status === "Done") return '#01796E' // Teal
+    //     else return'#323232'
+    //   }, 
+    //   width: graphElement.offsetWidth,
+    //   height: screen.height
+    // })
+  
+    // graphElement.appendChild(treeChart)
+
+    const trees = createTaskTrees(tasks);
+
+  trees.forEach((tree, index) => {
+      // Create a separate SVG for each tree and append it to the body or a specific container
+      const treeSVG = Tree(tree, {
       label: (d, n) => d.name,
       link: (d, n)  => `task/${d.id}`,
       createTaskLink: (d, n)  =>  `create-task/${d.id}`,
@@ -39,10 +59,12 @@
         else return'#323232'
       }, 
       width: graphElement.offsetWidth,
-      height: screen.height
     })
-  
-    graphElement.appendChild(treeChart)
+
+      // Append the SVG to the document
+      // Replace `document.body` with a more specific selector if needed
+      graphElement.appendChild(treeSVG);
+});
 })()
 </script>
 
