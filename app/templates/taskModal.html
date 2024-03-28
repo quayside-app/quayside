@@ -42,18 +42,22 @@
     </div>
 
 </div>
-
+{% if deleteLink %}
 <script>
     /*
     * Deletes tasks when button is clicked.
     */
-    document.getElementById('deleteTaskButton').addEventListener('click', async function () {
-      //const response = await fetch('{{apiUrl}}/projects/?id={{taskID}}', { method: 'DELETE' })
-      if (!response.ok) throw new Error('Network response was not ok')
     
-      // Navigate Home after deleting
-      window.location.href = `${deleteLink}`
-    })
-    </script>
+    document.getElementById('deleteTaskButton').addEventListener('click', async function (event) {
+        event.preventDefault();
+        const response = await fetch('{{apiUrl}}/tasks/?id={{taskID}}', { method: 'DELETE' })
+        if (!response.ok) throw new Error('Network response was not ok')
+    
+        // Navigate to project after deleting
+        window.location.href = "{{deleteLink}}"
+
+    })   
+</script>
+{% endif %}
 
 {% endblock %}

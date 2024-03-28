@@ -81,7 +81,7 @@ class GeneratedTasksAPIView(APIView):
                 },
                 {"role": "user", "content": projectName},
             ],
-            temperature=1,
+            temperature=0,
             max_tokens=1024,
             top_p=1,
             frequency_penalty=0,
