@@ -190,7 +190,7 @@ class Callback(TemplateView):
         It then saves the API key to the user's cookies so it can be sent to the API routes in
         future requests.
 
-        @param request: The HTTP request object containing the callback data from GitHub.
+        @param request: The HTTP request object containing the callback data from GitHub or Google.
         @returns: The rendered index.html page with the API token set in the cookies.
         """
         print(self.request)
@@ -254,7 +254,6 @@ class Callback(TemplateView):
 
         # Create a user in our db if none exists
         if not userInfo:
-            
             names = oauthUserInfo.get("name").split()
             userInfo, _ = UsersAPIView.createUser(
                 {
@@ -283,6 +282,7 @@ class Callback(TemplateView):
                     "apiKey": encryptedApiKey,
                 }
             )
+            
         # Save api key to cookies
         # Setting httponly is safer and doesn't let the key be accessed by js (to prevent xxs).
         # Instead the browser will always pass the cookie to the server.
