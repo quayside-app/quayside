@@ -22,7 +22,7 @@
                 <div class="inline pl-4"> {{ form.startDate }} - {{ form.endDate }} </div>
                 {{ form.description }}
 
-                <div class="flex justify-between">
+                <div class="flex {% if deleteLink %} justify-between {% else %} justify-end {% endif %}">
                     <!-- Delete Button -->
                     {% if deleteLink %}
                     <button id="deleteTaskButton" class="my-4 px-2 py-1 rounded-md  text-white bg-neutral-600 hover:bg-red-500 text-center">

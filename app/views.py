@@ -87,6 +87,7 @@ def taskView(request, projectID, taskID):
             if status_code != status.HTTP_200_OK:
                 print(f"Task update failed: {message}")
                 return HttpResponseServerError(f"An error occurred: {message}")
+            return redirect(f"/project/{projectID}/graph")
 
     # If a GET (or any other method) we"ll create a blank form
     else:
@@ -134,6 +135,8 @@ def createTaskView(request, projectID, parentTaskID):
             if status_code != status.HTTP_201_CREATED:
                 print(f"Task creation failed: {message}")
                 return HttpResponseServerError(f"An error occurred: {message}")
+            
+            return redirect(f"/project/{projectID}/graph")
 
     # If a GET (or any other method) we"ll create a blank form for them to render
     else:
