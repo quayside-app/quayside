@@ -10,7 +10,7 @@ class NewProjectForm(forms.Form):
         label="What is your project about?",
         widget=forms.TextInput(
             attrs={
-                "placeholder": "I want to bake a cake!",
+                "placeholder": "Bake a cake",
                 "class": "w-96 block mt-3 p-2 text-sm rounded-md bg-neutral-600 outline-none placeholder-gray-400",
                 "type": "text",
             }
@@ -39,7 +39,8 @@ class TaskForm(forms.Form):
     status = forms.ChoiceField(
         label="",
         required=False,
-        choices=(("Todo", "Todo"), ( "In-Progress", "In-Progress"), ("Done", "Done")),
+        choices=(("Todo", "Todo"), ("In-Progress",
+                 "In-Progress"), ("Done", "Done")),
         widget=forms.Select(
             attrs={
                 "class": "inline-block p-1 mt-4 rounded-md  bg-neutral-600 outline-none placeholder-gray-400",
@@ -68,8 +69,6 @@ class TaskForm(forms.Form):
             }
         ),
     )
-
-
 
     description = forms.CharField(
         label="",
