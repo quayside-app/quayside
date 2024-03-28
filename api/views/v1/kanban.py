@@ -6,17 +6,19 @@ from django.utils.decorators import method_decorator
 from api.models import Task
 from api.serializers import TaskSerializer
 from api.decorators import apiKeyRequired
+from api.views.v1.tasks import TasksAPIView
 
 
 @method_decorator(apiKeyRequired, name="dispatch")
 class KanbanAPIView(APIView):
     """"
-    Get a kanban board.
+    Get and update a kanban board.
     """
 
     def get(self, request):
         """
         Retrieves tasks of the specified project grouped by status.
+        Requires 'apiToken' passed in auth header or cookies
 
         @param {HttpRequest} request - The request object.
             Query Parameters:
@@ -29,6 +31,31 @@ class KanbanAPIView(APIView):
             fetch('quayside.app/api/v1/kanban?projectID=1234');
         """
         responseData, httpStatus = self.getKanban(request.query_params)
+        return Response(responseData, status=httpStatus)
+    
+    def put(self, request):
+        """
+        Updates a kanban board.
+        Requires 'apiToken' passed in auth header or cookies.
+
+        @param {HttpRequest} requaest - The request object.
+            The request body can contain:
+                - id (objectId str) [REQUIRED]
+                - status (str)
+                - priority (int) [REQUIRED]
+
+        @return: A response object with the changes made or an error message
+        
+        @example Javascript:
+
+            fetch('quayside.app/api/v1/kanban', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({id: '1234', status: 'Todo', priority: 4})
+            })
+
+        """
+        responseData, httpStatus = self.updateKanban(request.data)
         return Response(responseData, status=httpStatus)
     
     @staticmethod
@@ -51,7 +78,7 @@ class KanbanAPIView(APIView):
 
         tasks_by_status = {}
         for task in tasks:
-            kanbanStatus = task.kanbanStatus
+            kanbanStatus = task.status
             if kanbanStatus not in tasks_by_status:
                 tasks_by_status[kanbanStatus] = []
             tasks_by_status[kanbanStatus].append(task)
@@ -65,3 +92,39 @@ class KanbanAPIView(APIView):
             return serialized_data, status.HTTP_200_OK
         else:
             return "No tasks found for the specified projectID", status.HTTP_404_NOT_FOUND
+        
+    @staticmethod
+    def updateKanban(taskData):
+        """
+        Service API function that can be called internally as well as through the API to get a kanban.
+        Updates kanban based on id, status, and priority.
+
+        @param taskData     Dict of parameters. Only id, status, and priority are considered.
+        @return      A tuple of (response_data, http_status).
+        """
+        if 'id' not in taskData:
+            return "Error: paramter 'id' required", status.HTTP_400_BAD_REQUEST
+        
+        if 'priority' not in taskData:
+            return "Error: parameter 'priority' required", status.HTTP_400_BAD_REQUEST
+        
+        task_id = taskData.get('id')
+        new_status = taskData.get('status')
+        new_priority = taskData.get('priority')
+
+        try:
+            task = Task.objects.get(id=task_id)
+        except Task.DoesNotExist:
+            return "Task not found with the provided ID", status.HTTP_404_NOT_FOUND
+        
+        if new_status:
+            task.status = new_status
+ 
+        other_tasks = Task.objects.filter(projectID=task.projectID, status=task.status).order_by('priority')
+
+        print(other_tasks)
+
+        return "update kanban was called", status.HTTP_200_OK
+        
+
+

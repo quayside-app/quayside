@@ -58,7 +58,8 @@ class Task(mongo.Document):
     description = mongo.StringField(null=True)
     startDate = mongo.DateField(null=True)
     endDate = mongo.DateField(null=True)
-    kanbanStatus = mongo.StringField(default="Todo")
+    status = mongo.StringField(choices=('In-Progress', 'Todo', 'Done'))
+    priority = mongo.IntField(null=True)
 
     meta = {
         "collection": "Task",  # Need to specify UPPER Case
