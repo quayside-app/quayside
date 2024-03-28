@@ -48,6 +48,8 @@ def userLogout(request):  # name change needed when more options added to logout
 def logout(request):
     response = redirect('/')
     response.delete_cookie('apiToken')
+    response.delete_cookie('csrftoken')
+    response.delete_cookie('sessionid')
     return response
 
 
@@ -303,6 +305,7 @@ class Callback(TemplateView):
         response = requests.get(
             apiRequestURL, headers=header, timeout=10
         )
+        print("HEREEEEEEE1")
 
         oauthUserInfo = response.json()
 
@@ -316,24 +319,48 @@ class Callback(TemplateView):
         userInfo = UsersAPIView.getUser({"email": oauthUserInfo.get("email")})[0].get(
             "user"
         )
-
+        print(userInfo)
+        print("HEREEEEEEE1.5")
         # Create a user in our db if none exists
+        if oauthUserInfo.get("username"):
+                username = oauthUserInfo.get("username")
+        else:
+            username = oauthUserInfo.get("email").split("@")[0]
         if not userInfo:
             names = oauthUserInfo.get("name", "").split()
             if not names:
                 names = [""]
-            userInfo, _ = UsersAPIView.createUser(
+            print("HEREEEEEEE", oauthUserInfo.get("username"))
+            userInfo, httpsCode = UsersAPIView.createUser(
                 {
-                    "email": oauthUserInfo["email"],
-                    "username": oauthUserInfo.get(username),
+                    "email": oauthUserInfo.get("email"),
+                    "username": username,
                     "firstName": names[0],
                     "lastName": names[-1],
                 }
             )
+            if httpsCode != status.HTTP_201_CREATED:
+                print(f"User creation failed: {userInfo}")
+                return HttpResponseServerError(f"An error occurred: {userInfo}")
+
+        # Make sure to add email not created already (oath doesn't require username I think but does require email)
+        if "username" not in userInfo or not userInfo["username"]:
+            message, httpsCode = UsersAPIView.updateUser(
+                {
+                    "id": userInfo["id"],
+                    "username": username,
+                }
+            )
+            if httpsCode != status.HTTP_200_OK:
+                print(f"User update failed: {message}")
+                return HttpResponseServerError(f"An error occurred: {message}")
+        
         # Redirect instead of rendering (to make it update)
         response = redirect("/")
 
         apiToken = userInfo.get("apiKey")  # Get API key
+
+        print("TOKEN HEREEEE!", apiToken)
 
         if apiToken:
             apiToken = decryptApiKey(apiToken)
@@ -343,13 +370,17 @@ class Callback(TemplateView):
             apiToken = createEncodedApiKey(userInfo["id"])
             encryptedApiKey = encryptApiKey(apiToken)
 
-            # Save api Key to DB
-            userInfo, _ = UsersAPIView.updateUser(
+
+            message, httpsCode = UsersAPIView.updateUser(
                 {
                     "id": userInfo["id"],
                     "apiKey": encryptedApiKey,
                 }
             )
+            if httpsCode != status.HTTP_200_OK:
+                print(f"User update failed: {message}")
+                return HttpResponseServerError(f"An error occurred: {message}")
+
 
         # Save api key to cookies
         # Setting httponly is safer and doesn't let the key be accessed by js (to prevent xxs).
