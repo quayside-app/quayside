@@ -88,10 +88,12 @@ def taskView(request, projectID, taskID):
     return render(
         request,
         "taskModal.html",
-        {"form": form, 
+        {"form": form,
          "projectID": projectID,
+         "taskID": taskID,
          "submitLink": f"/project/{projectID}/graph/task/{taskID}",
-         "exitLink": f"/project/{projectID}/graph"},
+         "exitLink": f"/project/{projectID}/graph",
+         "deleteLink": f"/project/{projectID}/graph"},
     )
 
 
@@ -99,8 +101,6 @@ def taskView(request, projectID, taskID):
 def createTaskView(request, projectID, parentTaskID):
     """
     Blah Blah
-
-
     """
 
     # Create new task on post
@@ -119,11 +119,11 @@ def createTaskView(request, projectID, parentTaskID):
 
     # If a GET (or any other method) we"ll create a blank form for them to render
     else:
-            form = TaskForm()
+        form = TaskForm()
     return render(
         request,
         "taskModal.html",
-        {"form": form, 
+        {"form": form,
          "projectID": projectID,
          "submitLink": f"/project/{projectID}/graph/create-task/{parentTaskID}",
          "exitLink": f"/project/{projectID}/graph"},
