@@ -124,7 +124,17 @@ def taskView(request, projectID, taskID):
 @apiKeyRequired
 def createTaskView(request, projectID, parentTaskID=""):
     """
-    Blah Blah
+    Renders the view for creating a task within a project as a form.
+    If the request method is GET or any other method, a blank form is provied.
+    If the request method is POST and the form is valid, the task is created with the provided data.
+    This view requires an API key in the cookies.
+
+    @param {HttpRequest} request - The request object, which can be GET or POST.
+    @param {str} projectID - The project ID of the task to create.
+    @param {str} parentTaskID [optional] - The parent ID of the task to create.
+
+    @returns {HttpResponse} - An HttpResponse object that renders the taskModal.html
+        template with the project ID, task ID, and task form context.
     """
 
     # Create new task on post

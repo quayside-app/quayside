@@ -1,56 +1,19 @@
 
 
 /**
- * Creates a task tree from a flat array of tasks (as stored in the DB). Each task is transformed into a node
+ * Creates a list of task trees from a flat array of tasks (as stored in the DB). Each task is transformed into a node
  * with a name and ID, and nodes are nested within their parent tasks to form a tree structure.
  * Source: ChatGPT
  * 
  * @param {Object[]} tasks - An array of task objects to be transformed into a tree.
- * Each task object must have at least an id, name, and parentTaskID property.
+ * Each task object must have at least an id, name, and parentTaskID property. Root(s) can have a parent ID of none.
  * 
- * @returns {Object} The root node of the task tree, with nested children representing
+ * @returns {Object} The list of root nodes of the task tree, with nested children representing
  * the hierarchical structure of tasks. Each node in the tree will have a name, id,
  * and a children array.
  * 
  */
-// function createTaskTree(tasks) {
-//     const taskMap = {};
 
-//     // Step 1: Create a map of all tasks by their ID
-//     tasks.forEach(task => {
-//         taskMap[task.id] = {...task, children: []};
-//     });
-
-//     // Step 2: Build the tree by assigning children to their parents
-//     let root = null;
-//     tasks.forEach(task => {
-//         if (task.parentTaskID === null) {
-//         // If there is no parentTaskID, this is the top-level node
-//         root = taskMap[task.id];
-//         } else {
-//         // If there is a parentTaskID, add this task to its parent's children array
-//         if(taskMap[task.parentTaskID]) {
-//             taskMap[task.parentTaskID].children.push(taskMap[task.id]);
-//         }
-//         }
-//     });
-
-//     // Ensure there is a single root node in the dataset
-//     if (!root) {
-//         throw new Error("No root node found");
-//     }
-
-//     // Step 3: Convert the tree to the desired format (name instead of id)
-//     const convertToNameFormat = (node) => {
-//         const newNode = { name: node.name, id: node.id, status: node.status};
-//         if (node.children.length) {
-//         newNode.children = node.children.map(convertToNameFormat);
-//         }
-//         return newNode;
-//     };
-
-//     return convertToNameFormat(root);
-// }
 
 function createTaskTrees(tasks) {
     const taskMap = {};
