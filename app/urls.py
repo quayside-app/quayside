@@ -19,6 +19,11 @@ urlpatterns = [
         views.createTaskView,
         name="create-task-view",
     ),
+    path(
+        "project/<str:projectID>/graph/create-task/",
+        views.createTaskView,
+        name="create-task-view",
+    ),
     path("login/", views.userLogin, name="login_view"),
     path("logout/", views.userLogout, name="logout_view"),
     path("welcome", views.logout, name="logout_view"),

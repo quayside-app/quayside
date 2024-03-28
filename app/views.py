@@ -20,8 +20,10 @@ from .forms import NewProjectForm, TaskForm
 import urllib.parse
 import json
 
+
 def redirectOffSite(request):
     return redirect('https://github.com/quayside-app/quayside')
+
 
 def userLogin(request):
     """
@@ -32,7 +34,8 @@ def userLogin(request):
     """
     return render(request, "login.html")
 
-def userLogout(request): #name change needed when more options added to logout.html(will also need a name change)
+
+def userLogout(request):  # name change needed when more options added to logout.html(will also need a name change)
     """
     Renders the logout model for the user.
 
@@ -41,10 +44,12 @@ def userLogout(request): #name change needed when more options added to logout.h
     """
     return render(request, "logout.html")
 
+
 def logout(request):
     response = redirect('/')
     response.delete_cookie('apiToken')
     return response
+
 
 @apiKeyRequired
 def projectGraphView(request, projectID):
@@ -117,7 +122,7 @@ def taskView(request, projectID, taskID):
 
 
 @apiKeyRequired
-def createTaskView(request, projectID, parentTaskID):
+def createTaskView(request, projectID, parentTaskID=""):
     """
     Blah Blah
     """
@@ -129,13 +134,14 @@ def createTaskView(request, projectID, parentTaskID):
         if form.is_valid():
             newData = form.cleaned_data
             newData["projectID"] = projectID
-            newData["parentTaskID"] = parentTaskID
+            if parentTaskID and parentTaskID != "":
+                newData["parentTaskID"] = parentTaskID
             message, status_code = TasksAPIView.createTasks(newData)
 
             if status_code != status.HTTP_201_CREATED:
                 print(f"Task creation failed: {message}")
                 return HttpResponseServerError(f"An error occurred: {message}")
-            
+
             return redirect(f"/project/{projectID}/graph")
 
     # If a GET (or any other method) we"ll create a blank form for them to render
@@ -204,27 +210,28 @@ def requestAuth(_request, provider):
     authorization_url = ''
     providerScope = []
     _request.session['provider'] = provider
-    
-    if(provider == 'GitHub'):
+
+    if (provider == 'GitHub'):
         clientID = os.getenv("GITHUB_CLIENT_ID")
         authorization_url = "https://github.com/login/oauth/authorize"
-        providerScope=["user"]
+        providerScope = ["user"]
 
-    elif(provider == 'Google'):
-            clientID = os.getenv("GOOGLE_CLIENT_ID")
-            authorization_url = 'https://accounts.google.com/o/oauth2/v2/auth'
-            providerScope=["https://www.googleapis.com/auth/userinfo.profile","https://www.googleapis.com/auth/userinfo.email"]
+    elif (provider == 'Google'):
+        clientID = os.getenv("GOOGLE_CLIENT_ID")
+        authorization_url = 'https://accounts.google.com/o/oauth2/v2/auth'
+        providerScope = ["https://www.googleapis.com/auth/userinfo.profile",
+                         "https://www.googleapis.com/auth/userinfo.email"]
     else:
         raise AttributeError('Unsupported ouath provider')
-    
+
     print(clientID)
     print(authorization_url)
-         
+
     client = WAC(clientID)
-    
+
     url = client.prepare_request_uri(
         authorization_url,
-        redirect_uri= os.getenv("REDIRECT_URI"),
+        redirect_uri=os.getenv("REDIRECT_URI"),
         scope=providerScope,
         state="test",
     )
@@ -250,14 +257,14 @@ class Callback(TemplateView):
         # state = data["state"]
 
         # Get API token
-        if(provider == 'GitHub'):
+        if (provider == 'GitHub'):
             token_url = "https://github.com/login/oauth/access_token"
             clientID = os.getenv("GITHUB_CLIENT_ID")
             clientSecret = os.getenv("GITHUB_CLIENT_SECRET")
             username = 'login'
             apiRequestURL = os.getenv("GITHUB_API_URL_user")
-            
-        elif(provider == 'Google'):
+
+        elif (provider == 'Google'):
             token_url = 'https://accounts.google.com/o/oauth2/token'
             clientID = os.getenv('GOOGLE_CLIENT_ID')
             clientSecret = os.getenv("GOOGLE_CLIENT_SECRET")
@@ -266,29 +273,28 @@ class Callback(TemplateView):
         client = WAC(clientID)
 
         data = client.prepare_request_body(
-            code = authcode,
-            redirect_uri = os.getenv("REDIRECT_URI"),
-            client_id = clientID,
-            client_secret = clientSecret
+            code=authcode,
+            redirect_uri=os.getenv("REDIRECT_URI"),
+            client_id=clientID,
+            client_secret=clientSecret
         )
-        
-        if(provider == 'Google'):                                       #caters request and header to google specifications
+
+        if (provider == 'Google'):  # caters request and header to google specifications
             data = dict(urllib.parse.parse_qsl(data))
-            response = requests.post(token_url, json = data, timeout=10)
+            response = requests.post(token_url, json=data, timeout=10)
             client.parse_request_body_response(response.text)
-            header = {"Authorization": f"Bearer {client.token['access_token']}"}
-        else:                                                           #caters to GitHub specifications
-            response = requests.post(token_url, data = data, timeout=10)
+            header = {
+                "Authorization": f"Bearer {client.token['access_token']}"}
+        else:  # caters to GitHub specifications
+            response = requests.post(token_url, data=data, timeout=10)
             client.parse_request_body_response(response.text)
             header = {"Authorization": f"token {client.token['access_token']}"}
-            
 
         response = requests.get(
             apiRequestURL, headers=header, timeout=10
         )
 
         oauthUserInfo = response.json()
-
 
         # For Github, if user has no visible email, make second request for email
         if not oauthUserInfo.get("email"):
@@ -334,11 +340,10 @@ class Callback(TemplateView):
                     "apiKey": encryptedApiKey,
                 }
             )
-            
+
         # Save api key to cookies
         # Setting httponly is safer and doesn't let the key be accessed by js (to prevent xxs).
         # Instead the browser will always pass the cookie to the server.
         response.set_cookie("apiToken", apiToken, httponly=True)
 
         return response
-
