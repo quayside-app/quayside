@@ -65,17 +65,23 @@ We use pep8 and JavaScript Standard Style standards. The only exceptions to thes
 
 ```bash
 # Automagically reformats your python code.
-black app api  
+black app api
 
 # Reports potential python bugs/errors. Fix as many of them as you can (get a score of 8.+).
-pylint app/ api/ 
+pylint app/ api/
 
 # Fixes as many javascript formatting/code errors as possible and tells you which ones you heed to fix yourself.
-npx eslint app/**/*.html --fix  
+npx eslint app/**/*.html --fix
 ```
+
+Note: If npx tells you `<someFunction> is not defined  no-undef` because someFunction is defined in a script you are importing, add the following comment before each line where the error occurs.
+```js
+// eslint-disable-next-line no-undef
+```
+
+
 
 **Adding Dependencies** <br>
 If you add any other npm dependencies, please do it by running `npm install --save <my-dependency>` so it is added to package.json for the next person to install. Otherwise, add the package manually to package.json. If you install python dependencies, please add them to the requirements.txt by running `pip freeze > requirements.txt`.
 
 Note: If you are having issues with "[SSL: CERTIFICATE_VERIFY_FAILED]" you may need to upgrade pip.
-

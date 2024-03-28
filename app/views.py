@@ -174,9 +174,15 @@ def requestAuth(_request, provider):
     
     url = client.prepare_request_uri(
         authorization_url,
+<<<<<<< HEAD
         redirect_uri= os.getenv("REDIRECT_URI"),
         scope=providerScope,
         state="test",
+=======
+        redirectURL=os.getenv("REDIRECT_URL"),
+        scope=["user"],
+        state="/",
+>>>>>>> afc1019368d451174624b429d0a0966392de3d8f
     )
     print(url)
     return HttpResponseRedirect(url)
@@ -217,10 +223,17 @@ class Callback(TemplateView):
         client = WAC(clientID)
 
         data = client.prepare_request_body(
+<<<<<<< HEAD
             code = authcode,
             redirect_uri = os.getenv("REDIRECT_URI"),
             client_id = clientID,
             client_secret = clientSecret
+=======
+            code=authcode,
+            redirect_uri=os.getenv("REDIRECT_URL"),
+            client_id=clientID,
+            client_secret=clientSecret,
+>>>>>>> afc1019368d451174624b429d0a0966392de3d8f
         )
         
         if(provider == 'Google'):                                       #caters request and header to google specifications
@@ -254,7 +267,13 @@ class Callback(TemplateView):
 
         # Create a user in our db if none exists
         if not userInfo:
+<<<<<<< HEAD
             names = oauthUserInfo.get("name").split()
+=======
+            names = oathUserInfo.get("name", "").split()
+            if not names:
+                names=[""]
+>>>>>>> afc1019368d451174624b429d0a0966392de3d8f
             userInfo, _ = UsersAPIView.createUser(
                 {
                     "email": oauthUserInfo["email"],
