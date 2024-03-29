@@ -83,6 +83,10 @@ class KanbanAPIView(APIView):
                 tasks_by_status[kanbanStatus] = []
             tasks_by_status[kanbanStatus].append(task)
 
+        # TODO: If there are null values in tasks priority, we need to initialize them. Just say its position within tasks_by_status is the tasks priority.
+        # TODO: sort the tasks by priority in each group.
+
+
         serialized_data = {}
         for kanban_status, task_list in tasks_by_status.items():
             serialized_tasks = TaskSerializer(task_list, many=True).data
@@ -102,6 +106,11 @@ class KanbanAPIView(APIView):
         @param taskData     Dict of parameters. Only id, status, and priority are considered.
         @return      A tuple of (response_data, http_status).
         """
+        ###PSUEDO CODE###
+        # Take task out of status list.
+        # All tasks with a priority number greater in status list -= 1 priority.
+        # Then task is inserted into its new status (which could be the same one) and is given its new priority.
+        # All tasks with a greater piority in that status += 1 priority.
         if 'id' not in taskData:
             return "Error: paramter 'id' required", status.HTTP_400_BAD_REQUEST
         
