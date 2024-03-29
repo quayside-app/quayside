@@ -24,6 +24,24 @@
   }
 })()
 </script>
+<style>
+  /* Remove ugly white scrollbar*/ 
+  
+  /* For Chrome, Safari, and Opera */
+  #projectListDiv::-webkit-scrollbar {
+      display: none;
+  }
+
+  /* For Internet Explorer, Edge */
+  #projectListDiv {
+      -ms-overflow-style: none;
+  }
+
+  /* For Firefox */
+  #projectListDiv {
+      scrollbar-width: none;
+  }
+</style>
 
 <div class>
     <div id="sidebarContent" class=" w-44 bg-neutral-800 min-h-screen px-4 pt-2 text-white hidden sm:block">
@@ -39,7 +57,7 @@
 
             </button>
 
-            <div id="projectListDiv" class="pl-2  overflow-scroll max-h-[60dvh]">
+            <div id="projectListDiv" class="pl-2  overflow-y-scroll max-h-[60dvh]">
                 <ul id="projectList"></ul>
             </div>
         </div>
