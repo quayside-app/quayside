@@ -10,10 +10,10 @@
         <div class="p-5  text-white  bg-neutral-800 rounded-lg ">
             <div class="flex flex-wrap font-semibold text-xl">
                 <div class="w-5/6 "> Create Project</div>
-                <a class="w-1/6 text-right  hover:text-gray-500 " href="/">✕</a> <!-- Go home if exit -->
+                <a id="exitButton" class="w-1/6 text-right  hover:text-gray-500" href="/">✕</a> <!-- Go home if exit -->
             </div>
 
-            <form action="/create-project/" method="post">
+            <form action="/create-project/" method="post" id="createProjectForm">
                 {% csrf_token %} <!-- Required by Django to prevent Cross Site Scripting -->
 
                 <!-- Project Input(s) -->
@@ -22,15 +22,38 @@
                 </div>
 
                 <!-- Submit Button -->
-                <div class="flex justify-end">
-                    <button type='submit' class=" my-4 px-2 py-1 rounded-md  text-white bg-neutral-600 hover:bg-gray-500 text-center">
-                        Create
-                    </button>
+                <div id="createButton">
+                    <div class="flex justify-end">
+                        <button type='submit' class="my-4  px-2 py-1 rounded-md  text-white bg-neutral-600 hover:bg-gray-500 text-center">
+                            Create
+                        </button>
+                    </div>
                 </div>
             </form>
 
         </div>
     </div>
 </div>
+<script>
+document.getElementById('createProjectForm').addEventListener('submit', function(event) {
+
+    let createButton =  document.getElementById('createButton');
+
+    createButton.innerHTML = 
+        `
+        <div class="flex justify-center">
+            <div class="my-4  px-2 py-1">
+                <div class=" animate-spin ">
+                    {% include "components/svg/spinner.svg" %}
+                </div>
+            </div>
+        </div
+        `
+
+    let exitButton = document.getElementById('exitButton')
+    exitButton.classList.toggle('invisible')
+
+});
+</script>
 
 {% endblock %}
