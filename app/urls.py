@@ -9,6 +9,11 @@ urlpatterns = [
         views.projectGraphView,
         name="project-graph-view",
     ),
+        path(
+        "project/<str:projectID>/",
+        views.editProjectView,
+        name="task-detail-view",
+    ),
     path(
         "project/<str:projectID>/graph/task/<str:taskID>",
         views.taskView,

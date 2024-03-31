@@ -15,7 +15,7 @@ from api.views.v1.projects import ProjectsAPIView
 from api.views.v1.users import UsersAPIView
 
 from .context_processors import global_context
-from .forms import NewProjectForm, TaskForm
+from .forms import NewProjectForm, TaskForm, ProjectForm
 
 import urllib.parse
 import json
@@ -65,6 +65,59 @@ def projectGraphView(request, projectID):
         graph.html template with the project ID context.
     """
     return render(request, "graph.html", {"projectID": projectID})
+
+
+@apiKeyRequired
+def editProjectView(request, projectID):
+    """
+    Renders the view for a specific project.
+    If the request method is GET or any other method, a form populated with the projects's existing
+    data is provided for editing or a blank form for creation.
+    If the request method is POST and the form is valid, the project is updated with the provided data.
+    This view requires an API key in the cookies.
+
+    @param {HttpRequest} request - The request object, which can be GET or POST.
+    @param {str} projectID - The ID for the project.
+
+    @returns {HttpResponse} - An HttpResponse object that renders the taskModal.html
+        template with the project ID, task ID, and task form context.
+    """
+    if request.method == "POST":
+        form = ProjectForm(request.POST)
+
+        if form.is_valid():
+            newData = form.cleaned_data
+            newData["id"] = projectID
+            message, status_code = ProjectsAPIView.updateProject(newData)
+
+            if status_code != status.HTTP_200_OK:
+                print(f"Task update failed: {message}")
+                return HttpResponseServerError(f"An error occurred: {message}")
+
+            return redirect(f"/project/{projectID}/")
+
+    # If a GET (or any other method) we"ll create a blank form
+    else:
+        projectData = ProjectsAPIView.getProjects({"id": projectID})[0][0]
+        # Populate initial form data
+        if projectData is not None:
+            initialData = {
+                "name": projectData.get("name", ""),
+                "startDate": projectData.get("startDate", ""),
+                "endDate": projectData.get("endDate", ""),
+            }
+            form = ProjectForm(initial=initialData)
+        else:
+            form = ProjectForm()
+    return render(
+        request,
+        "projectModel.html",
+        {"form": form,
+         "projectID": projectID,
+         "submitLink": f"/project/{projectID}/",
+         "exitLink": f"/project/{projectID}/graph",
+         },
+    )
 
 
 @apiKeyRequired
@@ -323,7 +376,7 @@ class Callback(TemplateView):
         print("HEREEEEEEE1.5")
         # Create a user in our db if none exists
         if oauthUserInfo.get("username"):
-                username = oauthUserInfo.get("username")
+            username = oauthUserInfo.get("username")
         else:
             username = oauthUserInfo.get("email").split("@")[0]
         if not userInfo:
@@ -354,7 +407,7 @@ class Callback(TemplateView):
             if httpsCode != status.HTTP_200_OK:
                 print(f"User update failed: {message}")
                 return HttpResponseServerError(f"An error occurred: {message}")
-        
+
         # Redirect instead of rendering (to make it update)
         response = redirect("/")
 
@@ -370,7 +423,6 @@ class Callback(TemplateView):
             apiToken = createEncodedApiKey(userInfo["id"])
             encryptedApiKey = encryptApiKey(apiToken)
 
-
             message, httpsCode = UsersAPIView.updateUser(
                 {
                     "id": userInfo["id"],
@@ -380,7 +432,6 @@ class Callback(TemplateView):
             if httpsCode != status.HTTP_200_OK:
                 print(f"User update failed: {message}")
                 return HttpResponseServerError(f"An error occurred: {message}")
-
 
         # Save api key to cookies
         # Setting httponly is safer and doesn't let the key be accessed by js (to prevent xxs).

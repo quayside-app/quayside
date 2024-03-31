@@ -82,3 +82,44 @@ class TaskForm(forms.Form):
             }
         ),
     )
+
+
+class ProjectForm(forms.Form):
+    """
+    A form for editing a task with a name.
+    """
+
+    # Can't use forms.ModelForm bc it's mongo
+    name = forms.CharField(
+        label="",
+        widget=forms.Textarea(
+            attrs={
+                "placeholder": "Project Name",
+                "type": "text",
+                "class": "w-full block bg-neutral-800 outline-none sm:text-2xl font-bold",
+                'rows': 1,
+            }
+        ),
+    )
+    
+    startDate = forms.DateField(
+        label="",
+        required=False,
+        widget=forms.DateInput(
+            attrs={
+                "class": " inline-block p-1 mt-4 rounded-md  bg-neutral-600 outline-none placeholder-gray-400",
+                "type": "date",
+            }
+        ),
+    )
+
+    endDate = forms.DateField(
+        label="",
+        required=False,
+        widget=forms.DateInput(
+            attrs={
+                "class": " inline-block p-1 mt-4 rounded-md  bg-neutral-600 outline-none placeholder-gray-400",
+                "type": "date",
+            }
+        ),
+    )

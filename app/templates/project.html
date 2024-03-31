@@ -26,9 +26,12 @@
     <div id="projectName" class="my-auto sm:text-2xl"></div>
 
     <div class="flex justify-center">
-      <a href="create-task/">
-        <button id="addTaskButton" class="text-center rounded-lg mx-4 px-2 py-1 bg-neutral-600 hover:bg-gray-500 ">
-          <div class="text-2xl font-bold mx-1 ">+</div>
+      <a href="create-task/" class="text-center rounded-lg mr-4 px-2 py-1 bg-neutral-600 hover:bg-gray-500 ">
+        <div class="text-2xl font-bold mx-1 ">+</div>
+      </a>
+      <a href="/project/{{projectID}}/" class="flex content-center text-center rounded-lg mr-4 px-2 py-1 bg-neutral-600 hover:bg-gray-500 ">
+        <button id="editProjectButton">
+          {% include "components/svg/edit.svg" %}
         </button>
       </a>
 
@@ -56,11 +59,13 @@
 
   </div>
 
+
+  <div>
+    {% block projectContent %}{% endblock %}
+  </div>
+
 </div>
 
-  {% block projectContent %}{% endblock %}
-
-</div>
 <script>
 /*
 * Confirms delete and deletes project when button is clicked.

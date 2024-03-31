@@ -21,8 +21,8 @@ class Project(mongo.Document):
     name = mongo.StringField()
     types = mongo.ListField(mongo.StringField())
     objectives = mongo.ListField(mongo.StringField())
-    startDate = mongo.DateField()
-    endDate = mongo.DateField()
+    startDate = mongo.DateField(null=True)  # Allow null values
+    endDate = mongo.DateField(null=True)  # Allow null values
     budget = mongo.StringField()
     assumptions = mongo.ListField(mongo.StringField())
     scopesIncluded = mongo.ListField(mongo.StringField())
