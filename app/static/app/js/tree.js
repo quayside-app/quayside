@@ -138,28 +138,82 @@ function Tree(data, {
         .join("path")
             .attr("d", d3.link(curve)
                 .x(d => d.y)
-                .y(d => d.x));
+                .y(d => d.x))
+  
 
     const node = zoomableGroup.append("g")
     .selectAll("a")
     .data(root.descendants())
     .join("a")
     .attr("xlink:href", link == null ? null : d => link(d.data, d))
-    .attr("transform", d => `translate(${d.y},${d.x})`);
+    .attr("transform", d => `translate(${d.y},${d.x})`)
+    .call(d3.drag()
+        .on("start", dragstarted)
+        .on("drag", dragged)
+        .on("end", dragended));
 
 
 
 
 
-    node.append("rect")
+
+    function dragstarted(event, d) {
+        d3.select(this).raise();
+        svg.attr("cursor", "grabbing");
+    
+        // Store the initial position for the drag operation
+        d.fx = d.x;
+        d.fy = d.y;
+    }
+    
+    function dragged(event, d) {
+        // Calculate the displacement
+        let dx = event.x - d.fx;
+        let dy = event.y - d.fy;
+    
+        // Move the node and its descendants
+        function move(node) {
+            node.x += dy;
+            node.y += dx;
+            if (node.children) {
+                node.children.forEach(move);
+            }
+        }
+    
+        move(d);
+    
+        // Update the node positions and links
+        node.attr("transform", d => `translate(${d.y},${d.x})`);
+        lines.attr("d", d3.linkHorizontal().x(d => d.y).y(d => d.x));
+    }
+    
+    function dragended(event, d) {
+        svg.attr("cursor", null);
+        delete d.fx;
+        delete d.fy;
+    }
+        
+
+
+    const textGroup = node.append("g")
+        .call(d3.drag()
+            .on("start", dragstarted)
+            .on("drag", dragged)
+            .on("end", dragended));
+
+
+    textGroup.append("rect")
         .attr("fill", d => fill(d.data, d))
         .attr("rx", 5)
         .attr("width",  nodeWidth)// .attr("width",  `${maxTextLength*0.85}em`)
         .attr("height", nodeHeight)
         .attr("y", -nodeHeight / 2)
 
+
+
+
     // "+"" Icon
-    const iconGroup = node.append("g")
+    const iconGroup = textGroup.append("g")
                     .attr("transform", `translate(${nodeWidth} 0)`) // Does not allow em as a unit 
     const iconLink = iconGroup.append("a")
                     .attr("xlink:href", createTaskLink == null ? null : d => createTaskLink(d.data, d));
@@ -176,7 +230,7 @@ function Tree(data, {
         
 
     if (L) {
-    text = node.append("text")
+    text = textGroup.append("text")
         .attr("paint-order", "stroke")
         .attr("fill", "white")
         .style("font-size", "14px");
