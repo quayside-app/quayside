@@ -25,17 +25,18 @@
   <div class="flex justify-between bg-neutral-800 rounded-lg py-2 px-4 m-6">
     <div id="projectName" class="my-auto sm:text-2xl"></div>
 
-    <div class="flex justify-center">
-      <a href="create-task/" class="text-center rounded-lg mr-4 px-2 py-1 bg-neutral-600 hover:bg-gray-500 ">
-        <div class="text-2xl font-bold mx-1 ">+</div>
+    <div class="flex">
+
+      <a href="create-task/" class=" rounded-full mr-4 px-2 py-1 bg-neutral-600 hover:bg-gray-500 ">
+        <div class=" text-2xl font-bold mx-1 ">+</div>
       </a>
-      <a href="/project/{{projectID}}/" class="flex content-center text-center rounded-lg mr-4 px-2 py-1 bg-neutral-600 hover:bg-gray-500 ">
+      <a href="/project/{{projectID}}/" class="flex content-center text-center rounded-full mr-4 px-2 py-1 bg-neutral-600 hover:bg-gray-500 ">
         <button id="editProjectButton">
           {% include "components/svg/edit.svg" %}
         </button>
       </a>
 
-      <button id="deleteProjectButton" class="text-center rounded-lg  px-2 py-1 bg-neutral-600 hover:bg-red-500">
+      <button id="deleteProjectButton" class="text-center rounded-full  px-1.5 py-1 bg-neutral-600 hover:bg-red-500">
         {% include "components/svg/delete.svg" %}
       </button>
     </div>
@@ -58,7 +59,6 @@
     </div>
 
   </div>
-
 
   <div>
     {% block projectContent %}{% endblock %}
