@@ -31,7 +31,7 @@
 <div class='text-white h-screen'>
   <div id="scroll" class='h-screen text-center overflow-y-scroll scroll-smooth'>
 
-    <div class=" relative h-[65dvh]">
+    <div class>
 
       <div class='mt-[35dvh] flex justify-center text-3xl md:text-7xl font-bold '>
         quayside.app
@@ -51,30 +51,20 @@
         </a>
       </div>
 
-      <a href="#featureSection" class="absolute bottom-16 left-1/2 ">
-        <div class="animate-bounce ">
-          <div class="w-10 p-2 -rotate-90 bg-neutral-800 rounded-2xl stroke-white">
-            {% include "components/svg/arrow.svg" %}
-          </div>
-        </div>
-      </a>
     </div>
 
     <div id="featureSection" class='flex justify-center h-screen text-3xl pt-24 '>
 
-      <div class="bg-neutral-800/70 border-2 mx-4 border-neutral-800 rounded-2xl w-max h-max py-4 mt-24">
+      <div class="mx-4  w-max h-max py-4 mt-24">
 
-        <div class=" text-4xl ">
-          <div class="font-bold underline underline-offset-8 decoration-4 decoration-yellow-600 py-4 px-4">
-            - Features -
-          </div>
-
+        <div class=" text-4xl font-black underline underline-offset-8 decoration-4 decoration-yellow-600 py-4 px-4">
+          - Features -
         </div>
 
-        <div class="flex flex-wrap justify-center ">
+        <div class="flex flex-wrap justify-center mt-5">
           <!-- Source: https://v1.tailwindcss.com/components/cards -->
-          <div class="h-max mt-4 mx-4 max-w-sm rounded-2xl overflow-hidden shadow-2xl bg-neutral-800">
-            <div class="mt-4 mx-4 ">
+          <div class=" hover:scale-110  duration-300 h-max mt-4 mx-4 max-w-sm rounded-2xl overflow-hidden shadow-2xl bg-neutral-800">
+            <div class="  mt-4 mx-4 ">
               <img class="h-72 w-full rounded-2xl shadow-2xl" src="{% static 'app/images/demo.png' %}" alt="Sunset in the mountains">
             </div>
             <div class="px-6 py-4">
@@ -86,7 +76,7 @@
             </div>
           </div>
 
-          <div class="h-max mt-4 mx-4  max-w-sm rounded-2xl overflow-hidden shadow-lg bg-neutral-800">
+          <div class="hover:scale-110  duration-300 h-max mt-4 mx-4  max-w-sm rounded-2xl overflow-hidden shadow-lg bg-neutral-800">
             <div class="mt-4 mx-4 rounded-2xl flex items-center justify-center bg-black h-72 ">
               Coming soon...
             </div>
@@ -98,7 +88,7 @@
             </div>
           </div>
 
-          <div class="h-max mt-4 mx-4  max-w-sm rounded-2xl overflow-hidden shadow-lg bg-neutral-800">
+          <div class="hover:scale-110  duration-300 h-max mt-4 mx-4  max-w-sm rounded-2xl overflow-hidden shadow-lg bg-neutral-800">
             <div class="mt-4 mx-4 rounded-2xl flex items-center justify-center bg-black h-72 ">
               Coming soon...
             </div>
@@ -114,26 +104,6 @@
       </div>
 
     </div>
-
-    <!-- <div class="flex justify-center">
-      <div class="w-5/6 bg-neutral-800 bg-opacity-20 rounded-lg mt-3">
-        <div class='flex flex-wrap justify-center w-full md:text-3xl font-semibold mt-3'>
-          ABOUT
-        </div>
-        <div class='p-1 w-full md:text-m'>
-          70% of all projects lead to failure. That is a huge number. Our goal is to reduce that number with quayside.app, 
-          a project management web application designed to get teams started on projects quicker 
-          and answer the question “What’s next?”. quayside.app will uses a large language model(LLM) to break a project into deliverables with time estimations.
-          quayside.app helps your team keep track of their tasks and remind them when to complete them.
-          The idea of quayside was formulated in the summer of 2023 by Erik Williams, who has been a project manager for 7 years and is now the COO of Beadedstream. 
-          His vision for quayside is to “Ignite Collaborative Productivity”.
-        </div>
-        <div class="flex justify-center">
-            <img src="{% static 'app/images/github-mark-white.png' %}" alt='GitHub logo' style="height: 20px;" class = 'my-auto'/>
-            <a href='/redirect' class='my-center mx-3 text-l font-bold'> Visit our GitHub!</a>
-      </div>
-      </div>
-    </div>-->
   </div>
 </div>
 {% endblock content %}
