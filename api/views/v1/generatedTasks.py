@@ -120,7 +120,8 @@ class GeneratedTasksAPIView(APIView):
 
                 # Find parent task
                 parentTask = next(
-                    (task for task in newTasks if task["id"] == currentTaskNumber), None
+                    (task for task in newTasks if task["id"]
+                     == currentTaskNumber), None
                 )
                 if parentTask:
                     parentTask["subtasks"].append(
@@ -136,7 +137,8 @@ class GeneratedTasksAPIView(APIView):
         # Function for Parsing Tasks
         def parseTask(task: dict, parentID: str, projectID: str):
             taskData, _ = TasksAPIView.createTasks(
-                {"projectID": projectID, "parentTaskID": parentID, "name": task["name"]}
+                {"projectID": projectID, "parentTaskID": parentID,
+                    "name": task["name"]}
             )
 
             if "subtasks" in task:

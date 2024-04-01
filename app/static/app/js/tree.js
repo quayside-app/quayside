@@ -1,56 +1,54 @@
 
 
 /**
- * Creates a task tree from a flat array of tasks (as stored in the DB). Each task is transformed into a node
+ * Creates a list of task trees from a flat array of tasks (as stored in the DB). Each task is transformed into a node
  * with a name and ID, and nodes are nested within their parent tasks to form a tree structure.
  * Source: ChatGPT
  * 
  * @param {Object[]} tasks - An array of task objects to be transformed into a tree.
- * Each task object must have at least an id, name, and parentTaskID property.
+ * Each task object must have at least an id, name, and parentTaskID property. Root(s) can have a parent ID of none.
  * 
- * @returns {Object} The root node of the task tree, with nested children representing
+ * @returns {Object} The list of root nodes of the task tree, with nested children representing
  * the hierarchical structure of tasks. Each node in the tree will have a name, id,
  * and a children array.
  * 
  */
-function createTaskTree(tasks) {
+
+
+function createTaskTrees(tasks) {
     const taskMap = {};
+    const roots = [];
 
     // Step 1: Create a map of all tasks by their ID
     tasks.forEach(task => {
-        taskMap[task.id] = {...task, children: []};
+        taskMap[task.id] = { ...task, children: [] };
     });
 
-    // Step 2: Build the tree by assigning children to their parents
-    let root = null;
+    // Step 2: Build the trees by assigning children to their parents
     tasks.forEach(task => {
         if (task.parentTaskID === null) {
-        // If there is no parentTaskID, this is the top-level node
-        root = taskMap[task.id];
+            // If there is no parentTaskID, this is a root node
+            roots.push(taskMap[task.id]);
         } else {
-        // If there is a parentTaskID, add this task to its parent's children array
-        if(taskMap[task.parentTaskID]) {
-            taskMap[task.parentTaskID].children.push(taskMap[task.id]);
-        }
+            // If there is a parentTaskID, add this task to its parent's children array
+            if (taskMap[task.parentTaskID]) {
+                taskMap[task.parentTaskID].children.push(taskMap[task.id]);
+            }
         }
     });
 
-    // Ensure there is a single root node in the dataset
-    if (!root) {
-        throw new Error("No root node found");
-    }
-
-    // Step 3: Convert the tree to the desired format (name instead of id)
+    // Step 3: Convert each tree to the desired format (name instead of id)
     const convertToNameFormat = (node) => {
-        const newNode = { name: node.name, id: node.id};
+        const newNode = { name: node.name, id: node.id, status: node.status, children: [] };
         if (node.children.length) {
-        newNode.children = node.children.map(convertToNameFormat);
+            newNode.children = node.children.map(convertToNameFormat);
         }
         return newNode;
     };
 
-    return convertToNameFormat(root);
+    return roots.map(root => convertToNameFormat(root));
 }
+
 
 /**
  * Creates a tree visualization using D3.js. Source: https://observablehq.com/@d3/tree
@@ -59,23 +57,30 @@ function createTaskTree(tasks) {
  * @param {Object} [options] - Configuration options for the tree visualization.
  * @param {Function} [options.label] - A function that, given a node d, returns the display name for that node.
  * @param {Function} [options.link] - A function that, given a node d, returns its link (if any).
+ * @param {Function} [options.createTaskLink] - A function that, given a node d, returns its link to create a child task
+ * @param {Function} [options.fill] - A function that, given a node d, returns its fill color
  * @param {number} [options.width=200] - The outer width of the tree, in pixels.
  * @param {number} [options.height=200] - The outer height of the tree, in pixels.
  * @returns {Object} The SVG node representing the tree visualization.
  * 
  */
 function Tree(data, {
-    label, // given a node d, returns the display nam
+    label, // given a node d, returns the display name
     link, // given a node d, its link (if any)
+    createTaskLink,
+    fill, // given a node d, its color (if any)
     width = 200, // outer width, in pixels
-    height = 200, // outer height, in pixels
 } = {}) {
+    
     let tree = d3.tree // layout algorithm
-    let fill = "#323232" // fill for nodes
     let stroke = "#FFFFFF" // stroke for links
     let strokeWidth = 2 // stroke width for links
     let strokeOpacity = 0.4 // stroke opacity for links
     let curve = d3.curveBumpX // curve for the link
+    const nodeWidth = 150 //Pixels
+    const nodeHeight = 50;  // Pixels
+    const maxTextLength = 18
+    
 
 
     const root = d3.hierarchy(data);
@@ -83,6 +88,7 @@ function Tree(data, {
     // Compute labels
     const descendants = root.descendants();
     const L = label == null ? null : descendants.map(d => label(d.data, d));
+    //const node_fill = fill == null ? null : descendants.map(d => fill(d.data, d));
 
     // Compute the layout.
     const dx = 60; // vertical distance
@@ -97,6 +103,8 @@ function Tree(data, {
     if (d.x > x1) x1 = d.x;
     if (d.x < x0) x0 = d.x;
     });
+
+    const height = x1 - x0 + dx * 2;
 
     // Use the required curve
     if (typeof curve !== "function") throw new Error(`Unsupported curve`);
@@ -136,19 +144,36 @@ function Tree(data, {
     .selectAll("a")
     .data(root.descendants())
     .join("a")
-        .attr("xlink:href", link == null ? null : d => link(d.data, d))
-        .attr("transform", d => `translate(${d.y},${d.x})`);
+    .attr("xlink:href", link == null ? null : d => link(d.data, d))
+    .attr("transform", d => `translate(${d.y},${d.x})`);
 
 
-    const nodeHeight = 50; //30;
 
-    const maxTextLength = 18
+
+
     node.append("rect")
-        .attr("fill", d => fill)
+        .attr("fill", d => fill(d.data, d))
         .attr("rx", 5)
-        .attr("width",  `${maxTextLength*0.85}em`)
+        .attr("width",  nodeWidth)// .attr("width",  `${maxTextLength*0.85}em`)
         .attr("height", nodeHeight)
         .attr("y", -nodeHeight / 2)
+
+    // "+"" Icon
+    const iconGroup = node.append("g")
+                    .attr("transform", `translate(${nodeWidth} 0)`) // Does not allow em as a unit 
+    const iconLink = iconGroup.append("a")
+                    .attr("xlink:href", createTaskLink == null ? null : d => createTaskLink(d.data, d));
+    iconLink.append("circle")
+        .attr("fill", "#555555")
+        .attr("r", 10)
+    iconLink.append("text")
+        .attr("dominant-baseline", "middle")
+        .attr("text-anchor", "middle")
+        .attr("paint-order", "stroke")
+        .attr("fill", "white")
+        .style("font-size", "14px")
+        .text("+")
+        
 
     if (L) {
     text = node.append("text")

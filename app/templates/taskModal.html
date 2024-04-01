@@ -3,28 +3,61 @@
 
 {% block taskContent %}
 
-<div class="absolute bg-black w-full h-full bg-opacity-75 z-50  ">
-    <div class="w-96 bg-neutral-800 mx-auto mt-20 px-5 py-2 rounded-lg sm:text-xl">
+<div class="absolute bg-black w-full h-full bg-opacity-75 z-50 text-white">
+    <div class="w-96 md:[w-45rem] lg:w-[50rem] bg-neutral-800 mx-auto mt-20 px-5 py-5 rounded-lg sm:text-xl">
 
-        <form action="/project/{{projectID}}/graph/task/{{taskID}}" method="post">
+        <form action="{{submitLink}}" method="post">
             {% csrf_token %}
 
             <div class="flex justify-end">
-                <a class=" hover:text-gray-500 " href="/project/{{projectID}}/graph"> x</a> <!-- Go home if exit -->
+                <a class=" hover:text-gray-500" href="{{exitLink}}">✕</a> <!-- Go home if exit -->
             </div>
 
-            {{ form }}
+            <div>
 
-            <!-- Submit Button -->
-            <div class="flex justify-end">
-                <button type='submit' class=" my-4 px-2 py-1 rounded-md  text-white bg-neutral-600 hover:bg-gray-500 text-center">
-                    Save
-                </button>
+                <!-- Manually render form for formatting to take effect -->
+
+                {{ form.name}}
+                {{ form.status }}
+                <div class="inline pl-4"> {{ form.startDate }} - {{ form.endDate }} </div>
+                {{ form.description }}
+
+                <div class="flex {% if deleteLink %} justify-between {% else %} justify-end {% endif %}">
+                    <!-- Delete Button -->
+                    {% if deleteLink %}
+                    <button id="deleteTaskButton" class="my-4 px-2 py-1 rounded-md  text-white bg-neutral-600 hover:bg-red-500 text-center">
+                        {% include "components/svg/delete.svg" %}
+                    </button>
+                    {% endif %}
+
+                    <!-- Save Button -->
+                    <button type='submit' class="my-4 px-2 py-1 rounded-md  text-white bg-neutral-600 hover:bg-gray-500 text-center">
+                        Save
+                    </button>
+
+                </div>
             </div>
         </form>
 
     </div>
 
 </div>
+{% if deleteLink %}
+<script>
+    /*
+    * Deletes tasks when button is clicked.
+    */
+    
+    document.getElementById('deleteTaskButton').addEventListener('click', async function (event) {
+        event.preventDefault();
+        const response = await fetch('{{apiUrl}}/tasks/?id={{taskID}}', { method: 'DELETE' })
+        if (!response.ok) throw new Error('Network response was not ok')
+    
+        // Navigate to project after deleting
+        window.location.href = "{{deleteLink}}"
+
+    })   
+</script>
+{% endif %}
 
 {% endblock %}

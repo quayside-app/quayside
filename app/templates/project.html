@@ -13,37 +13,79 @@
     const projects = await response.json()
     const project = projects[0]
 
-    const projectNameElement = document.getElementById('project-name')
+    const projectNameElement = document.getElementById('projectName')
     projectNameElement.textContent = 'Project: ' + project.name
   } catch (error) {
     console.error('There has been a problem with fetching projects:', error)
   }
 })()
 </script>
-<div class=" text-white">
+<div class=" text-white relative">
 
-    <div class="flex justify-between bg-neutral-800 rounded-lg py-2 px-4 m-6">
-        <div id="project-name" class="my-auto sm:text-2xl"></div>
+  <div class="flex justify-between bg-neutral-800 rounded-lg py-2 px-4 m-6">
+    <div id="projectName" class="my-auto sm:text-2xl"></div>
 
-        <button id="deleteProjectButton" class="text-center rounded-lg  px-2 py-1 bg-red-600 hover:bg-red-500">
-            Delete Project
+    <div class="flex">
+
+      <a href="create-task/" class=" rounded-full mr-4 px-2 py-1 bg-neutral-600 hover:bg-gray-500 ">
+        <div class=" text-2xl font-bold mx-1 ">+</div>
+      </a>
+      <a href="/project/{{projectID}}/" class="flex content-center text-center rounded-full mr-4 px-2 py-1 bg-neutral-600 hover:bg-gray-500 ">
+        <button id="editProjectButton">
+          {% include "components/svg/edit.svg" %}
         </button>
+      </a>
 
+      <button id="deleteProjectButton" class="text-center rounded-full  px-1.5 py-1 bg-neutral-600 hover:bg-red-500">
+        {% include "components/svg/delete.svg" %}
+      </button>
     </div>
 
+  </div>
+
+  <div id="confirmDeleteModal" class="hidden absolute top-20 right-6 z-50 py-6 text-white text-center bg-neutral-800 rounded-lg w-64">
+    <b>Are you sure?</b>
+    <br>
+    This cannot be undone.
+
+    <div class="flex justify-center pt-4">
+      <button id="cancelDeleteButton" class="mr-2 px-2 py-1 inline-block rounded-md bg-neutral-600 hover:bg-gray-500">
+        No, cancel.
+      </button>
+
+      <button id="confirmDeleteButton" class="ml-1 px-2 py-1 inline-block rounded-md bg-red-500 hover:bg-red-400">
+        Yes, delete.
+      </button>
+    </div>
+
+  </div>
+
+  <div>
     {% block projectContent %}{% endblock %}
+  </div>
 
 </div>
+
 <script>
 /*
-* Deletes project when buttton is clicked.
+* Confirms delete and deletes project when button is clicked.
 */
-document.getElementById('deleteProjectButton').addEventListener('click', async function () {
-  console.log('CLICKED DELETE BUTTON')
 
+document.getElementById('deleteProjectButton').addEventListener('click', async function () {
+  document.getElementById('confirmDeleteModal').classList.toggle('hidden')
+  document.getElementById('deleteProjectButton').disabled = true;
+  document.getElementById('deleteProjectButton').classList.toggle('hover:bg-red-500')
+})
+
+document.getElementById('cancelDeleteButton').addEventListener('click', async function () {
+  document.getElementById('confirmDeleteModal').classList.toggle('hidden')
+  document.getElementById('deleteProjectButton').disabled = false
+  document.getElementById('deleteProjectButton').classList.toggle('hover:bg-red-500')
+})
+
+document.getElementById('confirmDeleteButton').addEventListener('click', async function () {
   const response = await fetch('{{apiUrl}}/projects/?id={{projectID}}', { method: 'DELETE' })
   if (!response.ok) throw new Error('Network response was not ok')
-
   // Navigate Home after deleting
   window.location.href = '/'
 })
