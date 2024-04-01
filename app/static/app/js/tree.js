@@ -188,7 +188,42 @@ function Tree(data, {
     }
     
     function dragended(event, d) {
-        svg.attr("cursor", null);
+        let newParent = null;
+    
+        // Define the boundaries of the dragged node
+        let draggedNodeBounds = {
+            left: d.x - nodeWidth / 2,
+            right: d.x + nodeWidth / 2,
+            top: d.y - nodeHeight / 2,
+            bottom: d.y + nodeHeight / 2
+        };
+    
+        // Check for overlap with other nodes
+        node.each(n => {
+            if (true) { // n.id !== d.id && n.parent.id !== d.id
+                let targetNodeBounds = {
+                    left: n.x - nodeWidth / 2,
+                    right: n.x + nodeWidth / 2,
+                    top: n.y - nodeHeight / 2,
+                    bottom: n.y + nodeHeight / 2
+                };
+    
+                // Check if the nodes overlap
+                if (draggedNodeBounds.left < targetNodeBounds.right &&
+                    draggedNodeBounds.right > targetNodeBounds.left &&
+                    draggedNodeBounds.top < targetNodeBounds.bottom &&
+                    draggedNodeBounds.bottom > targetNodeBounds.top) {
+                    newParent = n;
+                }
+            }
+        });
+        
+        console.log("HERE")
+        if (newParent) {
+            console.log("HERE:", newParent)
+        }
+    
+        // Reset the fixed positions
         delete d.fx;
         delete d.fy;
     }
