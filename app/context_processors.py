@@ -2,6 +2,7 @@ import os
 import jwt
 from dotenv import load_dotenv
 from api.views.v1.users import UsersAPIView
+from .forms import NewProjectForm
 
 def global_context(request):
     """
@@ -26,4 +27,7 @@ def global_context(request):
         userID = ""
         username = ''
 
-    return {"apiUrl": "/api/v1", "userID": userID, 'username': username}
+    return {"apiUrl": "/api/v1", 
+            "userID": userID, 
+            'username': username,
+            'newProjectForm': NewProjectForm()}

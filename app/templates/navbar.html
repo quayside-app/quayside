@@ -1,25 +1,73 @@
 {% load static %}
 
-<nav class=" bg-neutral-800 p-2 text-white w-full drop-shadow-2xl ">
+<nav class="relative bg-neutral-800 p-2 text-white w-full drop-shadow-2xl ">
     <div class='flex w-full'>
         <div class='flex w-6/12  justify-start mx-1'>
-            <img src="{% static 'app/images/logo.png' %}" alt='quayside logo' style="height: 40px;"/>
+            <img src="{% static 'app/images/logo.png' %}" alt='quayside logo' style="height: 40px;" />
             <a href='/' class='my-auto mx-3 sm:text-xl font-bold'> quayside.app</a>
         </div>
         <div class='flex w-6/12 justify-end mx-1 my-auto text-xl font-bold'>
             {%if username %}
-            <a href='/logout'class="hover:text-neutral-500" >Welcome {{ username }}!</a>
+            <!-- <a href='/logout' class="hover:text-neutral-500" >Welcome {{ username }}!</a> -->
+            <button id="logoutButton" class="hover:text-neutral-500">Welcome {{ username }}!</button>
             {%else%}
-            <a href='/login' class="hover:text-neutral-500">Sign up/Login</a>
+            <button id="loginButton" class="hover:text-neutral-500">Sign up/Login</button>
+            <!-- <a href='/login' class="hover:text-neutral-500"></a> -->
             {%endif%}
         </div>
     </div>
-</nav>
 
-{% comment %} <nav class="mt-4 text-xl text-right font-medium rounded-lg  py-1 bg-neutral-600 hover:bg-gray-500" >
-    <div class='flex w-full'>
-        <a href='/' class='my-auto mx-3 text-xl font-bold'>Signup/Login</a>
+    <!-- Logout Modal -->
+    <div id="logoutModal" class="absolute top-20 right-5 " style="display: none;">
+        <div class="w-56 h-24  p-2 text-white  bg-neutral-800 shadow-lg shadow-black rounded-lg">
+            <div class="flex justify-end font-semibold text-xl ml-3 mr-1">
+                <button id="closeLogoutModal" class="w-1/6 text-right hover:text-gray-500 ">✕</button> <!-- Close if exit -->
+            </div>
+            <div class="flex justify-center">
+                <button type='submit' class=" px-2 py-1 rounded-md  text-white bg-neutral-600 hover:bg-gray-500 text-center text-xl">
+                    <a href='/welcome' class='text-xl font-bold'> Logout</a>
+                </button>
+            </div>
         </div>
     </div>
-</nav> {% endcomment %}
 
+    <!-- Login Modal -->
+    <div id="loginModal" class="absolute top-20 right-5 shadow-lg shadow-black" style="display: none;">
+        <div class="p-3  text-white bg-neutral-800 rounded-lg ">
+            <div class="flex flex-wrap justify-end font-semibold text-xl">
+                <button id="closeLoginModal" class="w-1/6 text-right hover:text-gray-500 ">✕</button> <!-- Close if exit -->
+                <!-- <a class="w-1/6 text-right hover:text-gray-500 " href="/"> ✕ </a> Go home if exit -->
+            </div>
+
+            <div class=" pb-3">
+                <div class="flex justify-center ">
+                    <button type='submit' class=" flex my-2 px-2 py-1 rounded-md  text-white bg-neutral-600 hover:bg-gray-500 text-center text-xl">
+                        <img src="{% static 'app/images/github-mark-white.png' %}" alt='GitHub logo' style="height: 30px;" class='my-auto' />
+                        <a href='/auth/GitHub' class='my-center mx-3 text-xl font-bold'> Sign in with GitHub</a>
+                    </button>
+                </div>
+                <div class="flex justify-center">
+                    <button type='submit' class=" flex my-2 px-2 py-1 rounded-md  text-white bg-neutral-600 hover:bg-gray-500 text-center text-xl">
+                        <img src="{% static '\app\images\web_light_rd_na@3x.png' %}" alt='GitHub logo' style="height: 30px;" class='my-auto' />
+                        <a href='/auth/Google' class='my-center mx-3 text-xl font-bold'> Sign in with Google</a>
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    
+</nav>
+
+<script src="{% static 'app/js/toggleModal.js' %}"></script>
+{%if username %}
+    <script>
+        setModal("logoutModal", 'logoutModal', ['logoutButton'], ["closeLogoutModal"])
+    </script>
+
+{%else%}
+    <script>
+        setModal("loginModal", 'loginModal', ['loginButton'], ["closeLoginModal"])
+    </script>
+{%endif%}

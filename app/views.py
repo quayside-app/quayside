@@ -25,24 +25,6 @@ def redirectOffSite(request):
     return redirect('https://github.com/quayside-app/quayside')
 
 
-def userLogin(request):
-    """
-    Renders the login model for the user.
-
-    @param {HttpRequest} request - The request object.
-    @returns {HttpResponse} - An HttpResponse object that renders the login.html template.
-    """
-    return render(request, "login.html")
-
-
-def userLogout(request):  # name change needed when more options added to logout.html(will also need a name change)
-    """
-    Renders the logout model for the user.
-
-    @param {HttpRequest} request - The request object.
-    @returns {HttpResponse} - An HttpResponse object that renders the logout.html template.
-    """
-    return render(request, "logout.html")
 
 
 def logout(request):
@@ -257,10 +239,12 @@ def createProjectView(request):
             return HttpResponseRedirect(f"/project/{projectID}/graph")
 
     # If a GET (or any other method), create a blank form
-    else:
-        form = NewProjectForm()
-
-    return render(request, "newProjectModal.html", {"form": form})
+   # else:
+        # form = NewProjectForm()
+    # If anything else throw error
+    #return render(request, "newProjectModal.html", {"form": form})
+    return HttpResponseServerError(f"Only POSTs are allowed for createProjectView")
+    #return redirect(request.META.get('HTTP_REFERER', '/'))
 
 
 def requestAuth(_request, provider):
@@ -358,7 +342,7 @@ class Callback(TemplateView):
         response = requests.get(
             apiRequestURL, headers=header, timeout=10
         )
-        print("HEREEEEEEE1")
+
 
         oauthUserInfo = response.json()
 
@@ -372,8 +356,7 @@ class Callback(TemplateView):
         userInfo = UsersAPIView.getUser({"email": oauthUserInfo.get("email")})[0].get(
             "user"
         )
-        print(userInfo)
-        print("HEREEEEEEE1.5")
+
         # Create a user in our db if none exists
         if oauthUserInfo.get("username"):
             username = oauthUserInfo.get("username")
@@ -383,7 +366,7 @@ class Callback(TemplateView):
             names = oauthUserInfo.get("name", "").split()
             if not names:
                 names = [""]
-            print("HEREEEEEEE", oauthUserInfo.get("username"))
+
             userInfo, httpsCode = UsersAPIView.createUser(
                 {
                     "email": oauthUserInfo.get("email"),
@@ -413,7 +396,6 @@ class Callback(TemplateView):
 
         apiToken = userInfo.get("apiKey")  # Get API key
 
-        print("TOKEN HEREEEE!", apiToken)
 
         if apiToken:
             apiToken = decryptApiKey(apiToken)
