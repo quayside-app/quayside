@@ -691,6 +691,10 @@ video {
   margin-left: 0.75rem;
 }
 
+.ml-4 {
+  margin-left: 1rem;
+}
+
 .mr-1 {
   margin-right: 0.25rem;
 }
@@ -745,10 +749,6 @@ video {
 
 .mt-\[35dvh\] {
   margin-top: 35dvh;
-}
-
-.ml-4 {
-  margin-left: 1rem;
 }
 
 .block {

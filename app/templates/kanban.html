@@ -2,21 +2,50 @@
 {% load static %}
 {% block projectContent %}
 
-<head>
+
+{% comment %} <head>
     <!-- TODO use npm nodemanager instead of the headers -->
     <script src="https://d3js.org/d3.v7.min.js"></script>
-</head>
+</head> {% endcomment %}
 
 <body>
-    <div class="relative flex justify-center">
-      {% block taskContent %}{% endblock %}
-      {% block editProjectContent %}{% endblock %}
+  <div class = 'text-white h-screen'>
+    <div class="flex flex-wrap justify-center mt-5">
+      <!-- Source: https://v1.tailwindcss.com/components/cards -->
+      <div class=" hover:scale-110  duration-300 h-max mt-6 mx-4 max-w-sm rounded-2xl overflow-hidden shadow-2xl bg-neutral-800">
+        <div class="px-6 py-4">
   
-  
-      <div class="w-full h-full" style="height:100dvh;">
-        <div id="kanban" class=" w-full"></div>
+          <div class="font-bold text-xl mb-2">What's next?</div>
+            <div id="taskListDiv" class="pl-2  overflow-y-scroll max-h-[60dvh]">
+              <ul id="tasklist"></ul>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-</body>
+  </div> 
+</body> 
+
+<script>
+  (async function () {
+    try {
+      const response = await fetch('{{ apiUrl }}/kanban/?projectID={{projectID}}')
+  
+      if (!response.ok) throw new Error('Network response was not ok')
+      const tasks = await response.json()
+      console.log(tasks)
+      const taskListElement = document.getElementById('tasklist')
+      tasks.forEach(function (Todo) {
+        const listLink = document.createElement('a')
+        //listLink.href = `/project/${project.id}/graph`
+        listLink.innertext = Todo.name
+        listLink.className = 'flex pb-1  hover:text-neutral-500  truncate w-22'
+        taskListElement.appendChild(listLink)
+      })
+    } catch (error) {
+      console.error('There has been a problem with fetching projects:', error)
+    }
+  })()
+</script>
 
 {% endblock %}

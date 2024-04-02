@@ -10,7 +10,7 @@
 
     if (!response.ok) throw new Error('Network response was not ok')
     const projects = await response.json()
-
+    console.log(projects)
     const projectListElement = document.getElementById('projectList')
     projects.forEach(function (project) {
       const listLink = document.createElement('a')
