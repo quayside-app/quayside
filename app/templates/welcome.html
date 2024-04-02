@@ -1,0 +1,110 @@
+{% extends "_base.html" %}
+{% load static %}
+
+{% block content %}
+
+<style>
+  /* Remove ugly white scrollbar*/ 
+  
+  /* For Chrome, Safari, and Opera */
+  #scroll::-webkit-scrollbar {
+      display: none;
+  }
+
+  /* For Internet Explorer, Edge */
+  #scroll {
+      -ms-overflow-style: none;
+  }
+
+  /* For Firefox */
+  #scroll {
+      scrollbar-width: none;
+  }
+
+  /* Tailwind does not offer good way to change svg size */
+  svg {
+  width: 100%; /* Adjust the percentage based on containers size */
+  height: auto; /* Maintains the aspect ratio */
+}
+</style>
+
+<div class='text-white h-screen'>
+  <div id="scroll" class='h-[93dvh] text-center overflow-y-scroll scroll-smooth'>
+
+    <div class>
+
+      <div class='mt-[35dvh] flex justify-center text-5xl md:text-7xl font-bold '>
+        quayside.app
+      </div>
+
+      <div class='flex flex-wrap justify-center text-xl md:text-3xl mt-3'>
+        Ignite Collaborative Productivity
+      </div>
+
+      <div class='flex flex-wrap justify-center mt-2 md:text-xl'>
+
+        <a href='/login' class='bg-neutral-800 hover:bg-neutral-700  rounded-2xl mt-2 mx-2 px-5 py-1 flex items-center justify-center'>
+          Get Started
+        </a>
+        <a href='/redirect' target="_blank" class='bg-neutral-800 hover:bg-neutral-700 rounded-2xl mt-2 mx-2 px-5 py-1 flex items-center justify-center'>
+          <img src="{% static 'app/images/github-mark-white.png' %}" class="inline mr-2 my-1" alt='GitHub logo' style="height: 25px;" />
+          See the Code
+        </a>
+      </div>
+
+    </div>
+
+    <div id="featureSection" class='flex justify-center min-h-screen  text-3xl pt-24 '>
+
+      <div class="mx-4  w-max h-max py-4 mt-24">
+
+        <div class="text-2xl md:text-4xl font-black underline underline-offset-8 decoration-4 decoration-yellow-600 py-4 px-4">
+          - Features -
+        </div>
+
+        <div class="flex flex-wrap justify-center mt-5">
+          <!-- Source: https://v1.tailwindcss.com/components/cards -->
+          <div class=" hover:scale-110  duration-300 h-max mt-6 mx-4 max-w-sm rounded-2xl overflow-hidden shadow-2xl bg-neutral-800">
+            <div class="  mt-4 mx-4 ">
+              <img class="h-72 w-full rounded-2xl shadow-2xl" src="{% static 'app/images/demo.png' %}" alt="Sunset in the mountains">
+            </div>
+            <div class="px-6 py-4">
+
+              <div class="font-bold text-xl mb-2">What's next?</div>
+              <p class="text-white text-base">
+                Break your project into deliverables automagically.
+              </p>
+            </div>
+          </div>
+
+          <div class="hover:scale-110  duration-300 h-max mt-6 mx-4  max-w-sm rounded-2xl overflow-hidden shadow-lg bg-neutral-800">
+            <div class="mt-4 mx-4 rounded-2xl flex items-center justify-center bg-black h-72 ">
+              Coming soon...
+            </div>
+            <div class="px-6 py-4">
+              <div class="font-bold text-xl mb-2">When are tasks scheduled?</div>
+              <p class="text-white text-base">
+                Estimate the time needed to complete your tasks.
+              </p>
+            </div>
+          </div>
+
+          <div class="hover:scale-110  duration-300 h-max mt-6 mx-4  max-w-sm rounded-2xl overflow-hidden shadow-lg bg-neutral-800">
+            <div class="mt-4 mx-4 rounded-2xl flex items-center justify-center bg-black h-72 ">
+              Coming soon...
+            </div>
+            <div class="px-6 py-4">
+              <div class="font-bold text-xl mb-2">How’s the progress?</div>
+              <p class="text-white text-base">
+                Integrate with Github and the Google Suite to track your progress.
+              </p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock content %}

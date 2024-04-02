@@ -7,6 +7,7 @@ from api.decorators import apiKeyRequired
 from api.serializers import ProjectSerializer
 from api.views.v1.tasks import TasksAPIView
 from api.models import Project
+from django.core.exceptions import ObjectDoesNotExist 
 
 
 @method_decorator(
@@ -54,15 +55,9 @@ class ProjectsAPIView(APIView):
         @example Javascript:
             fetch('quayside.app/api/v1/projects?userIDs=1234');
         """
-
-        try:
-            queryParams = request.query_params.dict()
-            projects = Project.objects.filter(**queryParams)  # Query mongo
-            serializer = ProjectSerializer(projects, many=True)
-
-            return Response(serializer.data)
-        except Exception:
-            return Response({"message": "Projects not found"}, status=404)
+        responseData, httpStatus = self.getProjects(
+            request.query_params.dict())
+        return Response(responseData, status=httpStatus)
 
     def post(self, request):
         """
@@ -108,6 +103,50 @@ class ProjectsAPIView(APIView):
         responseData, httpStatus = self.createProjects(request.data)
         return Response(responseData, status=httpStatus)
 
+    def put(self, request):
+        """
+        Updates a single project.
+        Requires 'apiToken' passed in auth header or cookies.
+
+
+        @param {HttpRequest} request - The request object.
+                @param {HttpRequest} request - The request object.
+            The request body can contain:
+                - id (objectID str)
+                - name (str)
+                - types (list[str])
+                - objectives (list[str])
+                - startDate (date, 'YYYY-MM-DD')
+                - endDate (date, 'YYYY-MM-DD')
+                - budget (str)
+                - assumptions (list[str])
+                - scopesIncluded (list[str])
+                - scopesExcluded (list[str])
+                - risks (list[str])
+                - userIDs (list[ObjectId])
+                - projectManagerIDs (list[ObjectId])
+                - sponsors (list[str])
+                - contributorIDs (list[ObjectId])
+                - completionRequirements (list[str])
+                - qualityAssurance (list[str])
+                - KPIs (list[str])
+                - otherProjectDependencies (list[ObjectId])
+                - informationLinks (list[str])
+                - completionStatus (str)
+                - teams (list[ObjectId])
+        @return: A Response object with the updated task data or an error message.
+
+        @example javascript
+            await fetch(`/api/v1/project/`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json'},
+                body: JSON.stringify({id: '1234, name: 'Project1'},
+            });
+
+        """
+        responseData, httpStatus = self.updateProject(request.data)
+        return Response(responseData, status=httpStatus)
+
     def delete(self, request):
         """
         Deletes a project or list of projects. Requires 'apiToken' passed in auth header or cookies.
@@ -129,12 +168,56 @@ class ProjectsAPIView(APIView):
         return Response(responseData, status=httpStatus)
 
     @staticmethod
+    def getProjects(projectData):
+        """
+        Service API function that can be called internally as well as through the API to get
+        project data based on input data.
+
+        @param projectData      Dict for a single project dict or list of dicts for multiple tasks.
+        @return      A tuple of (response_data, http_status).
+        """
+        try:
+
+            projects = Project.objects.filter(**projectData)  # Query mongo
+            serializer = ProjectSerializer(projects, many=True)
+
+            return serializer.data, status.HTTP_200_OK
+        except Exception:
+            return {"message": "Projects not found"}, status.HTTP_500_INTERNAL_SERVER_ERROR
+
+    @staticmethod
+    def updateProject(projectData):
+        """
+        Service API function that can be called internally as well as through the API to update
+        project data based on input data.
+
+        @param projectData      Dict for a single project.
+        @return      A tuple of (response_data, http_status).
+        """
+        if "id" not in projectData:
+            return "Error: Parameter 'id' required", status.HTTP_400_BAD_REQUEST
+
+        try:
+            project = Project.objects.get(id=projectData["id"])
+        except ObjectDoesNotExist:
+            return "Project not found", status.HTTP_404_NOT_FOUND
+
+        serializer = ProjectSerializer(
+            data=projectData, instance=project, partial=True)
+
+        if serializer.is_valid():
+            serializer.save()  # Updates projects
+            return serializer.data, status.HTTP_200_OK
+
+        return serializer.errors, status.HTTP_400_BAD_REQUEST
+
+    @staticmethod
     def createProjects(projectData):
         """
         Service API function that can be called internally as well as through the API to create
         project(s) based on input data.
 
-        @param task_data      Dict for a single project dict or list of dicts for multiple tasks.
+        @param projectData      Dict for a single project dict or list of dicts for multiple tasks.
         @return      A tuple of (response_data, http_status).
         """
 

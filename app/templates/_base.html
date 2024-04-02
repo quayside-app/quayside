@@ -23,11 +23,12 @@
             <div class="fixed w-full h-14 z-40">
                 {% include "navbar.html" %}
             </div>
-
+            {%if userID %}
             <div class="flex h-screen">
                 <div class="pt-14">
                     {% include 'sidebar.html' %}
                 </div>
+            {%endif%}
 
                 <div class="w-full pt-14">
                     <div class="" style="background-image: url('{% static 'app/images/background.png' %}'); background-position:center center; background-size:cover;">

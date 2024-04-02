@@ -10,7 +10,7 @@ class NewProjectForm(forms.Form):
         label="What is your project about?",
         widget=forms.TextInput(
             attrs={
-                "placeholder": "I want to bake a cake!",
+                "placeholder": "Bake a cake",
                 "class": "w-96 block mt-3 p-2 text-sm rounded-md bg-neutral-600 outline-none placeholder-gray-400",
                 "type": "text",
             }
@@ -28,6 +28,7 @@ class TaskForm(forms.Form):
         label="",
         widget=forms.Textarea(
             attrs={
+                "placeholder": "Name",
                 "type": "text",
                 "class": "w-full block bg-neutral-800 outline-none sm:text-2xl font-bold",
                 'rows': 1,
@@ -38,7 +39,8 @@ class TaskForm(forms.Form):
     status = forms.ChoiceField(
         label="",
         required=False,
-        choices=(("Todo", "Todo"), ( "In-Progress", "In-Progress"), ("Done", "Done")),
+        choices=(("Todo", "Todo"), ("In-Progress",
+                 "In-Progress"), ("Done", "Done")),
         widget=forms.Select(
             attrs={
                 "class": "inline-block p-1 mt-4 rounded-md  bg-neutral-600 outline-none placeholder-gray-400",
@@ -68,8 +70,6 @@ class TaskForm(forms.Form):
         ),
     )
 
-
-
     description = forms.CharField(
         label="",
         required=False,
@@ -79,6 +79,47 @@ class TaskForm(forms.Form):
                 "type": "text",
                 "class": "w-full block p-2 mt-4 rounded-md  bg-neutral-600 outline-none placeholder-gray-400",
 
+            }
+        ),
+    )
+
+
+class ProjectForm(forms.Form):
+    """
+    A form for editing a task with a name.
+    """
+
+    # Can't use forms.ModelForm bc it's mongo
+    name = forms.CharField(
+        label="",
+        widget=forms.Textarea(
+            attrs={
+                "placeholder": "Project Name",
+                "type": "text",
+                "class": "w-full block bg-neutral-800 outline-none sm:text-2xl font-bold",
+                'rows': 1,
+            }
+        ),
+    )
+    
+    startDate = forms.DateField(
+        label="",
+        required=False,
+        widget=forms.DateInput(
+            attrs={
+                "class": " inline-block p-1 mt-4 rounded-md  bg-neutral-600 outline-none placeholder-gray-400",
+                "type": "date",
+            }
+        ),
+    )
+
+    endDate = forms.DateField(
+        label="",
+        required=False,
+        widget=forms.DateInput(
+            attrs={
+                "class": " inline-block p-1 mt-4 rounded-md  bg-neutral-600 outline-none placeholder-gray-400",
+                "type": "date",
             }
         ),
     )

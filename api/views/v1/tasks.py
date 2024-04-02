@@ -203,8 +203,6 @@ class TasksAPIView(APIView):
         except Task.DoesNotExist:
             return None, status.HTTP_404_NOT_FOUND
 
-
-
         serializer = TaskSerializer(data=taskData, instance=task, partial=True)
 
         if serializer.is_valid():
@@ -230,6 +228,19 @@ class TasksAPIView(APIView):
             )
 
         if "id" in taskData:
+            # Move children up to parent
+            task = TasksAPIView.getTasks({"id": taskData["id"]})[0][0]
+            print("TASK", task)
+            childTasks = TasksAPIView.getTasks({"parentTaskID": task["id"]})[0]
+            print("CHILD", childTasks)
+
+            for childTask in childTasks:
+                message, status_code = TasksAPIView.updateTask({"id":childTask["id"], "parentTaskID": task["parentTaskID"]})
+
+                if status_code != status.HTTP_200_OK:
+                    print(f"Task update failed: {message}")
+                    return "Error moving children while deleting task", status.HTTP_500_INTERNAL_SERVER_ERROR
+
             numberObjectsDeleted = Task.objects(id=taskData["id"]).delete()
         else:  # projectIDs
             numberObjectsDeleted = Task.objects(

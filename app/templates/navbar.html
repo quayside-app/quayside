@@ -7,7 +7,11 @@
             <a href='/' class='my-auto mx-3 sm:text-xl font-bold'> quayside.app</a>
         </div>
         <div class='flex w-6/12 justify-end mx-1 my-auto text-xl font-bold'>
-                <a href='/login' >Sign up/Login</a>
+            {%if username %}
+            <a href='/logout'class="hover:text-neutral-500" >Welcome {{ username }}!</a>
+            {%else%}
+            <a href='/login' class="hover:text-neutral-500">Sign up/Login</a>
+            {%endif%}
         </div>
     </div>
 </nav>
