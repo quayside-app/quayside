@@ -1,0 +1,22 @@
+{% extends "project.html" %}
+{% load static %}
+{% block projectContent %}
+
+<head>
+    <!-- TODO use npm nodemanager instead of the headers -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+
+<body>
+    <div class="relative flex justify-center">
+      {% block taskContent %}{% endblock %}
+      {% block editProjectContent %}{% endblock %}
+  
+  
+      <div class="w-full h-full" style="height:100dvh;">
+        <div id="kanban" class=" w-full"></div>
+      </div>
+    </div>
+</body>
+
+{% endblock %}

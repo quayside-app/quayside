@@ -9,6 +9,11 @@ urlpatterns = [
         views.projectGraphView,
         name="project-graph-view",
     ),
+    path(
+        "project/<str:projectID>/kanban/",
+        views.projectKanbanView,
+        name="project-kanban-view",
+    ),
         path(
         "project/<str:projectID>/",
         views.editProjectView,
