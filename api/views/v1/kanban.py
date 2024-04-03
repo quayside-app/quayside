@@ -83,8 +83,7 @@ class KanbanAPIView(APIView):
                 tasks_by_status[kanbanStatus] = []
             tasks_by_status[kanbanStatus].append(task)
 
-        # TODO: If there are null values in tasks priority, we need to initialize them. Just say its position within tasks_by_status is the tasks priority.
-        # TODO: sort the tasks by priority in each group.
+        tasks_by_status = KanbanAPIView.normalizePriority(tasks_by_status)
 
 
         serialized_data = {}
@@ -135,5 +134,33 @@ class KanbanAPIView(APIView):
 
         return "update kanban was called", status.HTTP_200_OK
         
+    @staticmethod
+    def normalizePriority(tasks_by_status):
+        """
+        Normalize the priority of tasks within each status group.
+        Ensures all tasks have an integer priority value.
+        Also ensures priority starts at 0 and is spaced evenly by 1.
 
+        Args:
+            tasks_by_status (dict): Dictionary containing tasks grouped by status.
 
+        Returns:
+            dict: Updated tasks grouped by status with normalized priorities.
+        """
+        # Loop through status.
+        for status_name, task_list in tasks_by_status.items():
+            # Initialize null priority.
+            for index, task in enumerate(task_list):
+                if task.priority is None:
+                    task.priority = index
+                    task.save()
+
+            sorted_tasks = sorted(task_list, key=lambda x: x.priority)
+
+            # Space priority evenly.
+            for index, task in enumerate(sorted_tasks):
+                if task.priority != index:
+                    task.priority = index
+                    task.save()
+
+        return tasks_by_status
