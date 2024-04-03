@@ -111,7 +111,7 @@ function Tree(data, {
     
     const svg = d3.create("svg")
         //.attr("viewBox", [-dy, -height/2, width, height])
-        .attr("viewBox", [-300, x0 - 30, width, height])
+        .attr("viewBox", [-30, x0 - 30, width, height])
         .attr("width", width)
         .attr("height", height)
         .attr("style", "max-width: 100%; max-height: 100%; min-height:100%") // Ensure it doesn't exceed the bounds
