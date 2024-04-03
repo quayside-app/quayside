@@ -6,10 +6,10 @@
             <img src="{% static 'app/images/logo.png' %}" alt='quayside logo' style="height: 40px;" />
             <a href='/' class='my-auto mx-3 sm:text-xl font-bold'> quayside.app</a>
         </div>
-        <div class='flex w-6/12 justify-end mx-1 my-auto text-xl font-bold'>
+        <div class='flex w-6/12 justify-end mx-1 my-auto sm:text-xl font-bold'>
             {%if username %}
             <!-- <a href='/logout' class="hover:text-neutral-500" >Welcome {{ username }}!</a> -->
-            <button id="logoutButton" class="hover:text-neutral-500">Welcome {{ username }}!</button>
+            <button id="logoutButton" class="hover:text-neutral-500">{{ username }}</button>
             {%else%}
             <button id="loginButton" class="hover:text-neutral-500">Sign up/Login</button>
             <!-- <a href='/login' class="hover:text-neutral-500"></a> -->
@@ -18,7 +18,7 @@
     </div>
 
     <!-- Logout Modal -->
-    <div id="logoutModal" class="absolute top-20 right-5 " style="display: none;">
+    <div id="logoutModal" class="absolute top-20 right-5 z-50 " style="display: none;">
         <div class="w-56 h-24  p-2 text-white  bg-neutral-800 shadow-lg shadow-black rounded-lg">
             <div class="flex justify-end font-semibold text-xl ml-3 mr-1">
                 <button id="closeLogoutModal" class="w-1/6 text-right hover:text-gray-500 ">✕</button> <!-- Close if exit -->
@@ -32,7 +32,7 @@
     </div>
 
     <!-- Login Modal -->
-    <div id="loginModal" class="absolute top-20 right-5 shadow-lg shadow-black" style="display: none;">
+    <div id="loginModal" class="absolute top-20 right-5 shadow-lg shadow-black z-50" style="display: none;">
         <div class="p-3  text-white bg-neutral-800 rounded-lg ">
             <div class="flex flex-wrap justify-end font-semibold text-xl">
                 <button id="closeLoginModal" class="w-1/6 text-right hover:text-gray-500 ">✕</button> <!-- Close if exit -->
@@ -57,17 +57,16 @@
         </div>
     </div>
 
-    
 </nav>
 
 <script src="{% static 'app/js/toggleModal.js' %}"></script>
 {%if username %}
-    <script>
+<script>
         setModal("logoutModal", 'logoutModal', ['logoutButton'], ["closeLogoutModal"])
     </script>
 
 {%else%}
-    <script>
+<script>
         setModal("loginModal", 'loginModal', ['loginButton'], ["closeLoginModal"])
     </script>
 {%endif%}

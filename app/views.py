@@ -18,7 +18,6 @@ from .context_processors import global_context
 from .forms import NewProjectForm, TaskForm, ProjectForm
 
 import urllib.parse
-import json
 
 
 def redirectOffSite(request):
@@ -118,7 +117,19 @@ def taskView(request, projectID, taskID):
     @returns {HttpResponse} - An HttpResponse object that renders the taskModal.html
         template with the project ID, task ID, and task form context.
     """
+
+    if 'kanban' in request.path:
+        baseTemplate = 'kanban.html'
+        submitLink = f"/project/{projectID}/kanban/task/{taskID}"
+        exitLink = f"/project/{projectID}/kanban"
+        deleteLink = f"/project/{projectID}/kanban"
+    else:
+        baseTemplate = 'graph.html'
+        submitLink = f"/project/{projectID}/graph/task/{taskID}"
+        exitLink = f"/project/{projectID}/graph"
+        deleteLink = f"/project/{projectID}/graph"
     if request.method == "POST":
+
         form = TaskForm(request.POST)
 
         if form.is_valid():
@@ -152,9 +163,11 @@ def taskView(request, projectID, taskID):
         {"form": form,
          "projectID": projectID,
          "taskID": taskID,
-         "submitLink": f"/project/{projectID}/graph/task/{taskID}",
-         "exitLink": f"/project/{projectID}/graph",
-         "deleteLink": f"/project/{projectID}/graph"},
+         "baseTemplate": baseTemplate,
+         "submitLink": submitLink,
+         "exitLink": exitLink,
+         "deleteLink": deleteLink
+        },
     )
 
 
@@ -173,6 +186,14 @@ def createTaskView(request, projectID, parentTaskID=""):
     @returns {HttpResponse} - An HttpResponse object that renders the taskModal.html
         template with the project ID, task ID, and task form context.
     """
+    if 'kanban' in request.path:
+        baseTemplate = 'kanban.html'
+        submitLink = f"/project/{projectID}/kanban/create-task/{parentTaskID}"
+        exitLink =  f"/project/{projectID}/kanban"
+    else:
+        baseTemplate = 'graph.html'
+        submitLink = f"/project/{projectID}/graph/create-task/{parentTaskID}"
+        exitLink =  f"/project/{projectID}/graph"
 
     # Create new task on post
     if request.method == "POST":
@@ -199,8 +220,10 @@ def createTaskView(request, projectID, parentTaskID=""):
         "taskModal.html",
         {"form": form,
          "projectID": projectID,
-         "submitLink": f"/project/{projectID}/graph/create-task/{parentTaskID}",
-         "exitLink": f"/project/{projectID}/graph"},
+         "baseTemplate": baseTemplate,
+         "submitLink": submitLink,
+         "exitLink": exitLink,
+        },
     )
 
 

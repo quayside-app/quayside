@@ -1,17 +1,17 @@
 
 {% load static %}
 
-<div id="newProjectModal" class="absolute top-5 left-48 z-40 p-5  text-white  bg-neutral-800 rounded-lg shadow-lg shadow-black">
+<div id="newProjectModal" class="absolute top-5 left-4 z-40 p-5  text-white  bg-neutral-800 rounded-lg shadow-lg shadow-black">
     <div class="flex flex-wrap font-semibold text-xl">
         <div class="w-5/6 "> Create Project</div>
-        <a id="exitButton" class="w-1/6 text-right  hover:text-gray-500">✕</a> <!-- Go home if exit -->
+        <button id="exitButton" class="w-1/6 text-right  hover:text-gray-500">✕</button> <!-- Go home if exit -->
     </div>
 
     <form action="/create-project/" method="post" id="createProjectForm">
         {% csrf_token %} <!-- Required by Django to prevent Cross Site Scripting -->
 
         <!-- Project Input(s) -->
-        <div class="pt-4 w-96">
+        <div class="pt-4 w-72 md:w-96">
             {{ newProjectForm }} <!-- Comes from the context processor (since in the base class)-->
         </div>
 
