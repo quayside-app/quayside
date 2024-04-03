@@ -650,6 +650,10 @@ video {
   z-index: 50;
 }
 
+.z-30 {
+  z-index: 30;
+}
+
 .m-6 {
   margin: 1.5rem;
 }
@@ -1338,6 +1342,14 @@ video {
 }
 
 @media (min-width: 640px) {
+  .sm\:static {
+    position: static;
+  }
+
+  .sm\:absolute {
+    position: absolute;
+  }
+
   .sm\:left-3 {
     left: 0.75rem;
   }
