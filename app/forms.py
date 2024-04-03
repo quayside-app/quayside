@@ -11,7 +11,7 @@ class NewProjectForm(forms.Form):
         widget=forms.TextInput(
             attrs={
                 "placeholder": "Bake a cake",
-                "class": "w-96 block mt-3 p-2 text-sm rounded-md bg-neutral-600 outline-none placeholder-gray-400",
+                "class": "w-72 md:w-96 block mt-3 p-2 text-sm rounded-md bg-neutral-600 outline-none placeholder-gray-400",
                 "type": "text",
             }
         ),
@@ -43,7 +43,7 @@ class TaskForm(forms.Form):
                  "In-Progress"), ("Done", "Done")),
         widget=forms.Select(
             attrs={
-                "class": "inline-block p-1 mt-4 rounded-md  bg-neutral-600 outline-none placeholder-gray-400",
+                "class": " text-xs md:text-base inline-block p-1 mt-4 rounded-md  bg-neutral-600 outline-none placeholder-gray-400",
             }
         ),
     )
@@ -53,7 +53,7 @@ class TaskForm(forms.Form):
         required=False,
         widget=forms.DateInput(
             attrs={
-                "class": " inline-block p-1 ml-3 mt-4 rounded-md  bg-neutral-600 outline-none placeholder-gray-400",
+                "class": "text-xs md:text-base inline-block pl-1 py-1  rounded-md  bg-neutral-600 outline-none placeholder-gray-400",
                 "type": "date",
             }
         ),
@@ -64,7 +64,7 @@ class TaskForm(forms.Form):
         required=False,
         widget=forms.DateInput(
             attrs={
-                "class": " inline-block p-1 ml-3 mt-4 rounded-md  bg-neutral-600 outline-none placeholder-gray-400",
+                "class": "text-xs md:text-base inline-block pl-1 py-1  rounded-md  bg-neutral-600 outline-none placeholder-gray-400",
                 "type": "date",
             }
         ),
@@ -101,7 +101,7 @@ class ProjectForm(forms.Form):
             }
         ),
     )
-    
+
     startDate = forms.DateField(
         label="",
         required=False,
