@@ -43,31 +43,32 @@
   }
 </style>
 
-<div class>
-    <div id="sidebarContent" class=" w-44 bg-neutral-800 min-h-screen px-4 pt-2 text-white hidden sm:block">
-        <div class="mt-4 sm:text-xl text-center font-medium rounded-lg  py-1 bg-neutral-600 hover:bg-neutral-500">
-            <a href="/create-project"> + Project</a>
-        </div>
-
-        <div class="mt-8">
-            <button id="projectDropdownButton" class="flex pt-4 pb-2 hover:text-neutral-500 stroke-white hover:stroke-neutral-500">
-
-              <div class="sm:text-xl font-medium pr-2">Projects</div>
-              <div class="-rotate-90 my-auto" id="projectDropdown">{% include "components/svg/arrow.svg" %}</div>
-
-            </button>
-
-            <div id="projectListDiv" class="pl-2  overflow-y-scroll max-h-[60dvh]">
-                <ul id="projectList"></ul>
-            </div>
-        </div>
-    </div>
-
-    <button id="collapseButton" class=" z-50 absolute p-1 bottom-3 left-3 sm:left-32 rotate-180 sm:rotate-0">
-        <div class="flex rounded-md stroke-white  bg-neutral-600  hover:bg-neutral-500">
-            {% include "components/svg/arrow.svg" %}
-        </div>
+<div class="absolute sm:static z-30">
+  <div id="sidebarContent" class=" relative w-44 bg-neutral-800 min-h-screen px-4 pt-2 text-white hidden sm:block">
+    <button id="newProjectButton" class=" w-full mt-4 sm:text-xl text-center font-medium rounded-lg  py-1 bg-neutral-600 hover:bg-neutral-500">
+      + Project
     </button>
+
+    <div class="mt-8">
+      <button id="projectDropdownButton" class="flex pt-4 pb-2 hover:text-neutral-500 stroke-white hover:stroke-neutral-500">
+
+        <div class="sm:text-xl font-medium pr-2">Projects</div>
+        <div class="-rotate-90 my-auto" id="projectDropdown">{% include "components/svg/arrow.svg" %}</div>
+
+      </button>
+
+      <div id="projectListDiv" class="pl-2  overflow-y-scroll max-h-[60dvh]">
+        <ul id="projectList"></ul>
+      </div>
+    </div>
+  </div>
+
+  <button id="collapseButton" class=" z-50 fixed p-1 bottom-3 left-3 sm:left-32 rotate-180 sm:rotate-0">
+    <div class="flex rounded-md stroke-white  bg-neutral-600  hover:bg-neutral-500">
+      {% include "components/svg/arrow.svg" %}
+    </div>
+  </button>
+  {% include "newProjectModal.html" %}
 
 </div>
 <script>
