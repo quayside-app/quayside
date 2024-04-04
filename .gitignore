@@ -4,6 +4,7 @@ node_modules/
 **/migrations/
 **/__pycache__/
 */__init__.py
+app/static/src/output.css
 static/
 staticfiles/
 env
