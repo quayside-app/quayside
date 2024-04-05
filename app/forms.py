@@ -43,7 +43,7 @@ class TaskForm(forms.Form):
                  "In-Progress"), ("Done", "Done")),
         widget=forms.Select(
             attrs={
-                "class": " text-xs md:text-base inline-block p-1 mt-4 rounded-md  bg-neutral-600 outline-none placeholder-gray-400",
+                "class": "text-xs md:text-base inline-block p-1 mt-4 rounded-md  bg-neutral-600 outline-none placeholder-gray-400",
             }
         ),
     )
@@ -82,6 +82,28 @@ class TaskForm(forms.Form):
             }
         ),
     )
+    
+    durationDay = forms.CharField(
+        label="Days",
+        required=False,
+        widget=forms.Select(
+            choices=[(x,x) for x in range(0, 11)],
+            attrs={
+                "class": "text-xs md:text-base inline-block pl-1 py-1  rounded-md  bg-neutral-600 outline-none placeholder-gray-400"
+            }
+        ),
+    )
+    
+    durationHour = forms.CharField(
+        label="Hours",
+        required=False,
+        widget=forms.Select(
+			choices=[(x,x) for x in range(1, 24)],
+            attrs={
+                "class": "text-xs md:text-base inline-block pl-1 py-1  rounded-md  bg-neutral-600 outline-none placeholder-gray-400"
+            }
+		),
+    )
 
 
 class ProjectForm(forms.Form):
@@ -107,7 +129,7 @@ class ProjectForm(forms.Form):
         required=False,
         widget=forms.DateInput(
             attrs={
-                "class": " inline-block p-1 mt-4 rounded-md  bg-neutral-600 outline-none placeholder-gray-400",
+                "class": "inline-block p-1 mt-4 rounded-md  bg-neutral-600 outline-none placeholder-gray-400",
                 "type": "date",
             }
         ),
@@ -118,7 +140,7 @@ class ProjectForm(forms.Form):
         required=False,
         widget=forms.DateInput(
             attrs={
-                "class": " inline-block p-1 mt-4 rounded-md  bg-neutral-600 outline-none placeholder-gray-400",
+                "class": "inline-block p-1 mt-4 rounded-md  bg-neutral-600 outline-none placeholder-gray-400",
                 "type": "date",
             }
         ),

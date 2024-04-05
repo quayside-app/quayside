@@ -98,7 +98,18 @@ class GeneratedTasksAPIView(APIView):
 
         for line in lines:
             primaryTaskMatch = re.match(r"^(\d+)\.\s(.+)", line)
+            strHourDuration = re.match(r"(?!.*\{)(.*)(?=\})", line).split(" ")[0]
             subTaskMatch = re.match(r"^\s+(\d+\.\d+\.?)\s(.+)", line)
+            
+            durationDays = 0
+            durationHours = 0
+            
+            if strHourDuration.isdigit():
+                durationDays = int(int(strHourDuration.isdigit()) / 24)
+                durationHours = int(strHourDuration.isdigit()) % 24
+                
+            duration = { "days" : durationDays,
+                        "hours" : durationHours, }
 
             if primaryTaskMatch:
                 taskNumber = primaryTaskMatch[1]
@@ -110,6 +121,7 @@ class GeneratedTasksAPIView(APIView):
                         "id": taskNumber,
                         "name": taskText,
                         "parent": "root",
+                        "duration": duration,
                         "subtasks": [],
                     }
                 )
@@ -129,6 +141,7 @@ class GeneratedTasksAPIView(APIView):
                             "id": subTaskNumber,
                             "name": subTaskText,
                             "parent": currentTaskNumber,
+                            "duration": duration
                         }
                     )
 

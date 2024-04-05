@@ -17,9 +17,17 @@
 
                 <!-- Manually render form for formatting to take effect -->
 
-                {{ form.name}}
+                {{ form.name }}
                 {{ form.status }}
                 <div class="pt-3 sm:pt-0 sm:inline sm:pl-2"> {{ form.startDate }} - {{ form.endDate }} </div>
+				<br>
+				<br>
+				<label class="text-white">Estimated Duration:</label>
+				<br>
+				<div class="flex space-x-10">
+					<div>{{ form.durationDay.label_tag }} {{ form.durationDay }}</div> 
+					<div>{{ form.durationHour.label_tag }} {{ form.durationHour }}</div>
+				</div>
                 {{ form.description }}
 
                 <div class="flex {% if deleteLink %} justify-between {% else %} justify-end {% endif %}">
