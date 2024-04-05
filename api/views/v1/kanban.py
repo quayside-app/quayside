@@ -2,6 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.utils.decorators import method_decorator
+from django.db.models import F
 
 from api.models import Task
 from api.serializers import TaskSerializer
@@ -138,15 +139,21 @@ class KanbanAPIView(APIView):
         new_priority = taskData.get('priority')
 
 
-        old_status_tasks = Task.objects.filter(projectID=project, status=old_status, priority__gt=old_priority)
-        for task in old_status_tasks:
-            task.priority -= 1
-            task.save()
+        Task.objects.filter(
+            projectID=project, 
+            status=old_status, 
+            priority__gt=old_priority
+        ).update(
+            priority=F('priority') - 1
+        )
 
-        new_status_tasks = Task.objects.filter(projectID=project, status=new_status, priority__gte=new_priority)
-        for task in new_status_tasks:
-            task.priority += 1
-            task.save()
+        Task.objects.filter(
+            projectID=project,
+            status=new_status,
+            priority__gte=new_priority
+        ).update(
+            priority=F('priority') + 1
+        )
 
         updating_task.status = new_status 
         updating_task.priority = new_priority

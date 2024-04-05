@@ -14,7 +14,7 @@ urlpatterns = [
         views.projectKanbanView,
         name="project-kanban-view",
     ),
-        path(
+    path(
         "project/<str:projectID>/",
         views.editProjectView,
         name="task-detail-view",
