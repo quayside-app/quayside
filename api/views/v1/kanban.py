@@ -13,6 +13,9 @@ from api.views.v1.tasks import TasksAPIView
 class KanbanAPIView(APIView):
     """"
     Get and update a kanban board.
+    Includes an endpoint to get a kanban and an endpoint to update a kanban.
+    Also includes three static functions.
+    Two to get and update a kanban and one to correctly format the priority field of the Task object.
     """
 
     def get(self, request):
@@ -68,12 +71,12 @@ class KanbanAPIView(APIView):
         @return      A tuple of (response_data, http_status).
         """
         if "projectID" not in taskData:
-            return "Error: paramter 'projectID' required", status.HTTP_400_BAD_REQUEST
+            return "Error: paramter 'projectID' required.", status.HTTP_400_BAD_REQUEST
         
         try:
             tasks = Task.objects.filter(projectID=taskData.get("projectID"))
         except Task.DoesNotExist:
-            return "Tasks not found for the specified projectID", status.HTTP_404_NOT_FOUND
+            return "Tasks not found for the specified projectID.", status.HTTP_404_NOT_FOUND
 
 
         tasks_by_status = {}
@@ -94,45 +97,63 @@ class KanbanAPIView(APIView):
         if serialized_data:
             return serialized_data, status.HTTP_200_OK
         else:
-            return "No tasks found for the specified projectID", status.HTTP_404_NOT_FOUND
+            return "No tasks found for the specified projectID.", status.HTTP_404_NOT_FOUND
         
     @staticmethod
     def updateKanban(taskData):
         """
         Service API function that can be called internally as well as through the API to get a kanban.
-        Updates kanban based on id, status, and priority.
+        Updates kanban based on task id, status, and priority.
 
-        @param taskData     Dict of parameters. Only id, status, and priority are considered.
-        @return      A tuple of (response_data, http_status).
+        @param:
+            taskData (dict): Dict of parameters. Contains id, status, and priority.
+                id (string): Id of the task to update.
+                status (string): The status to update task to.
+                priority (int): The priority to update task to.
+                
+        @return:
+            A tuple of (response_data, http_status).
         """
-        ###PSUEDO CODE###
-        # Take task out of status list.
-        # All tasks with a priority number greater in status list -= 1 priority.
-        # Then task is inserted into its new status (which could be the same one) and is given its new priority.
-        # All tasks with a greater piority in that status += 1 priority.
         if 'id' not in taskData:
-            return "Error: paramter 'id' required", status.HTTP_400_BAD_REQUEST
+            return "Error: paramter 'id' required.", status.HTTP_400_BAD_REQUEST
         
         if 'priority' not in taskData:
-            return "Error: parameter 'priority' required", status.HTTP_400_BAD_REQUEST
+            return "Error: parameter 'priority' required.", status.HTTP_400_BAD_REQUEST
         
+        if 'status' not in taskData:
+            return "Error: parameter 'status' required.", status.HTTP_400_BAD_REQUEST
+        
+
         task_id = taskData.get('id')
+        try:
+            updating_task = Task.objects.get(id=task_id)
+        except Task.DoesNotExist:
+            return "Task not found with the provided ID.", status.HTTP_404_NOT_FOUND
+
+
+        project = updating_task.projectID
+        old_status = updating_task.status
+        old_priority = updating_task.priority
         new_status = taskData.get('status')
         new_priority = taskData.get('priority')
 
-        try:
-            task = Task.objects.get(id=task_id)
-        except Task.DoesNotExist:
-            return "Task not found with the provided ID", status.HTTP_404_NOT_FOUND
-        
-        if new_status:
-            task.status = new_status
- 
-        other_tasks = Task.objects.filter(projectID=task.projectID, status=task.status).order_by('priority')
 
-        print(other_tasks)
+        old_status_tasks = Task.objects.filter(projectID=project, status=old_status, priority__gt=old_priority)
+        for task in old_status_tasks:
+            task.priority -= 1
+            task.save()
 
-        return "update kanban was called", status.HTTP_200_OK
+        new_status_tasks = Task.objects.filter(projectID=project, status=new_status, priority__gte=new_priority)
+        for task in new_status_tasks:
+            task.priority += 1
+            task.save()
+
+        updating_task.status = new_status 
+        updating_task.priority = new_priority
+        updating_task.save()
+
+
+        return "Kanban successfully updated.", status.HTTP_200_OK
         
     @staticmethod
     def normalizePriority(tasks_by_status):
