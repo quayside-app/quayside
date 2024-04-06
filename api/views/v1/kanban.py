@@ -2,7 +2,6 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.utils.decorators import method_decorator
-from django.db.models import F
 
 from api.models import Task
 from api.serializers import TaskSerializer
@@ -139,21 +138,28 @@ class KanbanAPIView(APIView):
         new_priority = taskData.get('priority')
 
 
-        Task.objects.filter(
+        old_status_tasks = Task.objects.filter(
             projectID=project, 
             status=old_status, 
             priority__gt=old_priority
-        ).update(
-            priority=F('priority') - 1
-        )
+        ) # .update(priority = F['priority'] - 1)
 
-        Task.objects.filter(
+        new_status_tasks = Task.objects.filter(
             projectID=project,
             status=new_status,
             priority__gte=new_priority
-        ).update(
-            priority=F('priority') + 1
-        )
+        ) # .update(priority = F['priority'] + 1)
+
+        # TODO: find a better way to save a list of objects at once.
+        # Everything I tried didn't work with mongoengine.
+        for task in old_status_tasks:
+            task.priority -= 1
+            task.save()
+
+        for task in new_status_tasks:
+            task.priority += 1
+            task.save()
+
 
         updating_task.status = new_status 
         updating_task.priority = new_priority
