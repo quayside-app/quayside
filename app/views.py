@@ -135,8 +135,6 @@ def taskView(request, projectID, taskID):
         if form.is_valid():
             newData = form.cleaned_data
             newData["id"] = taskID
-            # TODO: figure out how to grab the selected chocies from a dropdown
-            print(newData)
             newData["durationHours"] = (int(newData["durationDays"]) * 24) + int(newData["durationHours"])
             message, status_code = TasksAPIView.updateTask(newData)
 
@@ -150,7 +148,6 @@ def taskView(request, projectID, taskID):
         taskData = TasksAPIView.getTasks({"id": taskID})[0][0]
         # Populate initial form data
         if taskData is not None:
-            print(taskData)
             initialData = {
                 "name": taskData.get("name", ""),
                 "description": taskData.get("description", ""),

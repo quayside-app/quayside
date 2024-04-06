@@ -98,7 +98,7 @@ class GeneratedTasksAPIView(APIView):
 
         for line in lines:
             primaryTaskMatch = re.match(r"^(\d+)\.\s(.+)", line)
-            durationHours = 42
+            durationHours = 0
             subTaskMatch = re.match(r"^\s+(\d+\.\d+\.?)\s(.+)", line)
             
             strHourDuration = re.match(r"(?!.*\{)(.*)(?=\})", line)
@@ -109,7 +109,6 @@ class GeneratedTasksAPIView(APIView):
                 taskNumber = primaryTaskMatch[1]
                 taskText = primaryTaskMatch[2]
                 currentTaskNumber = taskNumber
-                print(durationHours)
                 
                 newTasks.append(
                     {
@@ -131,7 +130,6 @@ class GeneratedTasksAPIView(APIView):
                      == currentTaskNumber), None
                 )
                 if parentTask:
-                    print(durationHours)
                     parentTask["subtasks"].append(
                         {
                             "id": subTaskNumber,
