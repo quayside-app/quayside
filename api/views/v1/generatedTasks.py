@@ -98,30 +98,25 @@ class GeneratedTasksAPIView(APIView):
 
         for line in lines:
             primaryTaskMatch = re.match(r"^(\d+)\.\s(.+)", line)
-            strHourDuration = re.match(r"(?!.*\{)(.*)(?=\})", line).split(" ")[0]
+            durationHours = 42
             subTaskMatch = re.match(r"^\s+(\d+\.\d+\.?)\s(.+)", line)
             
-            durationDays = 0
-            durationHours = 0
-            
-            if strHourDuration.isdigit():
-                durationDays = int(int(strHourDuration.isdigit()) / 24)
-                durationHours = int(strHourDuration.isdigit()) % 24
+            strHourDuration = re.match(r"(?!.*\{)(.*)(?=\})", line)
+            if strHourDuration is not None and len(strHourDuration) > 0:
+                durationHours = int(strHourDuration.split(" ")[0].isdigit())
                 
-            duration = { "days" : durationDays,
-                        "hours" : durationHours, }
-
             if primaryTaskMatch:
                 taskNumber = primaryTaskMatch[1]
                 taskText = primaryTaskMatch[2]
                 currentTaskNumber = taskNumber
-
+                print(durationHours)
+                
                 newTasks.append(
                     {
                         "id": taskNumber,
                         "name": taskText,
                         "parent": "root",
-                        "duration": duration,
+                        "durationHours": durationHours,
                         "subtasks": [],
                     }
                 )
@@ -136,12 +131,13 @@ class GeneratedTasksAPIView(APIView):
                      == currentTaskNumber), None
                 )
                 if parentTask:
+                    print(durationHours)
                     parentTask["subtasks"].append(
                         {
                             "id": subTaskNumber,
                             "name": subTaskText,
                             "parent": currentTaskNumber,
-                            "duration": duration
+                            "durationHours": durationHours
                         }
                     )
 
@@ -151,7 +147,7 @@ class GeneratedTasksAPIView(APIView):
         def parseTask(task: dict, parentID: str, projectID: str):
             taskData, _ = TasksAPIView.createTasks(
                 {"projectID": projectID, "parentTaskID": parentID,
-                    "name": task["name"]}
+                    "name": task["name"], "durationHours":0}
             )
 
             if "subtasks" in task:
@@ -165,7 +161,7 @@ class GeneratedTasksAPIView(APIView):
         rootID = None
         if len(newTasks) != 1:
             taskData, _ = TasksAPIView.createTasks(
-                {"projectID": projectID, "name": projectName}
+                {"projectID": projectID, "name": projectName, "durationHours":0}
             )
             rootID = taskData["id"]
             createdTasks.append(taskData)

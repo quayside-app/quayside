@@ -83,7 +83,7 @@ class TaskForm(forms.Form):
         ),
     )
     
-    durationDay = forms.CharField(
+    durationDays = forms.CharField(
         label="Days",
         required=False,
         widget=forms.Select(
@@ -94,7 +94,7 @@ class TaskForm(forms.Form):
         ),
     )
     
-    durationHour = forms.CharField(
+    durationHours = forms.CharField(
         label="Hours",
         required=False,
         widget=forms.Select(

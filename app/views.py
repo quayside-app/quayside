@@ -135,6 +135,9 @@ def taskView(request, projectID, taskID):
         if form.is_valid():
             newData = form.cleaned_data
             newData["id"] = taskID
+            # TODO: figure out how to grab the selected chocies from a dropdown
+            print(newData)
+            newData["durationHours"] = (int(newData["durationDays"]) * 24) + int(newData["durationHours"])
             message, status_code = TasksAPIView.updateTask(newData)
 
             if status_code != status.HTTP_200_OK:
@@ -142,17 +145,20 @@ def taskView(request, projectID, taskID):
                 return HttpResponseServerError(f"An error occurred: {message}")
             return redirect(f"/project/{projectID}/graph")
 
-    # If a GET (or any other method) we"ll create a blank form
+    # If a GET (or any other method) we'll create a blank form
     else:
         taskData = TasksAPIView.getTasks({"id": taskID})[0][0]
         # Populate initial form data
         if taskData is not None:
+            print(taskData)
             initialData = {
                 "name": taskData.get("name", ""),
                 "description": taskData.get("description", ""),
                 "status": taskData.get("status", ""),
                 "startDate": taskData.get("startDate", ""),
                 "endDate": taskData.get("endDate", ""),
+                "durationDays": int(int(taskData.get("durationHours", "")) / 24),
+                "durationHours": int(taskData.get("durationHours", "")) % 24
             }
             form = TaskForm(initial=initialData)
         else:
