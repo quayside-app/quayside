@@ -154,8 +154,8 @@ def taskView(request, projectID, taskID):
                 "status": taskData.get("status", ""),
                 "startDate": taskData.get("startDate", ""),
                 "endDate": taskData.get("endDate", ""),
-                "durationDays": int(int(taskData.get("durationHours", "")) / 24),
-                "durationHours": int(taskData.get("durationHours", "")) % 24
+                "durationDays": int(taskData.get("durationHours", "") / 24),
+                "durationHours": taskData.get("durationHours", "") % 24
             }
             form = TaskForm(initial=initialData)
         else:
