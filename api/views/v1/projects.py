@@ -167,7 +167,7 @@ class ProjectsAPIView(APIView):
             });
         """
 
-        responseData, httpStatus = self.deleteProjects(request.query_params)
+        responseData, httpStatus = self.deleteProjects(request.query_params, getAuthorizationToken(request))
         return Response(responseData, status=httpStatus)
 
     @staticmethod
@@ -262,34 +262,34 @@ class ProjectsAPIView(APIView):
         return serializer.errors, status.HTTP_400_BAD_REQUEST
 
     @staticmethod
-    def deleteProjects(projectData):
+    def deleteProjects(projectData, authorizationToken):
         """
         Service API function that can be called internally as well as through the API to delete
-        project(s) and all associated tasks.
+        project and all associated tasks.
 
-        @param projectData      Dict for a single project dict or list of dicts for multiple tasks.
+        @param projectData      Dict for a single project
         @return      A tuple of (response_data, http_status).
         """
-
-        # Check
+        print("HHERE1")
         if "id" not in projectData:
-            return "Error: Parameter 'id' required", status.HTTP_400_BAD_REQUEST
-
+            return {"message": "Parameter 'id' required"}, status.HTTP_400_BAD_REQUEST
         id = projectData["id"]
+        print("HHERE2")
+        project= Project.objects.get(id=id)
+        print(project)
 
-        # Delete associated tasks
-        ids = id
-        if not isinstance(id, list):
-            ids = [ids]
+        userID = decodeApiKey(authorizationToken).get("userID")
+        if ObjectId(userID) not in project["userIDs"]:
+            return {"message": "Not authorized to delete project."}, status.HTTP_401_UNAUTHORIZED
 
-        for id in ids:
-            TasksAPIView.deleteTasks({"projectID": id})
 
-        numberObjectsDeleted = Project.objects(id=id).delete()
+        TasksAPIView.deleteTasks({"projectID": id})
+
+        numberObjectsDeleted = project.delete()
         if numberObjectsDeleted == 0:
-            return "No project(s) found to delete.", status.HTTP_404_NOT_FOUND
+            return "No project found to delete.", status.HTTP_404_NOT_FOUND
 
-        return "Project(s) Deleted Successfully", status.HTTP_200_OK
+        return "Project Deleted Successfully", status.HTTP_200_OK
     
 
 

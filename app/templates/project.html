@@ -101,11 +101,22 @@ document.getElementById('cancelDeleteButton').addEventListener('click', async fu
 })
 
 document.getElementById('confirmDeleteButton').addEventListener('click', async function () {
-  const response = await fetch('{{apiUrl}}/projects/?id={{projectID}}', { method: 'DELETE' })
-  if (!response.ok) throw new Error('Network response was not ok')
-  // Navigate Home after deleting
-  window.location.href = '/'
-})
+  try {
+    const response = await fetch('{{apiUrl}}/projects/?id={{projectID}}', { method: 'DELETE' });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Network response was not ok'); 
+    } else {
+      // Navigate Home after deleting
+      window.location.href = '/';
+    }
+  } catch (error) {
+    // Handle network errors
+    console.error('There was a problem with the fetch operation:', error);
+    alert('There was a problem with your deletion.'); // TODO DO SOMETHING ELSE INSTEAD OF THIS
+  }
+});
 </script>
 
 {% endblock %}
