@@ -266,9 +266,14 @@ def createProjectView(request):
             # Process the data in form.cleaned_data as required
             name = form.cleaned_data["description"]
 
-            projectData, _ = ProjectsAPIView.createProjects(
-                {"name": name, "userIDs": [userId]}
+            projectData, httpsCode = ProjectsAPIView.createProjects(
+                {"name": name, "userIDs": [userId]}, getAuthorizationToken(request)
             )
+            if httpsCode != status.HTTP_201_CREATED:
+                print(f"Project Creation failed: {projectData.get('message')}")
+                return HttpResponseServerError(f"Could not create project: {projectData.get('message')}")
+                
+
             projectID = projectData.get("id")
             GeneratedTasksAPIView.generateTasks(
                 {"projectID": projectID, "name": name})

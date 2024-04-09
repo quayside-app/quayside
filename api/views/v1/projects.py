@@ -147,7 +147,7 @@ class ProjectsAPIView(APIView):
             });
 
         """
-        responseData, httpStatus = self.updateProject(request.data)
+        responseData, httpStatus = self.updateProject(request.data, getAuthorizationToken(request))
         return Response(responseData, status=httpStatus)
 
     def delete(self, request):
@@ -181,7 +181,16 @@ class ProjectsAPIView(APIView):
         @return      A tuple of (response_data, http_status).
         """
         try:
-            projectData = ProjectsAPIView.addUserToProjectData(projectData, authorizationToken)
+
+            # Only get project where user is a contributor
+            userID = decodeApiKey(authorizationToken).get("userID")
+            if "userIDs" not in projectData:
+                projectData["userIDs"] = [userID]
+            elif isinstance(projectData["userIDs"], list) and  userID not in  projectData["userIDs"]:
+                projectData["userIDs"].append(userID)
+            elif userID != projectData["userIDs"]:
+                projectData["userIDs"] = [userID,  projectData["userIDs"]]
+
             projects = Project.objects.filter(**projectData)  # Query mongo
 
             if not projects:
@@ -214,7 +223,7 @@ class ProjectsAPIView(APIView):
         # Check if userID is in the project's list of UserIDs
         userID = decodeApiKey(authorizationToken).get("userID")
         if ObjectId(userID) not in project["userIDs"]:  # Assuming 'user_ids' is the field name
-            return "User not authorized for this project", status.HTTP_403_FORBIDDEN
+            return {"message": "User not authorized for this project"}, status.HTTP_403_FORBIDDEN
 
         serializer = ProjectSerializer(
             data=projectData, instance=project, partial=True)
@@ -226,17 +235,22 @@ class ProjectsAPIView(APIView):
         return serializer.errors, status.HTTP_400_BAD_REQUEST
 
     @staticmethod
-    def createProjects(projectData):
+    def createProjects(projectData, authorizationToken):
         """
         Service API function that can be called internally as well as through the API to create
         project(s) based on input data.
 
         @param projectData      Dict for a single project dict or list of dicts for multiple tasks.
+        @param authorizationToken      JWT authorization token.
         @return      A tuple of (response_data, http_status).
         """
+        userID = decodeApiKey(authorizationToken).get("userID")
+        if "userIDs" not in projectData or projectData["userIDs"] != [userID]:
+            return {"message": "Request data must contain a list of userIDs with only your user ID present."}, status.HTTP_400_BAD_REQUEST
 
         if isinstance(projectData, list):
             serializer = ProjectSerializer(data=projectData, many=True)
+
         else:
             serializer = ProjectSerializer(data=projectData)
 
@@ -278,23 +292,4 @@ class ProjectsAPIView(APIView):
         return "Project(s) Deleted Successfully", status.HTTP_200_OK
     
 
-    @staticmethod
-    def addUserToProjectData(projectData, authorizationToken):
-        """
-        Adds current user (taken from authorizationToken) to projectData
-        @param projectData      Dict for a single project.
-        @param authorizationToken      JWT authorization token.
-        @return New projectData.
-        """
-
-        userID = decodeApiKey(authorizationToken).get("userID")
-
-        if "userIDs" not in projectData:
-            projectData["userIDs"] = [userID]
-        elif isinstance(projectData["userIDs"], list) and  userID not in  projectData["userIDs"]:
-            projectData["userIDs"].append(userID)
-        elif userID != projectData["userIDs"]:
-            projectData["userIDs"] = [userID,  projectData["userIDs"]]
-
-        return projectData
 
