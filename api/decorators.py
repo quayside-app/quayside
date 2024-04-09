@@ -1,9 +1,7 @@
 from django.http import JsonResponse
 import jwt
 from api.models import User
-
-
-from api.utils import decodeApiKey, decryptApiKey
+from api.utils import decodeApiKey, decryptApiKey, getAuthorizationToken
 
 
 def apiKeyRequired(function):
@@ -16,11 +14,8 @@ def apiKeyRequired(function):
     """
 
     def wrap(request, *args, **kwargs):
-        token = request.META.get("HTTP_AUTHORIZATION")
-
-        # Try cookies if there is not a token in the header
-        if not token:
-            token = request.COOKIES.get("apiToken")
+        
+        token = getAuthorizationToken(request)
 
         # If no token anywhere, raise an error
         if not token:
@@ -63,25 +58,19 @@ def apiKeyRequired(function):
 def projectAuthorizationRequired(function):
     """
     Wraps project access functions to make sure user has authorization to access it.
-    Requires authorization token to be passed in the authorization header OR through cookies OR in the function params
-    (header good for scripts, cookies good for websites, function params good for internal function).
+    Requires authorization token (JWT token) to be passed.
 
     @param function Function to be wrapped.
     """
 
-    def wrap(request, *args, **kwargs):
-        token = request.META.get("HTTP_AUTHORIZATION")
-
-        # Try cookies if there is not a token in the header
-        if not token:
-            token = request.COOKIES.get("apiToken")
+    def wrap(authorizationToken, projectData, *args, **kwargs):
+        
 
         # If no token anywhere, raise an error
-        if not token:
+        if not authorizationToken:
             return JsonResponse({"Error": "No token provided"}, status=401)
-
         try:
-            decodedKey = decodeApiKey(token)
+            decodedKey = decodeApiKey(authorizationToken)
         except jwt.ExpiredSignatureError:
             return JsonResponse({"Error": "API Key is expired"}, status=401)
         except jwt.InvalidTokenError:
@@ -92,13 +81,13 @@ def projectAuthorizationRequired(function):
         try:
 
             user = User.objects.filter(id=userID).first()
-
+            
             if not user:
                 return JsonResponse(
                     {"Error": "No user associated with that token"}, status=401
                 )
 
-            # Check API keys match
+            # Check if user has access to project
             decryptedApiToken = decryptApiKey(user["apiKey"])
             if token != decryptedApiToken:
                 return JsonResponse(
@@ -109,6 +98,6 @@ def projectAuthorizationRequired(function):
             return JsonResponse(
                 {"Error": "Could not find user associated with token"}, status=401
             )
-        return function(request, *args, **kwargs)  # Call original function
+        return function(authorizationToken, *args, **kwargs)  # Call original function
 
     return wrap

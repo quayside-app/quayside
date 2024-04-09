@@ -8,6 +8,7 @@ from api.serializers import ProjectSerializer
 from api.views.v1.tasks import TasksAPIView
 from api.models import Project
 from django.core.exceptions import ObjectDoesNotExist 
+from api.utils import getAuthorizationToken, decodeApiKey
 
 
 @method_decorator(
@@ -21,7 +22,8 @@ class ProjectsAPIView(APIView):
     def get(self, request):
         """
         Retrieves a list of Project objects from MongoDB, filtered based on query parameters
-        provided in the request. Requires 'apiToken' passed in auth header or cookies.
+        provided in the request. Requires 'apiToken' passed in auth header or cookies. Only gets
+        projects where UserID matches.
 
         @param {HttpRequest} request - The request object.
             The query parameters can be:
@@ -48,7 +50,7 @@ class ProjectsAPIView(APIView):
                 - completionStatus (str)
                 - teams (list[ObjectId])
 
-
+        @param {str} authorizationToken - JWT authorization token.
         @return A Response object containing a JSON array of serialized Project objects that
         match the query parameters.
 
@@ -56,7 +58,7 @@ class ProjectsAPIView(APIView):
             fetch('quayside.app/api/v1/projects?userIDs=1234');
         """
         responseData, httpStatus = self.getProjects(
-            request.query_params.dict())
+            request.query_params.dict(), getAuthorizationToken(request))
         return Response(responseData, status=httpStatus)
 
     def post(self, request):
@@ -87,7 +89,7 @@ class ProjectsAPIView(APIView):
                 - informationLinks (list[str])
                 - completionStatus (str)
                 - teams (list[ObjectId])
-
+        @param {str} authorizationToken - JWT authorization token.
 
         @return A Response object containing a JSON array of the created project.
 
@@ -168,7 +170,7 @@ class ProjectsAPIView(APIView):
         return Response(responseData, status=httpStatus)
 
     @staticmethod
-    def getProjects(projectData):
+    def getProjects(projectData, authorizationToken):
         """
         Service API function that can be called internally as well as through the API to get
         project data based on input data.
@@ -177,13 +179,26 @@ class ProjectsAPIView(APIView):
         @return      A tuple of (response_data, http_status).
         """
         try:
+            userID = decodeApiKey(authorizationToken).get("userID")
+
+            if "userIDs" not in projectData:
+                projectData["userIDs"] = [userID]
+            elif isinstance(projectData["userIDs"], list) and  userID not in  projectData["userIDs"]:
+                projectData["userIDs"].append(userID)
+            elif userID != projectData["userIDs"]:
+                projectData["userIDs"] = [userID,  projectData["userIDs"]]
+            
 
             projects = Project.objects.filter(**projectData)  # Query mongo
+
+            if not projects:
+                return {"message": "No projects were found or you do not have authorization."}, status.HTTP_400_BAD_REQUEST
             serializer = ProjectSerializer(projects, many=True)
 
             return serializer.data, status.HTTP_200_OK
-        except Exception:
-            return {"message": "Projects not found"}, status.HTTP_500_INTERNAL_SERVER_ERROR
+        except Exception as e:
+            print("Error:", e)
+            return {"message": e}, status.HTTP_500_INTERNAL_SERVER_ERROR
 
     @staticmethod
     def updateProject(projectData):

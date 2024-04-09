@@ -8,7 +8,7 @@ from django.http import HttpResponseRedirect, HttpResponseServerError, HttpRespo
 from django.views.generic.base import TemplateView
 
 from api.decorators import apiKeyRequired
-from api.utils import decryptApiKey, createEncodedApiKey, encryptApiKey
+from api.utils import decryptApiKey, createEncodedApiKey, encryptApiKey, getAuthorizationToken
 from api.views.v1.tasks import TasksAPIView
 from api.views.v1.generatedTasks import GeneratedTasksAPIView
 from api.views.v1.projects import ProjectsAPIView
@@ -45,7 +45,15 @@ def projectGraphView(request, projectID):
     @returns {HttpResponse} - An HttpResponse object that renders the
         graph.html template with the project ID context.
     """
-    return render(request, "graph.html", {"projectID": projectID})
+    # Check if project exists
+    data, httpsCode = ProjectsAPIView.getProjects({"id": projectID}, getAuthorizationToken(request))
+    
+    if httpsCode !=  status.HTTP_200_OK:
+        print(f"Project GET failed: {data.get('message')}")
+        return HttpResponseServerError(f"Could not query project: {data.get('message')}")
+
+
+    return render(request, "graph.html", {"projectID": projectID, "projectData": data[0]})
 
 
 @apiKeyRequired
@@ -69,9 +77,9 @@ def editProjectView(request, projectID):
         if form.is_valid():
             newData = form.cleaned_data
             newData["id"] = projectID
-            message, status_code = ProjectsAPIView.updateProject(newData)
+            message, httpsCode = ProjectsAPIView.updateProject(newData)
 
-            if status_code != status.HTTP_200_OK:
+            if httpsCode != status.HTTP_200_OK:
                 print(f"Task update failed: {message}")
                 return HttpResponseServerError(f"An error occurred: {message}")
 
@@ -79,7 +87,8 @@ def editProjectView(request, projectID):
 
     # If a GET (or any other method) we"ll create a blank form
     else:
-        projectData = ProjectsAPIView.getProjects({"id": projectID})[0][0]
+        data, _ = ProjectsAPIView.getProjects({"id": projectID}, getAuthorizationToken(request))
+        projectData = data[0]
         # Populate initial form data
         if projectData is not None:
             initialData = {
