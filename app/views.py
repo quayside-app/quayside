@@ -330,7 +330,10 @@ class Callback(TemplateView):
         print(self.request)
         data = self.request.GET
         authcode = data["code"]
-        provider = self.request.session['provider']
+        try:
+            provider = self.request.session['provider']
+        except:
+            return redirect("/")
 
         # state = data["state"]
 

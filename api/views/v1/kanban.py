@@ -41,7 +41,7 @@ class KanbanAPIView(APIView):
         Updates a kanban board.
         Requires 'apiToken' passed in auth header or cookies.
 
-        @param {HttpRequest} requaest - The request object.
+        @param {HttpRequest} request - The request object.
             The request body can contain:
                 - id (objectId str) [REQUIRED]
                 - status (str)
