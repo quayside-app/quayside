@@ -10,6 +10,8 @@ from api.models import Project
 from django.core.exceptions import ObjectDoesNotExist 
 from api.utils import getAuthorizationToken, decodeApiKey
 
+from bson.objectid import ObjectId
+
 
 @method_decorator(
     apiKeyRequired, name="dispatch"
@@ -50,7 +52,6 @@ class ProjectsAPIView(APIView):
                 - completionStatus (str)
                 - teams (list[ObjectId])
 
-        @param {str} authorizationToken - JWT authorization token.
         @return A Response object containing a JSON array of serialized Project objects that
         match the query parameters.
 
@@ -102,7 +103,7 @@ class ProjectsAPIView(APIView):
             });
 
         """
-        responseData, httpStatus = self.createProjects(request.data)
+        responseData, httpStatus = self.createProjects(request.data, getAuthorizationToken(request))
         return Response(responseData, status=httpStatus)
 
     def put(self, request):
@@ -175,20 +176,12 @@ class ProjectsAPIView(APIView):
         Service API function that can be called internally as well as through the API to get
         project data based on input data.
 
-        @param projectData      Dict for a single project dict or list of dicts for multiple tasks.
+        @param projectData      Dict for a single project.
+        @param authorizationToken      JWT authorization token.
         @return      A tuple of (response_data, http_status).
         """
         try:
-            userID = decodeApiKey(authorizationToken).get("userID")
-
-            if "userIDs" not in projectData:
-                projectData["userIDs"] = [userID]
-            elif isinstance(projectData["userIDs"], list) and  userID not in  projectData["userIDs"]:
-                projectData["userIDs"].append(userID)
-            elif userID != projectData["userIDs"]:
-                projectData["userIDs"] = [userID,  projectData["userIDs"]]
-            
-
+            projectData = ProjectsAPIView.addUserToProjectData(projectData, authorizationToken)
             projects = Project.objects.filter(**projectData)  # Query mongo
 
             if not projects:
@@ -201,12 +194,13 @@ class ProjectsAPIView(APIView):
             return {"message": e}, status.HTTP_500_INTERNAL_SERVER_ERROR
 
     @staticmethod
-    def updateProject(projectData):
+    def updateProject(projectData, authorizationToken):
         """
         Service API function that can be called internally as well as through the API to update
         project data based on input data.
 
         @param projectData      Dict for a single project.
+        @param authorizationToken      JWT authorization token.
         @return      A tuple of (response_data, http_status).
         """
         if "id" not in projectData:
@@ -216,6 +210,11 @@ class ProjectsAPIView(APIView):
             project = Project.objects.get(id=projectData["id"])
         except ObjectDoesNotExist:
             return "Project not found", status.HTTP_404_NOT_FOUND
+        
+        # Check if userID is in the project's list of UserIDs
+        userID = decodeApiKey(authorizationToken).get("userID")
+        if ObjectId(userID) not in project["userIDs"]:  # Assuming 'user_ids' is the field name
+            return "User not authorized for this project", status.HTTP_403_FORBIDDEN
 
         serializer = ProjectSerializer(
             data=projectData, instance=project, partial=True)
@@ -277,3 +276,25 @@ class ProjectsAPIView(APIView):
             return "No project(s) found to delete.", status.HTTP_404_NOT_FOUND
 
         return "Project(s) Deleted Successfully", status.HTTP_200_OK
+    
+
+    @staticmethod
+    def addUserToProjectData(projectData, authorizationToken):
+        """
+        Adds current user (taken from authorizationToken) to projectData
+        @param projectData      Dict for a single project.
+        @param authorizationToken      JWT authorization token.
+        @return New projectData.
+        """
+
+        userID = decodeApiKey(authorizationToken).get("userID")
+
+        if "userIDs" not in projectData:
+            projectData["userIDs"] = [userID]
+        elif isinstance(projectData["userIDs"], list) and  userID not in  projectData["userIDs"]:
+            projectData["userIDs"].append(userID)
+        elif userID != projectData["userIDs"]:
+            projectData["userIDs"] = [userID,  projectData["userIDs"]]
+
+        return projectData
+

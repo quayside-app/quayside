@@ -49,8 +49,9 @@ def projectGraphView(request, projectID):
     data, httpsCode = ProjectsAPIView.getProjects({"id": projectID}, getAuthorizationToken(request))
     
     if httpsCode !=  status.HTTP_200_OK:
-        print(f"Project GET failed: {data.get('message')}")
-        return HttpResponseServerError(f"Could not query project: {data.get('message')}")
+        # print(f"Project GET failed: {data.get('message')}")
+        # return HttpResponseServerError(f"Could not query project: {data.get('message')}")
+        data = [data]
 
 
     return render(request, "graph.html", {"projectID": projectID, "projectData": data[0]})
@@ -77,7 +78,7 @@ def editProjectView(request, projectID):
         if form.is_valid():
             newData = form.cleaned_data
             newData["id"] = projectID
-            message, httpsCode = ProjectsAPIView.updateProject(newData)
+            message, httpsCode = ProjectsAPIView.updateProject(newData, getAuthorizationToken(request))
 
             if httpsCode != status.HTTP_200_OK:
                 print(f"Task update failed: {message}")
@@ -87,9 +88,14 @@ def editProjectView(request, projectID):
 
     # If a GET (or any other method) we"ll create a blank form
     else:
-        data, _ = ProjectsAPIView.getProjects({"id": projectID}, getAuthorizationToken(request))
-        projectData = data[0]
-        # Populate initial form data
+        projectData, httpsCode = ProjectsAPIView.getProjects({"id": projectID}, getAuthorizationToken(request))
+        
+        if httpsCode !=  status.HTTP_200_OK:
+            print(f"Project GET failed: {projectData.get('message')}")
+            return HttpResponseServerError(f"Could not query project: {projectData.get('message')}")
+            
+        projectData = projectData[0]
+
         if projectData is not None:
             initialData = {
                 "name": projectData.get("name", ""),
