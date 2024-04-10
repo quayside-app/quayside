@@ -135,7 +135,7 @@ def taskView(request, projectID, taskID):
         if form.is_valid():
             newData = form.cleaned_data
             newData["id"] = taskID
-            newData["durationHours"] = (int(newData["durationDays"]) * 24) + int(newData["durationHours"])
+            newData["durationHours"] = (int(newData["durationDays"]) * 8) + int(newData["durationHours"])
             message, status_code = TasksAPIView.updateTask(newData)
 
             if status_code != status.HTTP_200_OK:
@@ -147,6 +147,7 @@ def taskView(request, projectID, taskID):
     else:
         taskData = TasksAPIView.getTasks({"id": taskID})[0][0]
         # Populate initial form data
+        print("DEBUG: durationHours value is:", taskData.get("durationHours", 0) or 0)
         if taskData is not None:
             initialData = {
                 "name": taskData.get("name", ""),
@@ -154,8 +155,8 @@ def taskView(request, projectID, taskID):
                 "status": taskData.get("status", ""),
                 "startDate": taskData.get("startDate", ""),
                 "endDate": taskData.get("endDate", ""),
-                "durationDays": int(taskData.get("durationHours", "") / 24),
-                "durationHours": taskData.get("durationHours", "") % 24
+                "durationDays": int((taskData.get("durationHours") or 0) / 8),
+                "durationHours": (taskData.get("durationHours") or 0) % 8
             }
             form = TaskForm(initial=initialData)
         else:
