@@ -21,12 +21,14 @@ class UsersAPIView(APIView):
 
     def get(self, request):
         """
-        Retrieves user information based on query parameters. Only users can access their own data.
+        Retrieves user information based on either email or id. Only users can access all their own data. 
+        Other users can access email, id, and username.
         Requires 'apiToken' passed in auth header or cookies.
 
         @param {HttpRequest} request - The request object.
             The query parameters can be:
-                - id (objectID str) [REQUIRED]: Filter user by ID.
+                - id (objectID str): Filter user by ID.
+                - email (str): Filter user by email.
 
         @return A Response object containing a JSON array of serialized user objects that match the query parameters.
         If no users match the query, a 400 Bad Request response is returned.
@@ -136,7 +138,7 @@ class UsersAPIView(APIView):
         @return      A tuple of (response_data, http_status).
         """
         if "id" not in userData:
-            return "Error: Parameter 'id' required", status.HTTP_400_BAD_REQUEST
+            return {"message": "Error: Parameter 'id' required"}, status.HTTP_400_BAD_REQUEST
         
         userID = decodeApiKey(authorizationToken).get("userID")
         if userID != userData["id"]:
@@ -158,26 +160,41 @@ class UsersAPIView(APIView):
     @staticmethod
     def getUser(userData, authorizationToken):
         """
-        Service API function that can be called internally as well as through the API to get a user
+        Service API function that can be called internally as well as through the API to get a user.
 
         @param userData      Dict of data for a single user.
         @return      A tuple of (response_data, http_status).
         """
+        userID = userData.get("id") or None
+        email = userData.get("email") or None
 
-        if "id" not in userData:
-            return "Error: Parameter 'id' required", status.HTTP_400_BAD_REQUEST
-        
-        userID = decodeApiKey(authorizationToken).get("userID")
-        if userID != userData["id"]:
-            return {"message": "Unauthorized to update that user."}, status.HTTP_401_UNAUTHORIZED
+        if userID and email:
+            return ({"message": "Only user id or email needed. Hint: remove email=<> from the url"}, 
+                status.HTTP_400_BAD_REQUEST)
+        elif not userID and not email :
+            return {"message": "UserID or email required."}, status.HTTP_400_BAD_REQUEST
 
-        user = User.objects.filter(id=userData["id"]).first()
+        if userID:
+            user = User.objects.filter(id=userID).first()
+        else: # Email
+            user = User.objects.filter(email=email).first()
 
         if not user:
             return {"message": "User not found."}, status.HTTP_400_BAD_REQUEST
 
         serializedUser = UserSerializer(user).data
-        return serializedUser, status.HTTP_200_OK
+        
+        # If authorized user is getting information about their self, return all data
+        userID = decodeApiKey(authorizationToken).get("userID")
+        if userID == userData["id"]:
+            return serializedUser, status.HTTP_200_OK
+        # Else only return id, email, and username
+        else:
+            return {"id":serializedUser.get("id"),
+                    "email":serializedUser.get("email"),
+                    "username":serializedUser.get("username")
+                    }, status.HTTP_200_OK
+
 
     @staticmethod
     def createUser(userData):
