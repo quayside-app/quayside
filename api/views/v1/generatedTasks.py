@@ -101,11 +101,18 @@ class GeneratedTasksAPIView(APIView):
         currentTaskNumber = None
 
         for line in lines:
-            primaryTaskMatch = re.match(r"^(\d+)\.\s(.+)", line)
+            strHourDuration = re.search(r"\[(\d+(?:\.\d+)?)\s*hour(?:s)?\]", line) # parses duration from text between brackets returned by OpenAI
+
             # minimum hours
-            durationHours = 1
-            subTaskMatch = re.match(r"^\s+(\d+\.\d+\.?)\s(.+)", line)
-            strHourDuration = re.search(r"\[(\d+(?:\.\d+)?)\s*hours\]", line)
+            durationHours = 0
+            if strHourDuration:
+                line = line[0 : line.rfind(" [")]
+
+                if subTaskMatch:
+                    durationHours=int(strHourDuration.group(1))
+
+            primaryTaskMatch = re.match(r"^(\d+)\.\s(.+)", line)
+            subTaskMatch = re.match(r"^\s+(\d+\.\d+\.?)\s(.+)", line)  
 
             if primaryTaskMatch:
                 taskNumber = primaryTaskMatch[1]
@@ -117,7 +124,7 @@ class GeneratedTasksAPIView(APIView):
                         "id": taskNumber,
                         "name": taskText,
                         "parent": "root",
-                        "durationHours": strHourDuration.group(1),
+                        "durationHours": durationHours,
                         "subtasks": [],
                     }
                 )
@@ -125,7 +132,7 @@ class GeneratedTasksAPIView(APIView):
             elif subTaskMatch:
                 subTaskNumber = subTaskMatch[1]
                 subTaskText = subTaskMatch[2]
-                
+
                 # Find parent task
                 parentTask = next(
                     (task for task in newTasks if task["id"]
