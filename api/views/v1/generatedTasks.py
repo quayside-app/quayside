@@ -77,6 +77,10 @@ class GeneratedTasksAPIView(APIView):
                     and task 2 has subtasks 2.1, 2.2, 2.3,... and so forth. Make sure that every 
                     task is on one line after the number. NEVER create new paragraphs within a 
                     task or subtask.
+
+                    For each subtask, add in the estimated duration of hours for the task in square 
+                    brackets with the label "hours" also in the braces.
+                    
                     """,
                 },
                 {"role": "user", "content": projectName},
@@ -90,7 +94,7 @@ class GeneratedTasksAPIView(APIView):
 
         generatedString = completion.choices[0].message.content
 
-        # Parse response into tasks
+        # Parse response into tasks with durations
         newTasks = []
         lines = generatedString.split("\n")
 
@@ -101,10 +105,8 @@ class GeneratedTasksAPIView(APIView):
             # minimum hours
             durationHours = 1
             subTaskMatch = re.match(r"^\s+(\d+\.\d+\.?)\s(.+)", line)
-            
-            strHourDuration = re.match(r"(?!.*\{)(.*)(?=\})", line)
-            if strHourDuration is not None and len(strHourDuration) > 0:
-                durationHours = int(strHourDuration.split(" ")[0].isdigit())
+            strHourDuration = re.match(r"(?<=\[)(.*?)(?=\])", line)
+
                 
             if primaryTaskMatch:
                 taskNumber = primaryTaskMatch[1]

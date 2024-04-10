@@ -147,7 +147,6 @@ def taskView(request, projectID, taskID):
     else:
         taskData = TasksAPIView.getTasks({"id": taskID})[0][0]
         # Populate initial form data
-        print("DEBUG: durationHours value is:", taskData.get("durationHours", 0) or 0)
         if taskData is not None:
             initialData = {
                 "name": taskData.get("name", ""),
