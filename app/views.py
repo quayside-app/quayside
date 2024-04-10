@@ -49,11 +49,8 @@ def projectGraphView(request, projectID):
     data, httpsCode = ProjectsAPIView.getProjects({"id": projectID}, getAuthorizationToken(request))
     
     if httpsCode !=  status.HTTP_200_OK:
-        # TODO UNCOMMENT!!!!
-        # print(f"Project GET failed: {data.get('message')}")
-        # return HttpResponseServerError(f"Could not query project: {data.get('message')}")
-        data = [data]
-
+        print(f"Project GET failed: {data.get('message')}")
+        return HttpResponseServerError(f"Could not query project: {data.get('message')}")
 
     return render(request, "graph.html", {"projectID": projectID, "projectData": data[0]})
 
