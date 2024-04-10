@@ -369,9 +369,6 @@ class Callback(TemplateView):
             )
             oauthUserInfo["email"] = response.json()[0]["email"]
 
-        print(oauthUserInfo.get("username"))
-        print(oauthUserInfo.get("name"))
-
         userInfo = UsersAPIView.getUser({"email": oauthUserInfo.get("email")})[0].get(
             "user"
         )
@@ -383,8 +380,6 @@ class Callback(TemplateView):
         else:
             username = oauthUserInfo.get("email").split("@")[0]
         if not userInfo:
-            # this try-except was implemented to correct an issue where users did 
-            # not have their info filled into their github account
             try:
                 names = oauthUserInfo.get("name", "").split()
             except:
