@@ -386,7 +386,10 @@ class Callback(TemplateView):
         else:
             username = oauthUserInfo.get("email").split("@")[0]
         if not userInfo:
-            names = oauthUserInfo.get("name", "").split()
+            try:
+                names = oauthUserInfo.get("name", "").split()
+            except:
+                names = ["quayside","user"]
             if not names:
                 names = [""]
 
