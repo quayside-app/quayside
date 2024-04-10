@@ -9,6 +9,7 @@ from django.utils.decorators import method_decorator
 from api.models import User
 from api.serializers import UserSerializer
 from api.decorators import apiKeyRequired
+from api.utils import getAuthorizationToken, decodeApiKey
 
 
 # dispatch protects all HTTP requests coming in
@@ -124,11 +125,11 @@ class UsersAPIView(APIView):
             });
 
         """
-        responseData, httpStatus = self.updateUser(request.data)
+        responseData, httpStatus = self.updateUser(request.data, getAuthorizationToken(request))
         return Response(responseData, status=httpStatus)
 
     @staticmethod
-    def updateUser(userData):
+    def updateUser(userData, authorizationToken):
         """
         Service API function that can be called internally as well as through the API to update
         a user based on input data.
@@ -138,6 +139,10 @@ class UsersAPIView(APIView):
         """
         if "id" not in userData:
             return "Error: Parameter 'id' required", status.HTTP_400_BAD_REQUEST
+        
+        userID = decodeApiKey(authorizationToken).get("userID")
+        if userID != userData["id"]:
+            return {"message": "Unauthorized to update that user."}, status.HTTP_401_UNAUTHORIZED
 
         try:
             task = User.objects.get(id=userData["id"])

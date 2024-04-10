@@ -434,17 +434,6 @@ class Callback(TemplateView):
                 print(f"User creation failed: {userInfo}")
                 return HttpResponseServerError(f"An error occurred: {userInfo}")
 
-        # Make sure to add email not created already (oath doesn't require username I think but does require email)
-        if "username" not in userInfo or not userInfo["username"]:
-            message, httpsCode = UsersAPIView.updateUser(
-                {
-                    "id": userInfo["id"],
-                    "username": username,
-                }
-            )
-            if httpsCode != status.HTTP_200_OK:
-                print(f"User update failed: {message}")
-                return HttpResponseServerError(f"An error occurred: {message}")
 
         # Redirect instead of rendering (to make it update)
         response = redirect("/")
@@ -464,7 +453,8 @@ class Callback(TemplateView):
                 {
                     "id": userInfo["id"],
                     "apiKey": encryptedApiKey,
-                }
+                },
+                apiToken
             )
             if httpsCode != status.HTTP_200_OK:
                 print(f"User update failed: {message}")
@@ -474,5 +464,18 @@ class Callback(TemplateView):
         # Setting httponly is safer and doesn't let the key be accessed by js (to prevent xxs).
         # Instead the browser will always pass the cookie to the server.
         response.set_cookie("apiToken", apiToken, httponly=True)
+
+        # Make sure to add email not created already (oath doesn't require username I think but does require email)
+        if "username" not in userInfo or not userInfo["username"]:
+            message, httpsCode = UsersAPIView.updateUser(
+                {
+                    "id": userInfo["id"],
+                    "username": username,
+                },
+                apiToken
+            )
+            if httpsCode != status.HTTP_200_OK:
+                print(f"User update failed: {message}")
+                return HttpResponseServerError(f"An error occurred: {message}")
 
         return response
