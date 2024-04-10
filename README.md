@@ -46,6 +46,7 @@ GITHUB_API_URL_user=https://api.github.com/user
 API_SECRET=<key you make up to encrypt your jwt tokens (must be 32 url-safe base64-encoded bytes)>
 ```
 
+Check the env\_check\_file for more required variables.
 ## Usage
 
 **Running** <br>

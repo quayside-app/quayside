@@ -418,7 +418,10 @@ class Callback(TemplateView):
         
         userInfo, httpsCode = UsersAPIView.getAuthenticatedUser({"email": oauthUserInfo.get("email")})
         if httpsCode == status.HTTP_404_NOT_FOUND:
-            names = oauthUserInfo.get("name", "").split()
+            try:
+                names = oauthUserInfo.get("name", "").split()
+            except:
+                names = ["quayside","user"]
             if not names:
                 names = [""]
 
