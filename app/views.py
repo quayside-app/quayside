@@ -49,6 +49,7 @@ def projectGraphView(request, projectID):
     data, httpsCode = ProjectsAPIView.getProjects({"id": projectID}, getAuthorizationToken(request))
     
     if httpsCode !=  status.HTTP_200_OK:
+        # TODO UNCOMMENT!!!!
         # print(f"Project GET failed: {data.get('message')}")
         # return HttpResponseServerError(f"Could not query project: {data.get('message')}")
         data = [data]
@@ -150,16 +151,20 @@ def taskView(request, projectID, taskID):
         if form.is_valid():
             newData = form.cleaned_data
             newData["id"] = taskID
-            message, status_code = TasksAPIView.updateTask(newData)
-
+            message, status_code = TasksAPIView.updateTask(newData, getAuthorizationToken(request))
             if status_code != status.HTTP_200_OK:
-                print(f"Task update failed: {message}")
-                return HttpResponseServerError(f"An error occurred: {message}")
+                print(f"Task update failed: {message.get('message')}")
+                return HttpResponseServerError(f"An error occurred: {message.get('message')}")
             return redirect(f"/project/{projectID}/graph")
 
     # If a GET (or any other method) we"ll create a blank form
     else:
-        taskData = TasksAPIView.getTasks({"id": taskID})[0][0]
+        data, status_code = TasksAPIView.getTasks({"id": taskID},  getAuthorizationToken(request))
+        if status_code != status.HTTP_200_OK:
+            print(f"Task fetch failed: {data.get('message')}")
+            return HttpResponseServerError(f"An error occurred: {data.get('message')}")
+
+        taskData = data[0]
         # Populate initial form data
         if taskData is not None:
             initialData = {
@@ -212,6 +217,7 @@ def createTaskView(request, projectID, parentTaskID=""):
 
     # Create new task on post
     if request.method == "POST":
+
         form = TaskForm(request.POST)
 
         if form.is_valid():
@@ -219,16 +225,21 @@ def createTaskView(request, projectID, parentTaskID=""):
             newData["projectID"] = projectID
             if parentTaskID and parentTaskID != "":
                 newData["parentTaskID"] = parentTaskID
-            message, status_code = TasksAPIView.createTasks(newData)
+            message, httpsCode = TasksAPIView.createTasks(newData, getAuthorizationToken(request))
 
-            if status_code != status.HTTP_201_CREATED:
+            if httpsCode != status.HTTP_201_CREATED:
                 print(f"Task creation failed: {message}")
-                return HttpResponseServerError(f"An error occurred: {message}")
+                return HttpResponseServerError(f"An error occurred: {message.get('message')}")
 
             return redirect(f"/project/{projectID}/graph")
 
     # If a GET (or any other method) we"ll create a blank form for them to render
     else:
+        # Check if user has access to project
+        projectData, httpsCode = ProjectsAPIView.getProjects({"id": projectID}, getAuthorizationToken(request))
+        if httpsCode !=  status.HTTP_200_OK:
+            print(f"For creating tasks, project GET failed: {projectData.get('message')}")
+            return HttpResponseServerError(f"Could not access project to create task(s): {projectData.get('message')}")
         form = TaskForm()
     return render(
         request,
@@ -275,8 +286,12 @@ def createProjectView(request):
                 
 
             projectID = projectData.get("id")
-            GeneratedTasksAPIView.generateTasks(
-                {"projectID": projectID, "name": name})
+            message, httpsCode = GeneratedTasksAPIView.generateTasks(
+                {"projectID": projectID, "name": name},
+                 getAuthorizationToken(request))
+            if httpsCode != status.HTTP_201_CREATED:
+                print(f"Task generation failed: {projectData.get('message')}")
+                return HttpResponseServerError(f"Could not generate tasks: {message.get('message')}")
 
             # Redirect to project
             return HttpResponseRedirect(f"/project/{projectID}/graph")

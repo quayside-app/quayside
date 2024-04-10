@@ -2,6 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.utils.decorators import method_decorator
+from bson.objectid import ObjectId
 
 from api.decorators import apiKeyRequired
 from api.serializers import ProjectSerializer
@@ -10,7 +11,7 @@ from api.models import Project
 from django.core.exceptions import ObjectDoesNotExist 
 from api.utils import getAuthorizationToken, decodeApiKey
 
-from bson.objectid import ObjectId
+
 
 
 @method_decorator(
@@ -222,8 +223,8 @@ class ProjectsAPIView(APIView):
         
         # Check if userID is in the project's list of UserIDs
         userID = decodeApiKey(authorizationToken).get("userID")
-        if ObjectId(userID) not in project["userIDs"]:  # Assuming 'user_ids' is the field name
-            return {"message": "User not authorized for this project"}, status.HTTP_403_FORBIDDEN
+        if ObjectId(userID) not in project["userIDs"]:  
+            return {"message": "User not authorized to edit this project"}, status.HTTP_403_FORBIDDEN
 
         serializer = ProjectSerializer(
             data=projectData, instance=project, partial=True)
@@ -268,13 +269,12 @@ class ProjectsAPIView(APIView):
         project and all associated tasks.
 
         @param projectData      Dict for a single project
+        @param authorizationToken      JWT authorization token.
         @return      A tuple of (response_data, http_status).
         """
-        print("HHERE1")
         if "id" not in projectData:
             return {"message": "Parameter 'id' required"}, status.HTTP_400_BAD_REQUEST
         id = projectData["id"]
-        print("HHERE2")
         project= Project.objects.get(id=id)
         print(project)
 
@@ -283,7 +283,9 @@ class ProjectsAPIView(APIView):
             return {"message": "Not authorized to delete project."}, status.HTTP_401_UNAUTHORIZED
 
 
-        TasksAPIView.deleteTasks({"projectID": id})
+        message, httpsCode = TasksAPIView.deleteTasks({"projectID": id}, authorizationToken)
+        if httpsCode != status.HTTP_200_OK:
+            return message, httpsCode
 
         numberObjectsDeleted = project.delete()
         if numberObjectsDeleted == 0:

@@ -10,14 +10,16 @@
 (async function () {
   try {
     const response = await fetch('{{apiUrl}}/projects?id={{projectID}}')
-    if (!response.ok) throw new Error('Network response was not ok')
     const projects = await response.json()
+    if (!response.ok) throw new Error(projects.message || 'Network response was not ok')
     const project = projects[0]
 
     const projectNameElement = document.getElementById('projectName')
     projectNameElement.textContent = 'Project: ' + project.name
   } catch (error) {
-    console.error('There has been a problem with fetching projects:', error)
+    // Handle network errors
+    console.error('There was a problem with the fetch operation:', error.message);
+    alert('There was a problem displaying your project details.'); // TODO DO SOMETHING ELSE INSTEAD OF THIS
   }
 })()
 </script>
@@ -113,7 +115,7 @@ document.getElementById('confirmDeleteButton').addEventListener('click', async f
     }
   } catch (error) {
     // Handle network errors
-    console.error('There was a problem with the fetch operation:', error);
+    console.error('There was a problem with the fetch operation:', error.message);
     alert('There was a problem with your deletion.'); // TODO DO SOMETHING ELSE INSTEAD OF THIS
   }
 });
