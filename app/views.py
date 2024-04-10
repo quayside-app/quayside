@@ -87,13 +87,18 @@ def editProjectView(request, projectID):
     # If a GET (or any other method) we"ll create a blank form
     else:
         projectData, httpsCode = ProjectsAPIView.getProjects({"id": projectID}, getAuthorizationToken(request))
-        
         if httpsCode !=  status.HTTP_200_OK:
             print(f"Project GET failed: {projectData.get('message')}")
             return HttpResponseServerError(f"Could not query project: {projectData.get('message')}")
             
         projectData = projectData[0]
 
+        # Get contributor emails
+        # currentUserID = getAuthorizationToken(request).get("userID")
+        # userIDs = projectData.get("userIDs")
+        # contributorIDs = [ID for ID in userIDs if ID != currentUserID]
+        # print(currentUserID)
+        
         if projectData is not None:
             initialData = {
                 "name": projectData.get("name", ""),

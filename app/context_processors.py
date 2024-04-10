@@ -25,11 +25,11 @@ def global_context(request):
         decoded = jwt.decode(token, secretKey, algorithms=["HS256"])
         userID = decoded.get("userID")
         
-        data, httpsCode = UsersAPIView.getUser({"id": userID}, token)
+        data, httpsCode = UsersAPIView.getUsers({"id": userID}, token)
         if httpsCode != status.HTTP_200_OK:
             print(f"User update failed: {data.get('message')}")
             return HttpResponseServerError(f"An error occurred: {data.get('message')}")
-        username = data.get("username")
+        username = data[0].get("username")
 
     else:
         userID = ""

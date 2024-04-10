@@ -21,8 +21,8 @@ class UsersAPIView(APIView):
 
     def get(self, request):
         """
-        Retrieves user information based on either email or id. Only users can access all their own data. 
-        Other users can access email, id, and username.
+        Retrieves users information. Only users can access all their own data if they pass their id. 
+        Other users can access email, id, and username if they pass email or id.
         Requires 'apiToken' passed in auth header or cookies.
 
         @param {HttpRequest} request - The request object.
@@ -47,7 +47,7 @@ class UsersAPIView(APIView):
         try:
             queryParams = request.query_params.dict()
 
-            responseData, httpStatus = self.getUser(queryParams, getAuthorizationToken(request))
+            responseData, httpStatus = self.getUsers(queryParams, getAuthorizationToken(request))
 
             return Response(responseData, httpStatus)
 
@@ -158,42 +158,44 @@ class UsersAPIView(APIView):
         return serializer.errors, status.HTTP_400_BAD_REQUEST
 
     @staticmethod
-    def getUser(userData, authorizationToken):
+    def getUsers(userData, authorizationToken):
         """
         Service API function that can be called internally as well as through the API to get a user.
 
         @param userData      Dict of data for a single user.
         @return      A tuple of (response_data, http_status).
         """
-        userID = userData.get("id") or None
-        email = userData.get("email") or None
+        if not isinstance(userData, list):
+            # If authorized user is getting information about their self, return all data
+            userID = decodeApiKey(authorizationToken).get("userID")
+            if "id" in userData and userID == userData["id"]:
+                if not userData.get("id") and not userData.get("email") :
+                    return {"message": "UserID or email required."}, status.HTTP_400_BAD_REQUEST
+                user = User.objects.filter(**userData).first()
+                serializedUser = UserSerializer(user).data
+                return [serializedUser], status.HTTP_200_OK
 
-        if userID and email:
-            return ({"message": "Only user id or email needed. Hint: remove email=<> from the url"}, 
-                status.HTTP_400_BAD_REQUEST)
-        elif not userID and not email :
-            return {"message": "UserID or email required."}, status.HTTP_400_BAD_REQUEST
+            else: 
+                userData = [userData]
 
-        if userID:
-            user = User.objects.filter(id=userID).first()
-        else: # Email
-            user = User.objects.filter(email=email).first()
-
-        if not user:
-            return {"message": "User not found."}, status.HTTP_400_BAD_REQUEST
-
-        serializedUser = UserSerializer(user).data
+        # Else return only id, email, and username
+        userIDs = [user.get("id") for user in userData if user.get("id")]
+        emails = [user.get("email") for user in userData if user.get("email")]
         
-        # If authorized user is getting information about their self, return all data
-        userID = decodeApiKey(authorizationToken).get("userID")
-        if userID == userData["id"]:
-            return serializedUser, status.HTTP_200_OK
-        # Else only return id, email, and username
-        else:
-            return {"id":serializedUser.get("id"),
-                    "email":serializedUser.get("email"),
-                    "username":serializedUser.get("username")
-                    }, status.HTTP_200_OK
+        if not userIDs and not emails:
+            return {"message": "No valid user IDs or emails provided."}, status.HTTP_400_BAD_REQUEST
+
+        users = User.objects.filter(Q(id__in=userIDs) | Q(email__in=emails))
+  
+        serializedUsers = []
+        for user in users:
+            serializedUser = UserSerializer(user).data
+            serializedUsers.append({
+                "id": serializedUser.get("id"),
+                "email": serializedUser.get("email"),
+                "username": serializedUser.get("username")
+            })
+        return serializedUsers, status.HTTP_200_OK
 
 
     @staticmethod

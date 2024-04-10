@@ -123,3 +123,14 @@ class ProjectForm(forms.Form):
             }
         ),
     )
+    contributors = forms.CharField(
+        label="",
+        widget=forms.Textarea(
+            attrs={
+                "placeholder": "Contributor Emails",
+                "type": "text",
+                "class": "w-full p-2  rounded-md  bg-neutral-600 outline-none placeholder-gray-400",
+                'rows': 2,
+            }
+        ),
+    )
