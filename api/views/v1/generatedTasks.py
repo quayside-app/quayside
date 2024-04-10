@@ -80,7 +80,7 @@ class GeneratedTasksAPIView(APIView):
 
                     For each subtask, add in the estimated duration of hours for the task in square 
                     brackets with the label "hours" also in the braces.
-                    
+
                     """,
                 },
                 {"role": "user", "content": projectName},
@@ -105,9 +105,8 @@ class GeneratedTasksAPIView(APIView):
             # minimum hours
             durationHours = 1
             subTaskMatch = re.match(r"^\s+(\d+\.\d+\.?)\s(.+)", line)
-            strHourDuration = re.match(r"(?<=\[)(.*?)(?=\])", line)
+            strHourDuration = re.search(r"\[(\d+(?:\.\d+)?)\s*hours\]", line)
 
-                
             if primaryTaskMatch:
                 taskNumber = primaryTaskMatch[1]
                 taskText = primaryTaskMatch[2]
@@ -118,7 +117,7 @@ class GeneratedTasksAPIView(APIView):
                         "id": taskNumber,
                         "name": taskText,
                         "parent": "root",
-                        "durationHours": durationHours,
+                        "durationHours": strHourDuration.group(1),
                         "subtasks": [],
                     }
                 )
@@ -126,7 +125,7 @@ class GeneratedTasksAPIView(APIView):
             elif subTaskMatch:
                 subTaskNumber = subTaskMatch[1]
                 subTaskText = subTaskMatch[2]
-
+                
                 # Find parent task
                 parentTask = next(
                     (task for task in newTasks if task["id"]

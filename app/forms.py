@@ -98,7 +98,7 @@ class TaskForm(forms.Form):
         label="Hours",
         required=False,
         widget=forms.Select(
-			choices=[(x,x) for x in range(1, 9)],
+			choices=[(x,x) for x in range(0, 9)],
             attrs={
                 "class": "text-xs md:text-base inline-block pl-1 py-1  rounded-md  bg-neutral-600 outline-none placeholder-gray-400"
             }
