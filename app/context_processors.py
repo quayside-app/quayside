@@ -1,8 +1,10 @@
 import os
 import jwt
+from rest_framework import status
 from dotenv import load_dotenv
 from api.views.v1.users import UsersAPIView
 from .forms import NewProjectForm
+from django.http import HttpResponseServerError
 
 def global_context(request):
     """
@@ -22,7 +24,13 @@ def global_context(request):
     if token:
         decoded = jwt.decode(token, secretKey, algorithms=["HS256"])
         userID = decoded.get("userID")
-        username = UsersAPIView.getUser({"id": userID})[0].get("user").get("username")
+        
+        data, httpsCode = UsersAPIView.getUser({"id": userID}, token)
+        if httpsCode != status.HTTP_200_OK:
+            print(f"User update failed: {data.get('message')}")
+            return HttpResponseServerError(f"An error occurred: {data.get('message')}")
+        username = data.get("username")
+
     else:
         userID = ""
         username = ''

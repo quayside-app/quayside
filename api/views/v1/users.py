@@ -21,14 +21,12 @@ class UsersAPIView(APIView):
 
     def get(self, request):
         """
-        Retrieves user information based on optional query parameters. If no parameters are provided,
-        retrieves a list of all users. Supports filtering by user ID or email address.
+        Retrieves user information based on query parameters. Only users can access their own data.
         Requires 'apiToken' passed in auth header or cookies.
 
         @param {HttpRequest} request - The request object.
             The query parameters can be:
-                - id (objectID str): Filter users by ID.
-                - email (str): Filter users by email address.
+                - id (objectID str) [REQUIRED]: Filter user by ID.
 
         @return A Response object containing a JSON array of serialized user objects that match the query parameters.
         If no users match the query, a 400 Bad Request response is returned.
@@ -47,7 +45,7 @@ class UsersAPIView(APIView):
         try:
             queryParams = request.query_params.dict()
 
-            responseData, httpStatus = self.getUser(queryParams)
+            responseData, httpStatus = self.getUser(queryParams, getAuthorizationToken(request))
 
             return Response(responseData, httpStatus)
 
@@ -158,7 +156,7 @@ class UsersAPIView(APIView):
         return serializer.errors, status.HTTP_400_BAD_REQUEST
 
     @staticmethod
-    def getUser(userData):
+    def getUser(userData, authorizationToken):
         """
         Service API function that can be called internally as well as through the API to get a user
 
@@ -166,27 +164,20 @@ class UsersAPIView(APIView):
         @return      A tuple of (response_data, http_status).
         """
 
-        user_id = userData.get("id") or None
-        email = userData.get("email") or None
+        if "id" not in userData:
+            return "Error: Parameter 'id' required", status.HTTP_400_BAD_REQUEST
+        
+        userID = decodeApiKey(authorizationToken).get("userID")
+        if userID != userData["id"]:
+            return {"message": "Unauthorized to update that user."}, status.HTTP_401_UNAUTHORIZED
 
-        if user_id and email:
-            return {
-                "message": "Only user id or email needed. Hint: remove email=<> from the url"
-            }, status.HTTP_400_BAD_REQUEST
-
-        user = None
-        if user_id:
-            user = User.objects.filter(id=user_id).first()
-        elif email:
-            user = User.objects.filter(email=email).first()
-        else:
-            user = User.objects.filter(None)
+        user = User.objects.filter(id=userData["id"]).first()
 
         if not user:
-            return {"message": "User(s) not found."}, status.HTTP_400_BAD_REQUEST
+            return {"message": "User not found."}, status.HTTP_400_BAD_REQUEST
 
-        serialized_user = UserSerializer(user).data
-        return {"user": serialized_user}, status.HTTP_200_OK
+        serializedUser = UserSerializer(user).data
+        return serializedUser, status.HTTP_200_OK
 
     @staticmethod
     def createUser(userData):
@@ -224,3 +215,25 @@ class UsersAPIView(APIView):
                 "error": "Internal server error.",
                 "details": str(e),
             }, status.HTTP_500_INTERNAL_SERVER_ERROR
+
+
+    @staticmethod
+    def getAuthenticatedUser(userData):
+        """ 
+        THIS SHOULD ONLY BE USED FOR AUTHORIZATION WHEN LOGGING IN. DO NOT MAKE THIS A PUBLIC ROUTE.
+        
+        @param userData      Dict of data for a single user. Must contain email
+        @return      A tuple of (response_data, http_status).
+        """
+
+        if "email" not in userData:
+            return "Error: Parameter 'email' required", status.HTTP_400_BAD_REQUEST
+        
+
+        user = User.objects.filter(email=userData["email"]).first()
+
+        if not user:
+            return {"message": "User not found."}, status.HTTP_404_NOT_FOUND
+
+        serializedUser = UserSerializer(user).data
+        return {"apiKey": serializedUser.get("apiKey"), "id": serializedUser.get("id")}, status.HTTP_200_OK

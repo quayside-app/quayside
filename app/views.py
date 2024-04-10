@@ -408,16 +408,16 @@ class Callback(TemplateView):
             )
             oauthUserInfo["email"] = response.json()[0]["email"]
 
-        userInfo = UsersAPIView.getUser({"email": oauthUserInfo.get("email")})[0].get(
-            "user"
-        )
+       
 
         # Create a user in our db if none exists
         if oauthUserInfo.get("username"):
             username = oauthUserInfo.get("username")
         else:
             username = oauthUserInfo.get("email").split("@")[0]
-        if not userInfo:
+        
+        userInfo, httpsCode = UsersAPIView.getAuthenticatedUser({"email": oauthUserInfo.get("email")})
+        if httpsCode == status.HTTP_404_NOT_FOUND:
             names = oauthUserInfo.get("name", "").split()
             if not names:
                 names = [""]
