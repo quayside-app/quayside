@@ -1,4 +1,5 @@
 import os
+import re
 from oauthlib.oauth2 import WebApplicationClient as WAC
 import requests
 from rest_framework import status
@@ -8,7 +9,7 @@ from django.http import HttpResponseRedirect, HttpResponseServerError, HttpRespo
 from django.views.generic.base import TemplateView
 
 from api.decorators import apiKeyRequired
-from api.utils import decryptApiKey, createEncodedApiKey, encryptApiKey, getAuthorizationToken
+from api.utils import decryptApiKey, createEncodedApiKey, encryptApiKey, getAuthorizationToken, decodeApiKey
 from api.views.v1.tasks import TasksAPIView
 from api.views.v1.generatedTasks import GeneratedTasksAPIView
 from api.views.v1.projects import ProjectsAPIView
@@ -76,8 +77,26 @@ def editProjectView(request, projectID):
         if form.is_valid():
             newData = form.cleaned_data
             newData["id"] = projectID
-            message, httpsCode = ProjectsAPIView.updateProject(newData, getAuthorizationToken(request))
+            
+            # Replace user emails with userIDs to save
 
+            # Splits on comma, space, or newline. Makes sure only unique emails
+            emails = set(re.split(r'\s*[, \n]+\s*', newData["contributors"].strip()))
+            del newData["contributors"]
+            emails = [{"email": email} for email in emails if email]
+
+            contributorData, httpsCode = UsersAPIView.getUsers(emails)
+            if httpsCode !=  status.HTTP_200_OK:
+                print(f"Could not query contributor ids for project: {contributorData.get('message')}")
+                return HttpResponseServerError(f"Could not query contributor ids for project: {contributorData.get('message')}")
+            
+            userIDs= [user["id"] for user in contributorData ]
+            currentUserID = decodeApiKey(getAuthorizationToken(request)).get("userID")
+            if currentUserID not in userIDs:
+                userIDs.append(currentUserID)
+
+            newData["userIDs"] = userIDs
+            message, httpsCode = ProjectsAPIView.updateProject(newData, getAuthorizationToken(request))
             if httpsCode != status.HTTP_200_OK:
                 print(f"Task update failed: {message}")
                 return HttpResponseServerError(f"An error occurred: {message}")
@@ -94,16 +113,25 @@ def editProjectView(request, projectID):
         projectData = projectData[0]
 
         # Get contributor emails
-        # currentUserID = getAuthorizationToken(request).get("userID")
-        # userIDs = projectData.get("userIDs")
-        # contributorIDs = [ID for ID in userIDs if ID != currentUserID]
-        # print(currentUserID)
+        contributorString = ""
+        currentUserID = decodeApiKey(getAuthorizationToken(request)).get("userID")
+        userIDs = projectData.get("userIDs")
+
+        contributorIDs = [{"id": ID} for ID in userIDs if ID != currentUserID]
+        if contributorIDs:
+            contributorData, httpsCode = UsersAPIView.getUsers(contributorIDs)
+            if httpsCode !=  status.HTTP_200_OK:
+                print(f"Could not query contributor emails for project: {contributorData.get('message')}")
+                return HttpResponseServerError(f"Could not query contributor emails for project: {contributorData.get('message')}")
+            
+            contributorString = ", ".join([contributor["email"] for contributor in contributorData])
         
         if projectData is not None:
             initialData = {
                 "name": projectData.get("name", ""),
                 "startDate": projectData.get("startDate", ""),
                 "endDate": projectData.get("endDate", ""),
+                "contributors": contributorString,
             }
             form = ProjectForm(initial=initialData)
         else:

@@ -183,21 +183,25 @@ class ProjectsAPIView(APIView):
         """
         try:
 
+
             # Only get project where user is a contributor
             userID = decodeApiKey(authorizationToken).get("userID")
-            if "userIDs" not in projectData:
-                projectData["userIDs"] = [userID]
-            elif isinstance(projectData["userIDs"], list) and  userID not in  projectData["userIDs"]:
-                projectData["userIDs"].append(userID)
-            elif userID != projectData["userIDs"]:
-                projectData["userIDs"] = [userID,  projectData["userIDs"]]
 
-            projects = Project.objects.filter(**projectData)  # Query mongo
+            if "userIDs" not in projectData:
+                projectData["userIDs"] = []
+            if not(isinstance(projectData["userIDs"], list)):
+                projectData["userIDs"] = [projectData["userIDs"]]
+            if  userID not in projectData["userIDs"]:
+                projectData["userIDs"].append(userID)
+
+            userIDs = projectData["userIDs"]
+            del projectData["userIDs"]
+
+            projects = Project.objects.filter(**projectData, userIDs__all=userIDs)  # Query mongo
 
             if not projects:
                 return {"message": "No projects were found or you do not have authorization."}, status.HTTP_400_BAD_REQUEST
             serializer = ProjectSerializer(projects, many=True)
-
             return serializer.data, status.HTTP_200_OK
         except Exception as e:
             print("Error:", e)
@@ -276,7 +280,6 @@ class ProjectsAPIView(APIView):
             return {"message": "Parameter 'id' required"}, status.HTTP_400_BAD_REQUEST
         id = projectData["id"]
         project= Project.objects.get(id=id)
-        print(project)
 
         userID = decodeApiKey(authorizationToken).get("userID")
         if ObjectId(userID) not in project["userIDs"]:

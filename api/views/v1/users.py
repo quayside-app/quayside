@@ -10,6 +10,8 @@ from api.models import User
 from api.serializers import UserSerializer
 from api.decorators import apiKeyRequired
 from api.utils import getAuthorizationToken, decodeApiKey
+from mongoengine import Q
+from bson import ObjectId
 
 
 # dispatch protects all HTTP requests coming in
@@ -27,7 +29,7 @@ class UsersAPIView(APIView):
 
         @param {HttpRequest} request - The request object.
             The query parameters can be:
-                - id (objectID str): Filter user by ID.
+                - id (str): Filter user by ID.
                 - email (str): Filter user by email.
 
         @return A Response object containing a JSON array of serialized user objects that match the query parameters.
@@ -158,13 +160,14 @@ class UsersAPIView(APIView):
         return serializer.errors, status.HTTP_400_BAD_REQUEST
 
     @staticmethod
-    def getUsers(userData, authorizationToken):
+    def getUsers(userData, authorizationToken=None):
         """
         Service API function that can be called internally as well as through the API to get a user.
 
         @param userData      Dict of data for a single user.
         @return      A tuple of (response_data, http_status).
         """
+
         if not isinstance(userData, list):
             # If authorized user is getting information about their self, return all data
             userID = decodeApiKey(authorizationToken).get("userID")
@@ -177,16 +180,18 @@ class UsersAPIView(APIView):
 
             else: 
                 userData = [userData]
-
+        
         # Else return only id, email, and username
         userIDs = [user.get("id") for user in userData if user.get("id")]
         emails = [user.get("email") for user in userData if user.get("email")]
-        
+
         if not userIDs and not emails:
             return {"message": "No valid user IDs or emails provided."}, status.HTTP_400_BAD_REQUEST
 
         users = User.objects.filter(Q(id__in=userIDs) | Q(email__in=emails))
-  
+
+        if not users:
+            return {"message": "No users found."}, status.HTTP_404_NOT_FOUND
         serializedUsers = []
         for user in users:
             serializedUser = UserSerializer(user).data
