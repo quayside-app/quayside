@@ -18,8 +18,8 @@
     projectNameElement.textContent = 'Project: ' + project.name
   } catch (error) {
     // Handle network errors
-    console.error('There was a problem with the fetch operation:', error.message);
-    alert('There was a problem displaying your project details.'); // TODO DO SOMETHING ELSE INSTEAD OF THIS
+    console.error('There was a problem with the fetch operation:', error.message)
+    alert('There was a problem displaying your project details.') // TODO DO SOMETHING ELSE INSTEAD OF THIS
   }
 })()
 </script>
@@ -92,7 +92,7 @@
 
 document.getElementById('deleteProjectButton').addEventListener('click', async function () {
   document.getElementById('confirmDeleteModal').classList.toggle('hidden')
-  document.getElementById('deleteProjectButton').disabled = true;
+  document.getElementById('deleteProjectButton').disabled = true
   document.getElementById('deleteProjectButton').classList.toggle('hover:bg-red-500')
 })
 
@@ -104,21 +104,21 @@ document.getElementById('cancelDeleteButton').addEventListener('click', async fu
 
 document.getElementById('confirmDeleteButton').addEventListener('click', async function () {
   try {
-    const response = await fetch('{{apiUrl}}/projects/?id={{projectID}}', { method: 'DELETE' });
+    const response = await fetch('{{apiUrl}}/projects/?id={{projectID}}', { method: 'DELETE' })
 
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Network response was not ok'); 
+      const errorData = await response.json()
+      throw new Error(errorData.message || 'Network response was not ok')
     } else {
       // Navigate Home after deleting
-      window.location.href = '/';
+      window.location.href = '/'
     }
   } catch (error) {
     // Handle network errors
-    console.error('There was a problem with the fetch operation:', error.message);
-    alert('There was a problem with your deletion.'); // TODO DO SOMETHING ELSE INSTEAD OF THIS
+    console.error('There was a problem with the fetch operation:', error.message)
+    alert('There was a problem with your deletion.') // TODO DO SOMETHING ELSE INSTEAD OF THIS
   }
-});
+})
 </script>
 
 {% endblock %}

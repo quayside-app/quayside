@@ -62,11 +62,13 @@
 <script src="{% static 'app/js/toggleModal.js' %}"></script>
 {%if username %}
 <script>
-        setModal("logoutModal", 'logoutModal', ['logoutButton'], ["closeLogoutModal"])
+        // eslint-disable-next-line no-undef
+        setModal('logoutModal', 'logoutModal', ['logoutButton'], ['closeLogoutModal'])
     </script>
 
 {%else%}
 <script>
-        setModal("loginModal", 'loginModal', ['loginButton'], ["closeLoginModal"])
+    // eslint-disable-next-line no-undef
+    setModal('loginModal', 'loginModal', ['loginButton'], ['closeLoginModal'])
     </script>
 {%endif%}

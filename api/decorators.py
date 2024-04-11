@@ -14,7 +14,7 @@ def apiKeyRequired(function):
     """
 
     def wrap(request, *args, **kwargs):
-        
+
         token = getAuthorizationToken(request)
 
         # If no token anywhere, raise an error

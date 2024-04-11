@@ -1,6 +1,6 @@
 import os
-from dotenv import load_dotenv
 import re
+from dotenv import load_dotenv
 import openai
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -11,6 +11,7 @@ from api.serializers import GeneratedTaskSerializer
 from api.views.v1.tasks import TasksAPIView
 from api.decorators import apiKeyRequired
 from api.utils import getAuthorizationToken
+
 
 # Dispatch protects all HTTP requests coming in
 @method_decorator(apiKeyRequired, name="dispatch")
@@ -40,7 +41,9 @@ class GeneratedTasksAPIView(APIView):
                 body: JSON.stringify({ name: 'New Project', projectID: '12345' }),
             });
         """
-        responseData, httpStatus = self.generateTasks(request.data,  getAuthorizationToken(request))
+        responseData, httpStatus = self.generateTasks(
+            request.data, getAuthorizationToken(request)
+        )
         return Response(responseData, status=httpStatus)
 
     @staticmethod
@@ -121,8 +124,7 @@ class GeneratedTasksAPIView(APIView):
 
                 # Find parent task
                 parentTask = next(
-                    (task for task in newTasks if task["id"]
-                     == currentTaskNumber), None
+                    (task for task in newTasks if task["id"] == currentTaskNumber), None
                 )
                 if parentTask:
                     parentTask["subtasks"].append(
@@ -138,9 +140,12 @@ class GeneratedTasksAPIView(APIView):
         # Function for Parsing Tasks. TODO: do this in 1 db write??
         def parseTask(task: dict, parentID: str, projectID: str):
             data, httpsCode = TasksAPIView.createTasks(
-                {"projectID": projectID, "parentTaskID": parentID,
-                    "name": task["name"]},
-                authorizationToken
+                {
+                    "projectID": projectID,
+                    "parentTaskID": parentID,
+                    "name": task["name"],
+                },
+                authorizationToken,
             )
             if httpsCode != status.HTTP_201_CREATED:
                 return data, httpsCode
@@ -156,12 +161,11 @@ class GeneratedTasksAPIView(APIView):
         rootID = None
         if len(newTasks) != 1:
             data, httpsCode = TasksAPIView.createTasks(
-                {"projectID": projectID, "name": projectName},
-                authorizationToken
+                {"projectID": projectID, "name": projectName}, authorizationToken
             )
             if httpsCode != status.HTTP_201_CREATED:
                 return data, httpsCode
-            taskData=data[0]
+            taskData = data[0]
             print(taskData)
 
             rootID = taskData["id"]

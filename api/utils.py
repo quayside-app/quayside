@@ -3,6 +3,7 @@ import jwt
 from dotenv import load_dotenv
 from cryptography.fernet import Fernet
 
+
 def getAuthorizationToken(request) -> str:
     """
     Gets authorization token from authorization header OR through cookies (header good for scripts,

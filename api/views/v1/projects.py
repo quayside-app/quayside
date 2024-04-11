@@ -1,17 +1,15 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from django.utils.decorators import method_decorator
 from bson.objectid import ObjectId
+from django.utils.decorators import method_decorator
+from django.core.exceptions import ObjectDoesNotExist
 
 from api.decorators import apiKeyRequired
 from api.serializers import ProjectSerializer
 from api.views.v1.tasks import TasksAPIView
 from api.models import Project
-from django.core.exceptions import ObjectDoesNotExist 
 from api.utils import getAuthorizationToken, decodeApiKey
-
-
 
 
 @method_decorator(
@@ -60,7 +58,8 @@ class ProjectsAPIView(APIView):
             fetch('quayside.app/api/v1/projects?userIDs=1234');
         """
         responseData, httpStatus = self.getProjects(
-            request.query_params.dict(), getAuthorizationToken(request))
+            request.query_params.dict(), getAuthorizationToken(request)
+        )
         return Response(responseData, status=httpStatus)
 
     def post(self, request):
@@ -104,7 +103,9 @@ class ProjectsAPIView(APIView):
             });
 
         """
-        responseData, httpStatus = self.createProjects(request.data, getAuthorizationToken(request))
+        responseData, httpStatus = self.createProjects(
+            request.data, getAuthorizationToken(request)
+        )
         return Response(responseData, status=httpStatus)
 
     def put(self, request):
@@ -148,7 +149,9 @@ class ProjectsAPIView(APIView):
             });
 
         """
-        responseData, httpStatus = self.updateProject(request.data, getAuthorizationToken(request))
+        responseData, httpStatus = self.updateProject(
+            request.data, getAuthorizationToken(request)
+        )
         return Response(responseData, status=httpStatus)
 
     def delete(self, request):
@@ -168,7 +171,9 @@ class ProjectsAPIView(APIView):
             });
         """
 
-        responseData, httpStatus = self.deleteProjects(request.query_params, getAuthorizationToken(request))
+        responseData, httpStatus = self.deleteProjects(
+            request.query_params, getAuthorizationToken(request)
+        )
         return Response(responseData, status=httpStatus)
 
     @staticmethod
@@ -183,24 +188,27 @@ class ProjectsAPIView(APIView):
         """
         try:
 
-
             # Only get project where user is a contributor
             userID = decodeApiKey(authorizationToken).get("userID")
 
             if "userIDs" not in projectData:
                 projectData["userIDs"] = []
-            if not(isinstance(projectData["userIDs"], list)):
+            if not isinstance(projectData["userIDs"], list):
                 projectData["userIDs"] = [projectData["userIDs"]]
-            if  userID not in projectData["userIDs"]:
+            if userID not in projectData["userIDs"]:
                 projectData["userIDs"].append(userID)
 
             userIDs = projectData["userIDs"]
             del projectData["userIDs"]
 
-            projects = Project.objects.filter(**projectData, userIDs__all=userIDs)  # Query mongo
+            projects = Project.objects.filter(
+                **projectData, userIDs__all=userIDs
+            )  # Query mongo
 
             if not projects:
-                return {"message": "No projects were found or you do not have authorization."}, status.HTTP_400_BAD_REQUEST
+                return {
+                    "message": "No projects were found or you do not have authorization."
+                }, status.HTTP_400_BAD_REQUEST
             serializer = ProjectSerializer(projects, many=True)
             return serializer.data, status.HTTP_200_OK
         except Exception as e:
@@ -224,14 +232,15 @@ class ProjectsAPIView(APIView):
             project = Project.objects.get(id=projectData["id"])
         except ObjectDoesNotExist:
             return "Project not found", status.HTTP_404_NOT_FOUND
-        
+
         # Check if userID is in the project's list of UserIDs
         userID = decodeApiKey(authorizationToken).get("userID")
-        if ObjectId(userID) not in project["userIDs"]:  
-            return {"message": "User not authorized to edit this project"}, status.HTTP_403_FORBIDDEN
+        if ObjectId(userID) not in project["userIDs"]:
+            return {
+                "message": "User not authorized to edit this project"
+            }, status.HTTP_403_FORBIDDEN
 
-        serializer = ProjectSerializer(
-            data=projectData, instance=project, partial=True)
+        serializer = ProjectSerializer(data=projectData, instance=project, partial=True)
 
         if serializer.is_valid():
             serializer.save()  # Updates projects
@@ -251,7 +260,9 @@ class ProjectsAPIView(APIView):
         """
         userID = decodeApiKey(authorizationToken).get("userID")
         if "userIDs" not in projectData or projectData["userIDs"] != [userID]:
-            return {"message": "Request data must contain a list of userIDs with only your user ID present."}, status.HTTP_400_BAD_REQUEST
+            return {
+                "message": "Request data must contain a list of userIDs with only your user ID present."
+            }, status.HTTP_400_BAD_REQUEST
 
         if isinstance(projectData, list):
             serializer = ProjectSerializer(data=projectData, many=True)
@@ -278,15 +289,18 @@ class ProjectsAPIView(APIView):
         """
         if "id" not in projectData:
             return {"message": "Parameter 'id' required"}, status.HTTP_400_BAD_REQUEST
-        id = projectData["id"]
-        project= Project.objects.get(id=id)
+        ID = projectData["id"]
+        project = Project.objects.get(id=ID)
 
         userID = decodeApiKey(authorizationToken).get("userID")
         if ObjectId(userID) not in project["userIDs"]:
-            return {"message": "Not authorized to delete project."}, status.HTTP_401_UNAUTHORIZED
+            return {
+                "message": "Not authorized to delete project."
+            }, status.HTTP_401_UNAUTHORIZED
 
-
-        message, httpsCode = TasksAPIView.deleteTasks({"projectID": id}, authorizationToken)
+        message, httpsCode = TasksAPIView.deleteTasks(
+            {"projectID": ID}, authorizationToken
+        )
         if httpsCode != status.HTTP_200_OK:
             return message, httpsCode
 
@@ -295,6 +309,3 @@ class ProjectsAPIView(APIView):
             return "No project found to delete.", status.HTTP_404_NOT_FOUND
 
         return "Project Deleted Successfully", status.HTTP_200_OK
-    
-
-

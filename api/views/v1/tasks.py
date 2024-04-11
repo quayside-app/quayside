@@ -10,7 +10,6 @@ from api.decorators import apiKeyRequired
 from api.utils import getAuthorizationToken, decodeApiKey
 
 
-
 # dispatch protects all HTTP requests coming in
 @method_decorator(apiKeyRequired, name="dispatch")
 class TasksAPIView(APIView):
@@ -47,7 +46,9 @@ class TasksAPIView(APIView):
             fetch('quayside.app/api/v1/tasks?parentTaskID=1234');
         """
 
-        responseData, httpStatus = self.getTasks(request.query_params.dict(), getAuthorizationToken(request))
+        responseData, httpStatus = self.getTasks(
+            request.query_params.dict(), getAuthorizationToken(request)
+        )
         return Response(responseData, status=httpStatus)
 
     def post(self, request):
@@ -80,7 +81,9 @@ class TasksAPIView(APIView):
                 body: JSON.stringify({ parentTaskID: '1234',  name:'mya'}),
             });
         """
-        responseData, httpStatus = self.createTasks(request.data, getAuthorizationToken(request))
+        responseData, httpStatus = self.createTasks(
+            request.data, getAuthorizationToken(request)
+        )
         return Response(responseData, status=httpStatus)
 
     def put(self, request):
@@ -115,7 +118,9 @@ class TasksAPIView(APIView):
             });
 
         """
-        responseData, httpStatus = self.updateTask(request.data, getAuthorizationToken(request))
+        responseData, httpStatus = self.updateTask(
+            request.data, getAuthorizationToken(request)
+        )
         return Response(responseData, status=httpStatus)
 
     def delete(self, request):
@@ -135,7 +140,9 @@ class TasksAPIView(APIView):
             });
         """
 
-        responseData, httpStatus = self.deleteTasks(request.query_params, getAuthorizationToken(request))
+        responseData, httpStatus = self.deleteTasks(
+            request.query_params, getAuthorizationToken(request)
+        )
         return Response(responseData, status=httpStatus)
 
     @staticmethod
@@ -149,14 +156,17 @@ class TasksAPIView(APIView):
         @return      A tuple of (response_data, http_status).
         """
         userID = decodeApiKey(authorizationToken).get("userID")
-        
-        #Only get tasks for projects that contain the user
-        projectIDs = [str(project.id) for project in Project.objects.filter(userIDs=userID)]
-        tasks = Task.objects.filter(**taskData, projectID__in=projectIDs) 
 
+        # Only get tasks for projects that contain the user
+        projectIDs = [
+            str(project.id) for project in Project.objects.filter(userIDs=userID)
+        ]
+        tasks = Task.objects.filter(**taskData, projectID__in=projectIDs)
 
         if not tasks:
-            return {"message": "No tasks were found or you do not have authorization."}, status.HTTP_400_BAD_REQUEST 
+            return {
+                "message": "No tasks were found or you do not have authorization."
+            }, status.HTTP_400_BAD_REQUEST
 
         serializer = TaskSerializer(tasks, many=True)
 
@@ -172,7 +182,7 @@ class TasksAPIView(APIView):
         @param taskData      Dict for a single task or list of dicts for multiple tasks.
         @return      A tuple of (response_data, http_status).
         """
-        
+
         # Normalize taskData to a list if it's a single task
         if not isinstance(taskData, list):
             taskData = [taskData]
@@ -188,11 +198,15 @@ class TasksAPIView(APIView):
                     status.HTTP_400_BAD_REQUEST,
                 )
             projectIDs.add(task["projectID"])
-        
+
         # Only allow tasks for projects that contains the user
-        authorizedProjectCount = Project.objects.filter(id__in=projectIDs, userIDs=userID).count()
+        authorizedProjectCount = Project.objects.filter(
+            id__in=projectIDs, userIDs=userID
+        ).count()
         if authorizedProjectCount != len(projectIDs):
-            return {"message": "User not authorized to create task(s) for at least one project"}, status.HTTP_403_FORBIDDEN
+            return {
+                "message": "User not authorized to create task(s) for at least one project"
+            }, status.HTTP_403_FORBIDDEN
 
         serializer = TaskSerializer(data=taskData, many=True)
         if serializer.is_valid():
@@ -216,12 +230,14 @@ class TasksAPIView(APIView):
             task = Task.objects.get(id=taskData["id"])
         except Task.DoesNotExist:
             return None, status.HTTP_404_NOT_FOUND
-        
+
         # Check if userID is in the project the task belongs to
         userID = decodeApiKey(authorizationToken).get("userID")
         project = Project.objects.get(id=task["projectID"])
-        if ObjectId(userID) not in project["userIDs"]:  
-            return {"message": "User not authorized to edit this task"}, status.HTTP_403_FORBIDDEN
+        if ObjectId(userID) not in project["userIDs"]:
+            return {
+                "message": "User not authorized to edit this task"
+            }, status.HTTP_403_FORBIDDEN
 
         serializer = TaskSerializer(data=taskData, instance=task, partial=True)
 
@@ -247,31 +263,44 @@ class TasksAPIView(APIView):
                 {"message", "Error: Parameter 'id' or 'projectID' required"},
                 status.HTTP_400_BAD_REQUEST,
             )
-        
+
         userID = decodeApiKey(authorizationToken).get("userID")
         if "id" in taskData:
             task = Task.objects.get(id=taskData["id"])
             # Check if userID is in the project the task belongs to
             project = Project.objects.get(id=task["projectID"])
-            if ObjectId(userID) not in project["userIDs"]:  
-                return {"message": "User not authorized to delete this task"}, status.HTTP_403_FORBIDDEN
+            if ObjectId(userID) not in project["userIDs"]:
+                return {
+                    "message": "User not authorized to delete this task"
+                }, status.HTTP_403_FORBIDDEN
 
-        
             childTasks = Task.objects(parentTaskID=task["id"])
             for childTask in childTasks:
-                message, httpsCode = TasksAPIView.updateTask({"id":childTask["id"], "parentTaskID": task["parentTaskID"]}, authorizationToken)
+                message, httpsCode = TasksAPIView.updateTask(
+                    {"id": childTask["id"], "parentTaskID": task["parentTaskID"]},
+                    authorizationToken,
+                )
                 if httpsCode != status.HTTP_200_OK:
-                    print(f"Error moving children while deleting task: {message.get('message')}")
-                    return f"Error moving children while deleting task: {message.get('message')}", status.HTTP_500_INTERNAL_SERVER_ERROR
+                    print(
+                        f"Error moving children while deleting task: {message.get('message')}"
+                    )
+                    return (
+                        f"Error moving children while deleting task: {message.get('message')}",
+                        status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    )
 
             numberObjectsDeleted = Task.objects(id=taskData["id"]).delete()
         else:  # projectIDs
-            # Check if userID is in the project 
+            # Check if userID is in the project
             project = Project.objects.get(id=taskData["projectID"])
-            if ObjectId(userID) not in project["userIDs"]:  
-                return {"message": "User not authorized to delete these task(s)"}, status.HTTP_403_FORBIDDEN
+            if ObjectId(userID) not in project["userIDs"]:
+                return {
+                    "message": "User not authorized to delete these task(s)"
+                }, status.HTTP_403_FORBIDDEN
 
-            numberObjectsDeleted = Task.objects(projectID=taskData["projectID"]).delete()
+            numberObjectsDeleted = Task.objects(
+                projectID=taskData["projectID"]
+            ).delete()
 
         if numberObjectsDeleted == 0:
             return "No tasks found to delete.", status.HTTP_404_NOT_FOUND
