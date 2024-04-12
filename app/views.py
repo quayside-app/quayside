@@ -276,6 +276,11 @@ def createProjectView(request):
     return render(request, "newProjectModal.html", {"form": form})
 
 
+@apiKeyRequired
+def settingsView(request):
+    return render(request, "settings.html", {})
+
+
 def requestAuth(_request, provider):
     """
     Initiates an OAuth authentication request (Github, etc).

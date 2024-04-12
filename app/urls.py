@@ -37,6 +37,7 @@ urlpatterns = [
     path("login/", views.userLogin, name="login_view"),
     path("logout/", views.userLogout, name="logout_view"),
     path("welcome", views.logout, name="logout_view"),
+    path("settings", views.settingsView, name="settings_view"),
     path("auth/<str:provider>", views.requestAuth, name="authorize"),
     path("callback/", views.Callback.as_view(), name="callback"),
     path('redirect/', views.redirectOffSite,name='offsite_redirect'),
