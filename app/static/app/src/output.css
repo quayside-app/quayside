@@ -783,6 +783,10 @@ video {
   height: 18rem;
 }
 
+.h-\[75dvh\] {
+  height: 75dvh;
+}
+
 .h-\[93dvh\] {
   height: 93dvh;
 }
@@ -798,34 +802,6 @@ video {
 
 .h-screen {
   height: 100vh;
-}
-
-.h-\[95d\] {
-  height: 95d;
-}
-
-.h-\[95\] {
-  height: 95;
-}
-
-.h-\[95dvh\] {
-  height: 95dvh;
-}
-
-.h-\[dvh\] {
-  height: dvh;
-}
-
-.h-\[70dvh\] {
-  height: 70dvh;
-}
-
-.h-\[80dvh\] {
-  height: 80dvh;
-}
-
-.h-\[75dvh\] {
-  height: 75dvh;
 }
 
 .max-h-\[60dvh\] {
@@ -927,10 +903,6 @@ video {
 
 .overflow-hidden {
   overflow: hidden;
-}
-
-.overflow-x-auto {
-  overflow-x: auto;
 }
 
 .overflow-y-auto {

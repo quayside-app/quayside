@@ -14,24 +14,24 @@
 
     <div class="flex  mx-4  w-full  h-full text-xs sm:text-xl">
       
-      <div class="w-1/3 m-2 p-2 rounded-xl bg-neutral-800">
-        <div class="font-bold text-md sm:text-2xl my-2">Todo</div>
+      <div class="w-1/3 m-2 p-2 rounded-xl bg-neutral-800" >
+        <div class="font-bold text-md sm:text-2xl my-2" >Todo</div>
         <div id="todoListDiv" >
-          <div id="todolist" class="overflow-y-auto  h-[75dvh]"></div>
+          <div id="Todo" class="overflow-y-auto  h-[75dvh]" ondragover="allowDrop(event)" ondrop="drop(event, this)"></div>
         </div>
       </div>
 
       <div class="w-1/3 m-2 p-2 rounded-xl bg-amber-400">
         <div class="font-bold text-md sm:text-2xl my-2">In-Progress</div>
         <div id="inProgListDiv">
-          <div id="inproglist" class="overflow-y-auto  h-[75dvh]"></div>
+          <div id="In-Progress" class="overflow-y-auto h-[75dvh]" ondragover="allowDrop(event)" ondrop="drop(event, this)"></div>
         </div>
       </div>  
 
       <div class="w-1/3 m-2 p-2 rounded-xl bg-teal-700">
         <div class="font-bold text-md sm:text-2xl my-2">Done</div>
         <div id="doneListDiv" >
-          <div id="donelist" class="overflow-y-auto  h-[75dvh]"></div>
+          <div id="Done" class="overflow-y-auto  h-[75dvh]" ondragover="allowDrop(event)" ondrop="drop(event, this)"></div>
         </div>
       </div>
 
@@ -50,36 +50,77 @@
       if (!response.ok) throw new Error('Network response was not ok')
       const tasks = await response.json()
       console.log(tasks)
-      const todoListElement = document.getElementById('todolist')
-      tasks['Todo'].forEach(function (task) {
+      const todoListElement = document.getElementById('Todo')
+      tasks['Todo'].forEach(function (task, i) {
         const listLink = document.createElement('a')
         //listLink.href = `/project/${project.id}/graph`
+        listLink.id = task.id
         listLink.textContent = task.name
         listLink.className = 'block rounded-lg my-2 p-1 hover:bg-neutral-500 bg-neutral-600 '
+        listLink.draggable = 'true'
+        listLink.setAttribute('ondragstart', 'drag(event)');
+        listLink.setAttribute('ondrop', 'return false');
+        listLink.setAttribute('priority', task.priority);
         todoListElement.appendChild(listLink)
       })
 
-      const inProgListElement = document.getElementById('inproglist')
-      tasks['In-Progress'].forEach(function (task) {
+      const inProgListElement = document.getElementById('In-Progress')
+      tasks['In-Progress'].forEach(function (task, i) {
         const listLink = document.createElement('a')
         //listLink.href = `/project/${project.id}/graph`
+        listLink.id = task.id
         listLink.textContent = task.name
-        listLink.className = 'block rounded-lg my-2 p-1 hover:bg-neutral-500 bg-neutral-600 '
+        listLink.className = 'block rounded-lg my-2 p-1 hover:bg-neutral-500 bg-neutral-600'
+        listLink.draggable = 'true'
+        listLink.setAttribute('ondragstart', 'drag(event)');
+        listLink.setAttribute('ondrop', 'return false');
+        listLink.setAttribute('priority', task.priority);
         inProgListElement.appendChild(listLink)
       })
 
-      const doneListElement = document.getElementById('donelist')
-      tasks['Done'].forEach(function (task) {
+      const doneListElement = document.getElementById('Done')
+      tasks['Done'].forEach(function (task, i) {
         const listLink = document.createElement('a')
         //listLink.href = `/project/${project.id}/graph`
+        listLink.id = task.id
         listLink.textContent = task.name
         listLink.className = 'block rounded-lg my-2 p-1 hover:bg-neutral-500 bg-neutral-600 '
+        listLink.draggable = 'true'
+        listLink.setAttribute('ondragstart', 'drag(event)');
+        listLink.setAttribute('ondrop', 'return false');
+        listLink.setAttribute('priority', task.priority);
         doneListElement.appendChild(listLink)
       })
     } catch (error) {
       console.error('There has been a problem with fetching projects:', error)
     }
   })()
+</script>
+
+<script>
+  function allowDrop(allowdropevent)
+  {
+    allowdropevent.preventDefault();
+  }
+
+  function drag(dragevent) {
+    dragevent.dataTransfer.setData("text", dragevent.target.id);
+  }
+
+  async function drop(dropevent, element) {
+    dropevent.preventDefault();
+    
+    const data = dropevent.dataTransfer.getData("text");
+    const task = document.getElementById(data);
+    const taskPriority = task.getAttribute('priority');
+    element.appendChild(task);
+
+    const response = await fetch('{{ apiUrl }}/kanban/', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({id: task.id, status: element.id, priority: parseInt(taskPriority)})
+    })
+  }
 </script>
 
 {% endblock %}
