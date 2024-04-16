@@ -1,4 +1,5 @@
 import os
+import re
 from oauthlib.oauth2 import WebApplicationClient as WAC
 import requests
 from rest_framework import status
@@ -131,21 +132,50 @@ def taskView(request, projectID, taskID):
     if request.method == "POST":
 
         form = TaskForm(request.POST)
-
+        
         if form.is_valid():
+        
             newData = form.cleaned_data
-            newData["id"] = taskID
-            newData["durationHours"] = (int(newData["durationDays"]) * 8) + int(newData["durationHours"])
-            message, status_code = TasksAPIView.updateTask(newData)
 
-            if status_code != status.HTTP_200_OK:
-                print(f"Task update failed: {message}")
-                return HttpResponseServerError(f"An error occurred: {message}")
-            return redirect(f"/project/{projectID}/graph")
+            durationMinutes = 0
+            durationList = re.findall(r"(\d+)(d|h|m|)", newData["duration"].lower())
+
+            for duration in durationList:
+                quantity = duration[1]
+
+                if quantity.find("d") != -1:
+                    durationMinutes += int(duration[0]) * 8 * 60
+                elif quantity.lower().find("h") != -1:
+                    durationMinutes += int(duration[0]) * 60
+                elif quantity.lower().find("m") != -1:
+                    durationMinutes += int(duration[0])
+                
+            if (durationMinutes > 0):
+                newData["id"] = taskID
+                newData["durationMinutes"] = durationMinutes
+                message, status_code = TasksAPIView.updateTask(newData)
+
+                if status_code != status.HTTP_200_OK:
+                    print(f"Task update failed: {message}")
+                    return HttpResponseServerError(f"An error occurred: {message}")
+                return redirect(f"/project/{projectID}/graph")
 
     # If a GET (or any other method) we'll create a blank form
     else:
         taskData = TasksAPIView.getTasks({"id": taskID})[0][0]
+        
+        durationString = ""
+        durationMinutes = taskData.get("durationMinutes") or 0
+        if durationMinutes != 0:
+            work_days = int(durationMinutes / 60 / 8)
+            work_hours = int(durationMinutes / 60) % 8
+            minutes = durationMinutes % 60
+            
+            if work_days != 0: durationString = str(work_days) + "d "
+            if work_hours != 0: durationString += str(work_hours) + "h "
+            if minutes != 0: durationString += str(minutes) + "m"
+            durationString.strip()
+        
         # Populate initial form data
         if taskData is not None:
             initialData = {
@@ -154,8 +184,7 @@ def taskView(request, projectID, taskID):
                 "status": taskData.get("status", ""),
                 "startDate": taskData.get("startDate", ""),
                 "endDate": taskData.get("endDate", ""),
-                "durationDays": int((taskData.get("durationHours") or 0) / 8),
-                "durationHours": (taskData.get("durationHours") or 0) % 8
+                "duration": durationString
             }
             form = TaskForm(initial=initialData)
         else:

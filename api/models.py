@@ -59,7 +59,7 @@ class Task(mongo.Document):
     startDate = mongo.DateField(null=True)
     endDate = mongo.DateField(null=True)
     status = mongo.StringField(choices=('In-Progress', 'Todo', 'Done'))
-    durationHours = mongo.IntField(null=False)
+    durationMinutes = mongo.IntField(null=False)
 
     meta = {
         "collection": "Task",  # Need to specify UPPER Case

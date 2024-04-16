@@ -35,7 +35,7 @@ class TasksAPIView(APIView):
                 - description (str)
                 - startDate (date, 'YYYY-MM-DD')
                 - endDate (date, 'YYYY-MM-DD')
-                - durationHours (int)
+                - durationMinutes (int)
 
 
         @return: A Response object containing a JSON array of serialized Task objects that
@@ -67,7 +67,7 @@ class TasksAPIView(APIView):
                 - description (str)
                 - startDate (date, 'YYYY-MM-DD')
                 - endDate (date, 'YYYY-MM-DD')
-                - durationHours (int)
+                - durationMinutes (int)
 
         @return: A Response object with the created task(s) data or an error message.
 
@@ -104,7 +104,7 @@ class TasksAPIView(APIView):
                 - description (str)
                 - startDate (date, 'YYYY-MM-DD')
                 - endDate (date, 'YYYY-MM-DD')
-                - durationHours (int)
+                - durationMinutes (int)
                 
         @return: A Response object with the updated task data or an error message.
 

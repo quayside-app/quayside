@@ -83,26 +83,16 @@ class TaskForm(forms.Form):
         ),
     )
     
-    durationDays = forms.IntegerField(
-        label="Days",
-        required=False,
-        widget=forms.Select(
-            choices=[(x,x) for x in range(0, 11)],
+    duration = forms.CharField(
+        required=True,
+        widget=forms.TextInput(
             attrs={
-                "class": "text-xs md:text-base inline-block pl-1 py-1  rounded-md  bg-neutral-600 outline-none placeholder-gray-400"
+                "placeholder": "Ex: 1d 3h 30m",
+                "type": "text",
+                "class": "w-full block bg-neutral-800 outline-none sm:text-2xl font-bold",
+                'rows': 1,
             }
         ),
-    )
-    
-    durationHours = forms.IntegerField(
-        label="Hours",
-        required=False,
-        widget=forms.Select(
-			choices=[(x,x) for x in range(0, 9)],
-            attrs={
-                "class": "text-xs md:text-base inline-block pl-1 py-1  rounded-md  bg-neutral-600 outline-none placeholder-gray-400"
-            }
-		),
     )
 
 
