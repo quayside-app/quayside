@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none" stroke="currentcolor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+    <!-- Large Circle -->
+    <circle cx="16" cy="16" r="15" fill="none" />
+
+    <!-- Medium Circle -->
+    <circle cx="16" cy="16" r="8" fill="none" />
+
+    <!-- Center Dot -->
+    <circle cx="16" cy="16" r="1" />
+</svg>

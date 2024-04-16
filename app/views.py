@@ -281,6 +281,26 @@ def settingsView(request):
     return render(request, "settings.html", {})
 
 
+@apiKeyRequired
+def inviteView(request):
+    return render(request, "invite.html", {})
+
+
+@apiKeyRequired
+def tutorialView(request):
+    return render(request, "tutorial.html", {})
+
+
+@apiKeyRequired
+def marketplaceView(request):
+    return render(request, "marketplace.html", {})
+
+
+@apiKeyRequired
+def feedbackView(request):
+    return render(request, "feedback.html", {})
+
+
 def requestAuth(_request, provider):
     """
     Initiates an OAuth authentication request (Github, etc).

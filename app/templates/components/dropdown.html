@@ -1,0 +1,16 @@
+<button id="{{ id }}DropdownButton" class="flex pt-1 pb-1 hover:text-neutral-500 stroke-white hover:stroke-neutral-500">
+    <div class="-rotate-90 my-auto" id="{{ id }}Dropdown">{% include "components/svg/arrow.svg" %}</div>
+    
+    <div class="w-6 h-6 my-auto mx-1">{% include "components/svg/dropdown/"|add:id|add:".svg" %}</div>
+
+    <div class="sm:text-xl font-medium pr-2">{{ title }}</div>
+</button>
+<div id="{{ id }}ListDiv" class="pl-2 overflow-y-auto max-h-[60dvh]">
+    <ul id="{{ id }}List"></ul>
+</div>
+
+<script>
+document.getElementById('{{ id }}DropdownButton').addEventListener('click', function () {
+    toggleDropdown('{{ id }}');
+});
+</script> 
