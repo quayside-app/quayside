@@ -1,13 +1,15 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from bson.objectid import ObjectId
 from django.utils.decorators import method_decorator
+from django.core.exceptions import ObjectDoesNotExist
 
 from api.decorators import apiKeyRequired
 from api.serializers import ProjectSerializer
 from api.views.v1.tasks import TasksAPIView
 from api.models import Project
-from django.core.exceptions import ObjectDoesNotExist 
+from api.utils import getAuthorizationToken, decodeApiKey
 
 
 @method_decorator(
@@ -21,7 +23,8 @@ class ProjectsAPIView(APIView):
     def get(self, request):
         """
         Retrieves a list of Project objects from MongoDB, filtered based on query parameters
-        provided in the request. Requires 'apiToken' passed in auth header or cookies.
+        provided in the request. Requires 'apiToken' passed in auth header or cookies. Only gets
+        projects where UserID matches.
 
         @param {HttpRequest} request - The request object.
             The query parameters can be:
@@ -48,7 +51,6 @@ class ProjectsAPIView(APIView):
                 - completionStatus (str)
                 - teams (list[ObjectId])
 
-
         @return A Response object containing a JSON array of serialized Project objects that
         match the query parameters.
 
@@ -56,7 +58,8 @@ class ProjectsAPIView(APIView):
             fetch('quayside.app/api/v1/projects?userIDs=1234');
         """
         responseData, httpStatus = self.getProjects(
-            request.query_params.dict())
+            request.query_params.dict(), getAuthorizationToken(request)
+        )
         return Response(responseData, status=httpStatus)
 
     def post(self, request):
@@ -87,7 +90,7 @@ class ProjectsAPIView(APIView):
                 - informationLinks (list[str])
                 - completionStatus (str)
                 - teams (list[ObjectId])
-
+        @param {str} authorizationToken - JWT authorization token.
 
         @return A Response object containing a JSON array of the created project.
 
@@ -100,7 +103,9 @@ class ProjectsAPIView(APIView):
             });
 
         """
-        responseData, httpStatus = self.createProjects(request.data)
+        responseData, httpStatus = self.createProjects(
+            request.data, getAuthorizationToken(request)
+        )
         return Response(responseData, status=httpStatus)
 
     def put(self, request):
@@ -144,7 +149,9 @@ class ProjectsAPIView(APIView):
             });
 
         """
-        responseData, httpStatus = self.updateProject(request.data)
+        responseData, httpStatus = self.updateProject(
+            request.data, getAuthorizationToken(request)
+        )
         return Response(responseData, status=httpStatus)
 
     def delete(self, request):
@@ -164,34 +171,55 @@ class ProjectsAPIView(APIView):
             });
         """
 
-        responseData, httpStatus = self.deleteProjects(request.query_params)
+        responseData, httpStatus = self.deleteProjects(
+            request.query_params, getAuthorizationToken(request)
+        )
         return Response(responseData, status=httpStatus)
 
     @staticmethod
-    def getProjects(projectData):
+    def getProjects(projectData, authorizationToken):
         """
         Service API function that can be called internally as well as through the API to get
         project data based on input data.
 
-        @param projectData      Dict for a single project dict or list of dicts for multiple tasks.
+        @param projectData      Dict for a single project.
+        @param authorizationToken      JWT authorization token.
         @return      A tuple of (response_data, http_status).
         """
         try:
 
-            projects = Project.objects.filter(**projectData)  # Query mongo
-            serializer = ProjectSerializer(projects, many=True)
+            # Only get project where user is a contributor
+            userID = decodeApiKey(authorizationToken).get("userID")
 
+            if "userIDs" not in projectData:
+                projectData["userIDs"] = []
+            elif not isinstance(projectData["userIDs"], list):
+                projectData["userIDs"] = [projectData["userIDs"]]
+            if userID not in projectData["userIDs"]:
+                projectData["userIDs"].append(userID)
+
+            projects = Project.objects.filter(
+                userIDs__all=projectData.pop("userIDs"), **projectData
+            )  # Query mongo
+
+            if not projects:
+                return {
+                    "message": "No projects were found or you do not have authorization."
+                }, status.HTTP_400_BAD_REQUEST
+            serializer = ProjectSerializer(projects, many=True)
             return serializer.data, status.HTTP_200_OK
-        except Exception:
-            return {"message": "Projects not found"}, status.HTTP_500_INTERNAL_SERVER_ERROR
+        except Exception as e:
+            print("Error:", e)
+            return {"message": e}, status.HTTP_500_INTERNAL_SERVER_ERROR
 
     @staticmethod
-    def updateProject(projectData):
+    def updateProject(projectData, authorizationToken):
         """
         Service API function that can be called internally as well as through the API to update
         project data based on input data.
 
         @param projectData      Dict for a single project.
+        @param authorizationToken      JWT authorization token.
         @return      A tuple of (response_data, http_status).
         """
         if "id" not in projectData:
@@ -202,8 +230,14 @@ class ProjectsAPIView(APIView):
         except ObjectDoesNotExist:
             return "Project not found", status.HTTP_404_NOT_FOUND
 
-        serializer = ProjectSerializer(
-            data=projectData, instance=project, partial=True)
+        # Check if userID is in the project's list of UserIDs
+        userID = decodeApiKey(authorizationToken).get("userID")
+        if ObjectId(userID) not in project["userIDs"]:
+            return {
+                "message": "User not authorized to edit this project"
+            }, status.HTTP_403_FORBIDDEN
+
+        serializer = ProjectSerializer(data=projectData, instance=project, partial=True)
 
         if serializer.is_valid():
             serializer.save()  # Updates projects
@@ -212,17 +246,24 @@ class ProjectsAPIView(APIView):
         return serializer.errors, status.HTTP_400_BAD_REQUEST
 
     @staticmethod
-    def createProjects(projectData):
+    def createProjects(projectData, authorizationToken):
         """
         Service API function that can be called internally as well as through the API to create
         project(s) based on input data.
 
         @param projectData      Dict for a single project dict or list of dicts for multiple tasks.
+        @param authorizationToken      JWT authorization token.
         @return      A tuple of (response_data, http_status).
         """
+        userID = decodeApiKey(authorizationToken).get("userID")
+        if "userIDs" not in projectData or projectData["userIDs"] != [userID]:
+            return {
+                "message": "Request data must contain a list of userIDs with only your user ID present."
+            }, status.HTTP_400_BAD_REQUEST
 
         if isinstance(projectData, list):
             serializer = ProjectSerializer(data=projectData, many=True)
+
         else:
             serializer = ProjectSerializer(data=projectData)
 
@@ -234,31 +275,34 @@ class ProjectsAPIView(APIView):
         return serializer.errors, status.HTTP_400_BAD_REQUEST
 
     @staticmethod
-    def deleteProjects(projectData):
+    def deleteProjects(projectData, authorizationToken):
         """
         Service API function that can be called internally as well as through the API to delete
-        project(s) and all associated tasks.
+        project and all associated tasks.
 
-        @param projectData      Dict for a single project dict or list of dicts for multiple tasks.
+        @param projectData      Dict for a single project
+        @param authorizationToken      JWT authorization token.
         @return      A tuple of (response_data, http_status).
         """
-
-        # Check
         if "id" not in projectData:
-            return "Error: Parameter 'id' required", status.HTTP_400_BAD_REQUEST
+            return {"message": "Parameter 'id' required"}, status.HTTP_400_BAD_REQUEST
+        ID = projectData["id"]
+        project = Project.objects.get(id=ID)
 
-        id = projectData["id"]
+        userID = decodeApiKey(authorizationToken).get("userID")
+        if ObjectId(userID) not in project["userIDs"]:
+            return {
+                "message": "Not authorized to delete project."
+            }, status.HTTP_401_UNAUTHORIZED
 
-        # Delete associated tasks
-        ids = id
-        if not isinstance(id, list):
-            ids = [ids]
+        message, httpsCode = TasksAPIView.deleteTasks(
+            {"projectID": ID}, authorizationToken
+        )
+        if httpsCode != status.HTTP_200_OK:
+            return message, httpsCode
 
-        for id in ids:
-            TasksAPIView.deleteTasks({"projectID": id})
-
-        numberObjectsDeleted = Project.objects(id=id).delete()
+        numberObjectsDeleted = project.delete()
         if numberObjectsDeleted == 0:
-            return "No project(s) found to delete.", status.HTTP_404_NOT_FOUND
+            return "No project found to delete.", status.HTTP_404_NOT_FOUND
 
-        return "Project(s) Deleted Successfully", status.HTTP_200_OK
+        return "Project Deleted Successfully", status.HTTP_200_OK

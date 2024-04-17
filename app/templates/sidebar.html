@@ -7,9 +7,9 @@
 (async function () {
   try {
     const response = await fetch('{{ apiUrl }}/projects/?userIDs={{userID}}')
-
-    if (!response.ok) throw new Error('Network response was not ok')
     const projects = await response.json()
+
+    if (!response.ok) throw new Error(projects.message || 'Network response was not ok')
 
     const projectListElement = document.getElementById('projectList')
     projects.forEach(function (project) {
@@ -20,7 +20,8 @@
       projectListElement.appendChild(listLink)
     })
   } catch (error) {
-    console.error('There has been a problem with fetching projects:', error)
+    console.error('There has been a problem with fetching projects:', error.message)
+    alert('There was an error displaying your list of projects')
   }
 })()
 </script>

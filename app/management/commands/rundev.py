@@ -4,7 +4,7 @@ from django.core.management.base import BaseCommand
 
 
 class Command(BaseCommand):
-    help = """Starts Tailwind CSS build process and Django server for development. 
+    help = """Starts Tailwind CSS build process and Django server for development.
         Run instead of runserver when editing tailwind components."""
 
     def handle(self, *args, **options):
