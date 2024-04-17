@@ -257,14 +257,25 @@ def createProjectView(request):
         form = NewProjectForm(request.POST)
         if form.is_valid():
             # Process the data in form.cleaned_data as required
-            name = form.cleaned_data["description"]
+            name = form.cleaned_data["name"]
+            description = form.cleaned_data["description"]
 
             projectData, _ = ProjectsAPIView.createProjects(
-                {"name": name, "userIDs": [userId]}
+                {
+                    "name": name,
+                    "description": description, 
+                    "userIDs": [userId]
+                }
             )
             projectID = projectData.get("id")
+
             GeneratedTasksAPIView.generateTasks(
-                {"projectID": projectID, "name": name})
+                {
+                    "projectID": projectID, 
+                    "name": name,
+                    "description": description,
+                }
+            )
 
             # Redirect to project
             return HttpResponseRedirect(f"/project/{projectID}/graph")

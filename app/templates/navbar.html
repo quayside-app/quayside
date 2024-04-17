@@ -8,10 +8,10 @@
         </div>
         <div class='flex w-6/12 justify-end mx-1 my-auto text-xl font-bold'>
             {%if username %}
-            <a href='/logout'class="hover:text-neutral-500" >Welcome {{ username }}!</a>
-            <div class="w-6 h-6 my-auto  ml-2" id="settingsDropdown">{% include "components/svg/settings.svg" %}</div>
+            <a href='/logout/'class="hover:text-neutral-500" >Welcome {{ username }}!</a>
+            <div class="w-6 h-6 my-auto  ml-2" id="settingsDropdown"><a href="/settings/" class="hover:text-neutral-500">{% include "components/svg/settings.svg" %}</a></div>
             {%else%}
-            <a href='/login' class="hover:text-neutral-500">Sign up/Login</a>
+            <a href='/login/' class="hover:text-neutral-500">Sign up/Login</a>
             {%endif%}
         </div>
     </div>
