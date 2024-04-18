@@ -82,12 +82,12 @@ class TaskForm(forms.Form):
     )
     
     duration = forms.CharField(
-        required=True,
+        required=False,
         widget=forms.TextInput(
             attrs={
-                "placeholder": "Ex: 1d 3h 30m",
+                "placeholder": "Ex: 2w 3d 4h 30m",
                 "type": "text",
-                "class": "w-full block bg-neutral-800 outline-none sm:text-2xl font-bold",
+                "class": "w-full block bg-neutral-800 outline-none sm:text-2xl font-bold placeholder-gray-400",
                 'rows': 1,
             }
         ),

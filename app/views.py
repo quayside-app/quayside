@@ -56,6 +56,8 @@ def projectGraphView(request, projectID):
     data, httpsCode = ProjectsAPIView.getProjects(
         {"id": projectID}, getAuthorizationToken(request)
     )
+    
+    print(data)
 
     if httpsCode != status.HTTP_200_OK:
         print(f"Project GET failed: {data.get('message')}")
@@ -212,11 +214,13 @@ def taskView(request, projectID, taskID):
             newData = form.cleaned_data
 
             durationMinutes = 0
-            durationList = re.findall(r"(\d+)(d|h|m|)", newData["duration"].lower())
+            durationList = re.findall(r"(\d+)(d|h|m|w)", newData["duration"].lower())
 
             for duration in durationList:
                 quantity = duration[1]
 
+                if quantity.find("w") != -1:
+                    durationMinutes += int(duration[0]) * 5 * 8 * 60
                 if quantity.find("d") != -1:
                     durationMinutes += int(duration[0]) * 8 * 60
                 elif quantity.lower().find("h") != -1:
@@ -241,6 +245,7 @@ def taskView(request, projectID, taskID):
         data, status_code = TasksAPIView.getTasks(
             {"id": taskID}, getAuthorizationToken(request)
         )
+        print(data)
         if status_code != status.HTTP_200_OK:
             print(f"Task fetch failed: {data.get('message')}")
             return HttpResponseServerError(f"An error occurred: {data.get('message')}")
@@ -249,15 +254,17 @@ def taskView(request, projectID, taskID):
         
         durationString = ""
         durationMinutes = taskData.get("durationMinutes") or 0
-        if durationMinutes != 0:
-            work_days = int(durationMinutes / 60 / 8)
-            work_hours = int(durationMinutes / 60) % 8
-            minutes = durationMinutes % 60
-            
-            if work_days != 0: durationString = str(work_days) + "d "
-            if work_hours != 0: durationString += str(work_hours) + "h "
-            if minutes != 0: durationString += str(minutes) + "m"
-            durationString.strip()
+        
+        workWeeks = int(durationMinutes / 60 / 8 / 5)
+        workDays = int(durationMinutes / 60 / 8) % 5
+        workHours = int(durationMinutes / 60) % 8
+        minutes = durationMinutes % 60
+        
+        if workWeeks != 0: durationString += str(workWeeks) + "w "
+        if workDays != 0: durationString = str(workDays) + "d "
+        if workHours != 0: durationString += str(workHours) + "h "
+        if (minutes != 0) or (durationMinutes == 0): durationString += str(minutes) + "m"
+        durationString = durationString.strip()
         
         # Populate initial form data
         if taskData is not None:
@@ -339,6 +346,7 @@ def createTaskView(request, projectID, parentTaskID=""):
         projectData, httpsCode = ProjectsAPIView.getProjects(
             {"id": projectID}, getAuthorizationToken(request)
         )
+        print(projectData)
         if httpsCode != status.HTTP_200_OK:
             print(
                 f"For creating tasks, project GET failed: {projectData.get('message')}"

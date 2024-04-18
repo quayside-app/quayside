@@ -163,7 +163,7 @@ class GeneratedTasksAPIView(APIView):
                     "projectID": projectID,
                     "parentTaskID": parentID,
                     "name": task["name"],
-                    "durationMinutes": task["durationMinutes"]}
+                    "durationMinutes": task["durationMinutes"]
                 },
                 authorizationToken,
             )

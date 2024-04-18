@@ -24,15 +24,13 @@
 				<br>
 				<label class="text-white">Estimated Duration:</label>
 				<br>
-				<div class="flex space-x-10">
-					<div>{{ form.duration }}</div> 
-				</div>
+				<div>{{ form.duration }}</div> 
                 {{ form.description }}
 
                 <div class="flex {% if deleteLink %} justify-between {% else %} justify-end {% endif %}">
                     <!-- Delete Button -->
                     {% if deleteLink %}
-                    <button id="deleteTaskButton" class="mt-4 px-2 py-1 rounded-md  text-white bg-neutral-600 hover:bg-red-500 text-center">
+                    <button type="button" id="deleteTaskButton" class="mt-4 px-2 py-1 rounded-md  text-white bg-neutral-600 hover:bg-red-500 text-center">
                         {% include "components/svg/delete.svg" %}
                     </button>
                     {% endif %}
