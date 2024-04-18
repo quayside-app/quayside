@@ -227,6 +227,9 @@ def taskView(request, projectID, taskID):
                     durationMinutes += int(duration[0]) * 60
                 elif quantity.lower().find("m") != -1:
                     durationMinutes += int(duration[0])
+
+            # if quantity type was not found and only a digit was typed, assume it's minute value
+            if newData["duration"].isdigit(): durationMinutes = int(newData["duration"])
                 
             if (durationMinutes > 0):
                 newData["id"] = taskID
