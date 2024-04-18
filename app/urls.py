@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import views
+from app import views
 
 urlpatterns = [
     path("create-project/", views.createProjectView, name="create-project-view"),
@@ -9,7 +9,7 @@ urlpatterns = [
         views.projectGraphView,
         name="project-graph-view",
     ),
-        path(
+    path(
         "project/<str:projectID>/",
         views.editProjectView,
         name="task-detail-view",
@@ -32,5 +32,5 @@ urlpatterns = [
     path("welcome", views.logout, name="logout_view"),
     path("auth/<str:provider>", views.requestAuth, name="authorize"),
     path("callback/", views.Callback.as_view(), name="callback"),
-    path('redirect/', views.redirectOffSite,name='offsite_redirect'),
+    path("redirect/", views.redirectOffSite, name="offsite_redirect"),
 ]

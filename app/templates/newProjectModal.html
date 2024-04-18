@@ -1,7 +1,7 @@
 
 {% load static %}
 
-<div id="newProjectModal" class="fixed top-20 left-4 z-40 p-5  text-white  bg-neutral-800 rounded-lg shadow-lg shadow-black">
+<div id="newProjectModal" class="hidden fixed top-20 left-4 z-40 p-5  text-white  bg-neutral-800 rounded-lg shadow-lg shadow-black">
     <div class="flex flex-wrap font-semibold text-xl">
         <div class="w-5/6 "> Create Project</div>
         <button id="exitButton" class="w-1/6 text-right  hover:text-gray-500">✕</button> <!-- Go home if exit -->
@@ -30,14 +30,14 @@
 <script src="{% static 'app/js/toggleModal.js' %}"></script>
 
 <script>
-// newProjectButton is in sidebr.html
-setModal("newProjectModal", 'newProjectModal', ['newProjectButton'], ["exitButton"])
+// newProjectButton is in sidebar.html
+// eslint-disable-next-line no-undef
+setModal('newProjectModal', 'newProjectModal', ['newProjectButton'], ['exitButton'])
 
-document.getElementById('createProjectForm').addEventListener('submit', function(event) {
+document.getElementById('createProjectForm').addEventListener('submit', function (event) {
+  const createButton = document.getElementById('createButton')
 
-    let createButton =  document.getElementById('createButton');
-
-    createButton.innerHTML = 
+  createButton.innerHTML =
         `
         <div class="flex justify-center">
             <div class="my-4  px-2 py-1">
@@ -48,8 +48,7 @@ document.getElementById('createProjectForm').addEventListener('submit', function
         </div
         `
 
-    let exitButton = document.getElementById('exitButton')
-    exitButton.classList.toggle('invisible')
-
-});
+  const exitButton = document.getElementById('exitButton')
+  exitButton.classList.toggle('invisible')
+})
 </script>
