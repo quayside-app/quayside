@@ -83,7 +83,7 @@ class GeneratedTasksAPIView(APIView):
                     task or subtask.
 
                     For each subtask, add in the estimated duration of minutes for the task in square 
-                    brackets with the label "hours" also in the braces.
+                    brackets with the label "minutes" also in the braces.
 
                     """,
                 },
