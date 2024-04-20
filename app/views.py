@@ -183,7 +183,7 @@ def taskView(request, projectID, taskID):
         {"form": form,
          "projectID": projectID,
          "taskID": taskID,
-         "submitLink": f"/project/{projectID}/graph/task/{taskID}",
+         "submitLink": f"/project/{projectID}/graph/task/{taskID}/",
          "exitLink": f"/project/{projectID}/graph",
          "deleteLink": f"/project/{projectID}/graph"},
     )
