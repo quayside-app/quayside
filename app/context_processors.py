@@ -19,11 +19,14 @@ def global_context(request):
         where the user ID is an empty string if not authenticated.
     """
 
+
     # Get userID from jwt if they are logged in
     load_dotenv()
     secretKey = os.getenv("API_SECRET")
     token = request.COOKIES.get("apiToken")
 
+    userID = ""
+    username = ""
     if token:
         decoded = jwt.decode(token, secretKey, algorithms=["HS256"])
         userID = decoded.get("userID")
@@ -34,9 +37,6 @@ def global_context(request):
             return HttpResponseServerError(f"An error occurred: {data.get('message')}")
         username = data[0].get("username")
 
-    else:
-        userID = ""
-        username = ""
 
     return {
         "apiUrl": "/api/v1",

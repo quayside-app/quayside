@@ -193,16 +193,13 @@ class ProjectsAPIView(APIView):
 
             if "userIDs" not in projectData:
                 projectData["userIDs"] = []
-            if not isinstance(projectData["userIDs"], list):
+            elif not isinstance(projectData["userIDs"], list):
                 projectData["userIDs"] = [projectData["userIDs"]]
             if userID not in projectData["userIDs"]:
                 projectData["userIDs"].append(userID)
 
-            userIDs = projectData["userIDs"]
-            del projectData["userIDs"]
-
             projects = Project.objects.filter(
-                **projectData, userIDs__all=userIDs
+                userIDs__all=projectData.pop("userIDs"), **projectData
             )  # Query mongo
 
             if not projects:
