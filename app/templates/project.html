@@ -40,7 +40,12 @@
 <div class=" text-white relative">
 
   <div class="flex justify-between bg-neutral-800 rounded-lg py-2 px-4 m-3 sm:m-6">
-    <div id="projectName" class="my-auto sm:text-2xl"></div>
+    <div class="flex justify-between">
+      <div id="projectName" class="my-auto sm:text-2xl"></div>
+      <a id ='formatButton' href= "#" class=" my-auto rounded-full ml-4 px-2 py-1 bg-neutral-600 hover:bg-gray-500 ">
+        <div id = "formatText" class=" text-xl font-semibold mx-1 "></div>
+      </a> 
+    </div>
 
     <div class="flex svgSizing ">
 
@@ -90,6 +95,22 @@
 * Confirms delete and deletes project when button is clicked.
 */
 
+window.onload = function()
+{
+  var path = document.URL.split("/");
+  var format = path[path.length - 2];
+  
+  if(format == 'graph')
+  {
+    document.getElementById('formatButton').href = '/project/{{projectID}}/kanban';
+    document.getElementById('formatText').textContent = 'Kanban';
+  }
+  else
+  {
+    document.getElementById('formatButton').href = '/project/{{projectID}}/graph';
+    document.getElementById('formatText').textContent = 'Graph';
+  }
+}
 document.getElementById('deleteProjectButton').addEventListener('click', async function () {
   document.getElementById('confirmDeleteModal').classList.toggle('hidden')
   document.getElementById('deleteProjectButton').disabled = true
@@ -101,6 +122,7 @@ document.getElementById('cancelDeleteButton').addEventListener('click', async fu
   document.getElementById('deleteProjectButton').disabled = false
   document.getElementById('deleteProjectButton').classList.toggle('hover:bg-red-500')
 })
+
 
 document.getElementById('confirmDeleteButton').addEventListener('click', async function () {
   try {
