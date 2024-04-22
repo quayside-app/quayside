@@ -3,21 +3,25 @@
 
 {% block content %}
 
-<div class='pt-80 text-white h-screen text-center'>
+<div class='fixed left-0 pt-80  text-white  w-screen text-center z-0 '>
 
-  <div class='flex justify-center w-full text-3xl md:text-7xl font-bold '>
+
+  <div class='  text-4xl md:text-7xl font-bold '>
     quayside.app
   </div>
 
-  <div class='flex flex-wrap justify-center  w-full md:text-3xl mt-3'>
+  <div class=' md:text-3xl mt-3'>
     Ignite Collaborative Productivity
   </div>
 
-  <a href='/?newProjectModal=true' class='flex flex-wrap justify-center w-full text-sm md:text-xl  mt-10'>
-    <button class='bg-neutral-700 rounded-lg mx-2 px-2 py-1'>
-      Create a project to get started...
-    </button>
-  </a>
+  <div class=' text-sm md:text-xl  mt-3'>
+    <a href='/?newProjectModal=true' >
+      <button class='bg-neutral-700 rounded-lg mx-2 px-2 py-1'>
+        Create a project to get started...
+      </button>
+    </a>
 </div>
+</div>
+
 
 {% endblock content %}
