@@ -116,7 +116,7 @@ function Trees(dataList, {
         tree()
         .nodeSize([dx, dy])
         .separation(function(a, b) {
-          return (a.parent == b.parent ? 1 : 1.2);
+          return (a.parent == b.parent ? 1 : 1.5);
         })(root);
 
         let x0 = Infinity; // Initialize to the largest possible value
@@ -147,13 +147,6 @@ function Trees(dataList, {
         // All graphs are vertically centered at first graph so next graph needs
         // to be translated by half of the first graph + current graph height + buffer
         verticalOffset +=  index > 0 ? treeHeight: treeHeight/2 + 2* dx; 
-
-        console.log("----", index)
-        console.log("x0 x1", x0, x1)
-        console.log("treeHeight", treeHeight)
-        console.log("verticalOffset", verticalOffset)
-
-
 
         const graphGroup = svg.append("g");
 
@@ -265,7 +258,7 @@ function Trees(dataList, {
         
     })
     // Update view box to fit graph
-    const viewBoxHorizontalOffset = 200
+    const viewBoxHorizontalOffset = -30
     const viewBoxVerticalOffset = -firstNodeHeight/2
     const viewBoxHeight = totalHeight * 1.1; // Prevent graph from overflowing
     totalSVG.attr("viewBox", [viewBoxHorizontalOffset, viewBoxVerticalOffset, width, viewBoxHeight]);
