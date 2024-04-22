@@ -11,6 +11,7 @@ from api.decorators import apiKeyRequired
 from api.utils import decryptApiKey, createEncodedApiKey, encryptApiKey
 from api.views.v1.tasks import TasksAPIView
 from api.views.v1.generatedTasks import GeneratedTasksAPIView
+from api.views.v1.generatedTasks import GeneratedQuestionsAPIView
 from api.views.v1.projects import ProjectsAPIView
 from api.views.v1.users import UsersAPIView
 
@@ -269,7 +270,9 @@ def createProjectView(request):
             )
             projectID = projectData.get("id")
 
-            GeneratedTasksAPIView.generateTasks(
+
+            print("WARNING: EXPERIMENTAL STUFF IN createProjectView() IN app/views.py")
+            GeneratedQuestionsAPIView.generateQuestions(
                 {
                     "projectID": projectID, 
                     "name": name,
