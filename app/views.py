@@ -11,6 +11,7 @@ from api.decorators import apiKeyRequired
 from api.utils import decryptApiKey, createEncodedApiKey, encryptApiKey
 from api.views.v1.tasks import TasksAPIView
 from api.views.v1.generatedTasks import GeneratedTasksAPIView
+from api.views.v1.generatedTasks import GeneratedQuestionsAPIView
 from api.views.v1.projects import ProjectsAPIView
 from api.views.v1.users import UsersAPIView
 
@@ -257,14 +258,27 @@ def createProjectView(request):
         form = NewProjectForm(request.POST)
         if form.is_valid():
             # Process the data in form.cleaned_data as required
-            name = form.cleaned_data["description"]
+            name = form.cleaned_data["name"]
+            description = form.cleaned_data["description"]
 
             projectData, _ = ProjectsAPIView.createProjects(
-                {"name": name, "userIDs": [userId]}
+                {
+                    "name": name,
+                    "description": description, 
+                    "userIDs": [userId]
+                }
             )
             projectID = projectData.get("id")
-            GeneratedTasksAPIView.generateTasks(
-                {"projectID": projectID, "name": name})
+
+
+            print("WARNING: EXPERIMENTAL STUFF IN createProjectView() IN app/views.py")
+            GeneratedQuestionsAPIView.generateQuestions(
+                {
+                    "projectID": projectID, 
+                    "name": name,
+                    "description": description,
+                }
+            )
 
             # Redirect to project
             return HttpResponseRedirect(f"/project/{projectID}/graph")

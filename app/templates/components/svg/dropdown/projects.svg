@@ -1,3 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none" stroke="currentcolor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
     <path d="M4 4 L4 28 L28 28 L28 4 Z" />
+    <!-- <circle cx="11" cy="21" r="1" fill="currentcolor"/>
+    <line x1="24" y1="8" x2="19" y2="13" stroke="currentcolor" stroke-linecap="round" stroke-width="2"/>
+    <line x1="19" y1="8" x2="24" y2="13" stroke="currentcolor" stroke-linecap="round" stroke-width="2"/> -->
+    <!-- <path d="M8 24 L8 16 L12 8 L16 16 L20 20 L24 8" /> -->
 </svg>

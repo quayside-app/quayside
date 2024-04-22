@@ -3,16 +3,27 @@ from django import forms
 
 class NewProjectForm(forms.Form):
     """
-    A form for creating a new project with a description.
+    A form for creating a new project with a name and description.
     """
 
-    description = forms.CharField(
-        label="What is your project about?",
+    name = forms.CharField(
+        label="What is your project called?",
         widget=forms.TextInput(
             attrs={
-                "placeholder": "Bake a cake",
-                "class": "w-96 block mt-3 p-2 text-sm rounded-md bg-neutral-600 outline-none placeholder-gray-400",
+                "placeholder": "Operation bake a cake",
+                "class": "w-96 block mt-1 mb-4 p-2 text-sm rounded-md bg-neutral-600 outline-none placeholder-gray-400",
                 "type": "text",
+            }
+        ),
+    )
+
+    description = forms.CharField(
+        label="Describe your project",
+        widget=forms.Textarea(
+            attrs={
+                "placeholder": "I want to bake a chocolate cake for my friends birthday party.",
+                "class": "w-96 block mt-1 mb-2 p-2 text-sm rounded-md bg-neutral-600 outline-none placeholder-gray-400",
+                "rows": 4,
             }
         ),
     )
