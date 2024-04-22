@@ -3,8 +3,8 @@
 
 {% block taskContent %}
 
-<div class="absolute bg-black w-full h-full bg-opacity-75 z-50 text-white">
-    <div class="w-96 md:[w-45rem] lg:w-[50rem] bg-neutral-800 mx-auto mt-20 px-5 py-5 rounded-lg sm:text-xl">
+<div class="absolute bg-black w-full h-full px-3 sm:px-0 bg-opacity-75  text-white svgSizing">
+    <div class="z-40 w-full  sm:mx-auto sm:w-96 md:[w-45rem] lg:w-[50rem] bg-neutral-800  px-2 sm:mt-8 sm:px-5 py-3 sm:py-5 rounded-lg sm:text-xl">
 
         <form action="{{submitLink}}" method="post">
             {% csrf_token %}
@@ -19,19 +19,19 @@
 
                 {{ form.name}}
                 {{ form.status }}
-                <div class="inline pl-4"> {{ form.startDate }} - {{ form.endDate }} </div>
+                <div class="pt-3 sm:pt-0 sm:inline sm:pl-2"> {{ form.startDate }} - {{ form.endDate }} </div>
                 {{ form.description }}
 
                 <div class="flex {% if deleteLink %} justify-between {% else %} justify-end {% endif %}">
                     <!-- Delete Button -->
                     {% if deleteLink %}
-                    <button id="deleteTaskButton" class="my-4 px-2 py-1 rounded-md  text-white bg-neutral-600 hover:bg-red-500 text-center">
+                    <button id="deleteTaskButton" class="mt-4 px-2 py-1 rounded-md  text-white bg-neutral-600 hover:bg-red-500 text-center">
                         {% include "components/svg/delete.svg" %}
                     </button>
                     {% endif %}
 
                     <!-- Save Button -->
-                    <button type='submit' class="my-4 px-2 py-1 rounded-md  text-white bg-neutral-600 hover:bg-gray-500 text-center">
+                    <button type='submit' class="mt-4 px-2 py-1 rounded-md  text-white bg-neutral-600 hover:bg-gray-500 text-center">
                         Save
                     </button>
 
@@ -44,19 +44,28 @@
 </div>
 {% if deleteLink %}
 <script>
-    /*
-    * Deletes tasks when button is clicked.
-    */
-    
-    document.getElementById('deleteTaskButton').addEventListener('click', async function (event) {
-        event.preventDefault();
-        const response = await fetch('{{apiUrl}}/tasks/?id={{taskID}}', { method: 'DELETE' })
-        if (!response.ok) throw new Error('Network response was not ok')
-    
-        // Navigate to project after deleting
-        window.location.href = "{{deleteLink}}"
+/*
+* Deletes tasks when button is clicked.
+*/
 
-    })   
+document.getElementById('deleteTaskButton').addEventListener('click', async function (event) {
+  try {
+    event.preventDefault()
+    const response = await fetch('{{apiUrl}}/tasks/?id={{taskID}}', { method: 'DELETE' })
+
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(errorData.message || 'Network response was not ok')
+    }
+
+    // Navigate to project after deleting
+    window.location.href = '{{deleteLink}}'
+  } catch (error) {
+    // Handle network errors
+    console.error('There was a problem deleting the task:', error.message)
+    alert('There was a problem with your task deletion.') // TODO DO SOMETHING ELSE INSTEAD OF THIS
+  }
+})
 </script>
 {% endif %}
 

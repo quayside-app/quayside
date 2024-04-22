@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import views
+from app import views
 
 urlpatterns = [
     path("create-project/", views.createProjectView, name="create-project-view"),
@@ -34,8 +34,8 @@ urlpatterns = [
         views.createTaskView,
         name="create-task-view",
     ),
-    path("login/", views.userLogin, name="login-view"),
-    path("logout/", views.userLogout, name="userLogout-view"),
+    #path("login/", views.userLogin, name="login-view"),
+    #path("logout/", views.userLogout, name="userLogout-view"),
     path("welcome/", views.logout, name="logout-view"),
     path("settings/", views.settingsView, name="settings-view"),
     path("invite/", views.inviteView, name="invite-view"),

@@ -4,6 +4,21 @@ from dotenv import load_dotenv
 from cryptography.fernet import Fernet
 
 
+def getAuthorizationToken(request) -> str:
+    """
+    Gets authorization token from authorization header OR through cookies (header good for scripts,
+    cookies good for websites).
+    @param request: Request with the authorization token
+    @return: The authorization token.
+    """
+    token = request.META.get("HTTP_AUTHORIZATION")
+
+    # Try cookies if there is not a token in the header
+    if not token:
+        token = request.COOKIES.get("apiToken")
+    return token
+
+
 def createEncodedApiKey(userID: str) -> str:
     """
     Generates an encoded API key for a given user ID using JWT encoding.

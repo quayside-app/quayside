@@ -2,6 +2,7 @@
 {% load static %}
 
 {% block content %}
+
 <script>
 /*
 * Updates project name.
@@ -9,39 +10,57 @@
 (async function () {
   try {
     const response = await fetch('{{apiUrl}}/projects?id={{projectID}}')
-    if (!response.ok) throw new Error('Network response was not ok')
     const projects = await response.json()
+    if (!response.ok) throw new Error(projects.message || 'Network response was not ok')
     const project = projects[0]
 
     const projectNameElement = document.getElementById('projectName')
     projectNameElement.textContent = 'Project: ' + project.name
   } catch (error) {
-    console.error('There has been a problem with fetching projects:', error)
+    // Handle network errors
+    console.error('There was a problem with the fetch operation:', error.message)
+    alert('There was a problem displaying your project details.') // TODO DO SOMETHING ELSE INSTEAD OF THIS
   }
 })()
 </script>
+<style>
+  .svgSizing svg {
+      width: 25px;
+      height: 25px;
+  }
+  
+  /* Smaller size for screens narrower than 600px */
+  @media (max-width: 600px) {
+    .svgSizing svg {
+          width: 15px;
+          height: 15px;
+      }
+  }
+</style>
 <div class=" text-white relative">
 
-  <div class="flex justify-between bg-neutral-800 rounded-lg py-2 px-4 mx-4 mt-4">
+  <div class="flex justify-between bg-neutral-800 rounded-lg py-2 px-4 m-3 sm:m-6">
     <div class="flex justify-between">
       <div id="projectName" class="my-auto sm:text-2xl"></div>
-      <a id ='formatButton' href= "#" class=" rounded-full ml-4 px-2 py-1 bg-neutral-600 hover:bg-gray-500 ">
+      <a id ='formatButton' href= "#" class=" my-auto rounded-full ml-4 px-2 py-1 bg-neutral-600 hover:bg-gray-500 ">
         <div id = "formatText" class=" text-xl font-semibold mx-1 "></div>
       </a> 
     </div>
 
-    <div class="flex">
+    <div class="flex svgSizing ">
 
-      <a href="create-task/" class=" rounded-full mr-4 px-2 py-1 bg-neutral-600 hover:bg-gray-500 ">
-        <div class=" text-2xl font-bold mx-1 ">+</div>
+      <a href="create-task/" class="flex content-center text-center rounded-full mr-4 px-2 py-2 bg-neutral-600 hover:bg-gray-500 ">
+        <button>
+          {% include "components/svg/plus.svg" %}
+        </button>
       </a>
-      <a href="/project/{{projectID}}/" class="flex content-center text-center rounded-full mr-4 px-2 py-1 bg-neutral-600 hover:bg-gray-500 ">
+      <a href="/project/{{projectID}}/" class="flex content-center text-center rounded-full mr-4 px-2 py-2 bg-neutral-600 hover:bg-gray-500 ">
         <button id="editProjectButton">
           {% include "components/svg/edit.svg" %}
         </button>
       </a>
 
-      <button id="deleteProjectButton" class="text-center rounded-full  px-1.5 py-1 bg-neutral-600 hover:bg-red-500">
+      <button id="deleteProjectButton" class="text-center rounded-full px-2 py-2 bg-neutral-600 hover:bg-red-500">
         {% include "components/svg/delete.svg" %}
       </button>
     </div>
@@ -94,7 +113,7 @@ window.onload = function()
 }
 document.getElementById('deleteProjectButton').addEventListener('click', async function () {
   document.getElementById('confirmDeleteModal').classList.toggle('hidden')
-  document.getElementById('deleteProjectButton').disabled = true;
+  document.getElementById('deleteProjectButton').disabled = true
   document.getElementById('deleteProjectButton').classList.toggle('hover:bg-red-500')
 })
 
@@ -106,10 +125,21 @@ document.getElementById('cancelDeleteButton').addEventListener('click', async fu
 
 
 document.getElementById('confirmDeleteButton').addEventListener('click', async function () {
-  const response = await fetch('{{apiUrl}}/projects/?id={{projectID}}', { method: 'DELETE' })
-  if (!response.ok) throw new Error('Network response was not ok')
-  // Navigate Home after deleting
-  window.location.href = '/'
+  try {
+    const response = await fetch('{{apiUrl}}/projects/?id={{projectID}}', { method: 'DELETE' })
+
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(errorData.message || 'Network response was not ok')
+    } else {
+      // Navigate Home after deleting
+      window.location.href = '/'
+    }
+  } catch (error) {
+    // Handle network errors
+    console.error('There was a problem with the fetch operation:', error.message)
+    alert('There was a problem with your deletion.') // TODO DO SOMETHING ELSE INSTEAD OF THIS
+  }
 })
 </script>
 

@@ -1,6 +1,6 @@
 import os
-from dotenv import load_dotenv
 import re
+from dotenv import load_dotenv
 import openai
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -10,6 +10,7 @@ from django.utils.decorators import method_decorator
 from api.serializers import GeneratedTaskSerializer
 from api.views.v1.tasks import TasksAPIView
 from api.decorators import apiKeyRequired
+from api.utils import getAuthorizationToken
 
 
 # Dispatch protects all HTTP requests coming in
@@ -40,15 +41,18 @@ class GeneratedTasksAPIView(APIView):
                 body: JSON.stringify({ name: 'New Project', projectID: '12345' }),
             });
         """
-        responseData, httpStatus = self.generateTasks(request.data)
+        responseData, httpStatus = self.generateTasks(
+            request.data, getAuthorizationToken(request)
+        )
         return Response(responseData, status=httpStatus)
 
     @staticmethod
-    def generateTasks(projectData):
+    def generateTasks(projectData, authorizationToken):
         """
         Service API function that can be called internally as well as through the API to generate
         and save tasks.
         @param {dict} projectData -  Requires 'name' and 'projectID' keys.
+        @param authorizationToken      JWT authorization token.
         @returns {tuple} - A tuple containing the list of created tasks and the HTTP status code.
         """
 
@@ -125,8 +129,7 @@ class GeneratedTasksAPIView(APIView):
 
                 # Find parent task
                 parentTask = next(
-                    (task for task in newTasks if task["id"]
-                     == currentTaskNumber), None
+                    (task for task in newTasks if task["id"] == currentTaskNumber), None
                 )
                 if parentTask:
                     parentTask["subtasks"].append(
@@ -139,13 +142,19 @@ class GeneratedTasksAPIView(APIView):
 
         # Save tasks
 
-        # Function for Parsing Tasks
+        # Function for Parsing Tasks. TODO: do this in 1 db write??
         def parseTask(task: dict, parentID: str, projectID: str):
-            taskData, _ = TasksAPIView.createTasks(
-                {"projectID": projectID, "parentTaskID": parentID,
-                    "name": task["name"]}
+            data, httpsCode = TasksAPIView.createTasks(
+                {
+                    "projectID": projectID,
+                    "parentTaskID": parentID,
+                    "name": task["name"],
+                },
+                authorizationToken,
             )
-
+            if httpsCode != status.HTTP_201_CREATED:
+                return data, httpsCode
+            taskData = data[0]
             if "subtasks" in task:
                 for subtask in task["subtasks"]:
                     parseTask(subtask, taskData["id"], projectID)
@@ -156,9 +165,14 @@ class GeneratedTasksAPIView(APIView):
         # Create a root task if one does not exist
         rootID = None
         if len(newTasks) != 1:
-            taskData, _ = TasksAPIView.createTasks(
-                {"projectID": projectID, "name": projectName}
+            data, httpsCode = TasksAPIView.createTasks(
+                {"projectID": projectID, "name": projectName}, authorizationToken
             )
+            if httpsCode != status.HTTP_201_CREATED:
+                return data, httpsCode
+            taskData = data[0]
+            print(taskData)
+
             rootID = taskData["id"]
             createdTasks.append(taskData)
 

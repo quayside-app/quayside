@@ -53,7 +53,7 @@ function createTaskTrees(tasks) {
 /**
  * Creates a tree visualization using D3.js. Source: https://observablehq.com/@d3/tree
  * 
- * @param {Object} data - The data for the tree structure. Need to be in the structure shown here: https://observablehq.com/@d3/tree
+ * @param {[Object]} dataList - List of the data for the tree structure. Need to be in the structure shown here: https://observablehq.com/@d3/tree
  * @param {Object} [options] - Configuration options for the tree visualization.
  * @param {Function} [options.label] - A function that, given a node d, returns the display name for that node.
  * @param {Function} [options.link] - A function that, given a node d, returns its link (if any).
@@ -64,12 +64,13 @@ function createTaskTrees(tasks) {
  * @returns {Object} The SVG node representing the tree visualization.
  * 
  */
-function Tree(data, {
+function Trees(dataList, {
     label, // given a node d, returns the display name
     link, // given a node d, its link (if any)
     createTaskLink,
     fill, // given a node d, its color (if any)
     width = 200, // outer width, in pixels
+    height = 200
 } = {}) {
     
     let tree = d3.tree // layout algorithm
@@ -80,158 +81,186 @@ function Tree(data, {
     const nodeWidth = 150 //Pixels
     const nodeHeight = 50;  // Pixels
     const maxTextLength = 18
-    
+    let firstNodeHeight = 0
+
+    let verticalOffset = 0; // Initial vertical-offset at the top of the SVG
+    let totalHeight = 0;
 
 
-    const root = d3.hierarchy(data);
-
-    // Compute labels
-    const descendants = root.descendants();
-    const L = label == null ? null : descendants.map(d => label(d.data, d));
-    //const node_fill = fill == null ? null : descendants.map(d => fill(d.data, d));
-
-    // Compute the layout.
-    const dx = 60; // vertical distance
-    //const dy = width / (root.height + padding);
-    const dy = 200;
-    tree().nodeSize([dx, dy])(root);
-
-    // Center the tree.
-    let x0 = Infinity;
-    let x1 = -x0;
-    root.each(d => {
-    if (d.x > x1) x1 = d.x;
-    if (d.x < x0) x0 = d.x;
-    });
-
-    const height = x1 - x0 + dx * 2;
-
-    // Use the required curve
-    if (typeof curve !== "function") throw new Error(`Unsupported curve`);
-    
-    const svg = d3.create("svg")
-        //.attr("viewBox", [-dy, -height/2, width, height])
-        .attr("viewBox", [-300, x0 - 30, width, height])
-        .attr("width", width)
-        .attr("height", height)
-        .attr("style", "max-width: 100%; max-height: 100%; min-height:100%") // Ensure it doesn't exceed the bounds
-        //.attr("style", "max-width: 100%; height:90%;") // Ensure it doesn't exceed the bounds
-        .attr("font-family", "sans-serif")
-        .attr("font-size", 10)
-        .attr("id", "graph-svg")
-        .call(d3.zoom()
+    const totalSVG = d3.create("svg")
+    .attr("width", width)
+    .attr("height", height)
+    .call(d3.zoom()
         .scaleExtent([0.75, 5])
         .on("zoom", (event) => {
             zoomableGroup.attr("transform", event.transform);
-        }));
+        })
+    );
+
+    const zoomableGroup = totalSVG.append("g")
 
 
-    const zoomableGroup = svg.append("g");
-
-    const lines = zoomableGroup.append("g")
-        .attr("fill", "none")
-        .attr("stroke", stroke)
-        .attr("stroke-opacity", strokeOpacity)
-        .attr("stroke-width", strokeWidth)
-        .selectAll("path")
-        .data(root.links())
-        .join("path")
-            .attr("d", d3.link(curve)
-                .x(d => d.y)
-                .y(d => d.x));
-
-    const node = zoomableGroup.append("g")
-    .selectAll("a")
-    .data(root.descendants())
-    .join("a")
-    .attr("xlink:href", link == null ? null : d => link(d.data, d))
-    .attr("transform", d => `translate(${d.y},${d.x})`);
-
-
-
-
-
-    node.append("rect")
-        .attr("fill", d => fill(d.data, d))
-        .attr("rx", 5)
-        .attr("width",  nodeWidth)// .attr("width",  `${maxTextLength*0.85}em`)
-        .attr("height", nodeHeight)
-        .attr("y", -nodeHeight / 2)
-
-    // "+"" Icon
-    const iconGroup = node.append("g")
-                    .attr("transform", `translate(${nodeWidth} 0)`) // Does not allow em as a unit 
-    const iconLink = iconGroup.append("a")
-                    .attr("xlink:href", createTaskLink == null ? null : d => createTaskLink(d.data, d));
-    iconLink.append("circle")
-        .attr("fill", "#555555")
-        .attr("r", 10)
-    iconLink.append("text")
-        .attr("dominant-baseline", "middle")
-        .attr("text-anchor", "middle")
-        .attr("paint-order", "stroke")
-        .attr("fill", "white")
-        .style("font-size", "14px")
-        .text("+")
+    dataList.forEach((data, index) => {
         
+        const root = d3.hierarchy(data);
 
-    if (L) {
-    text = node.append("text")
-        .attr("paint-order", "stroke")
-        .attr("fill", "white")
-        .style("font-size", "14px");
-    
-    // Add text, wrapping it to up to 3 lines
-    text.each(function(d, i) {
-        const MAXLINES = 3;
-        let lineIndex = 0
-        let lineNumber = 0
-        let line = ""
+        // Compute labels
+        const descendants = root.descendants();
+        const L = label == null ? null : descendants.map(d => label(d.data, d));
+        //const node_fill = fill == null ? null : descendants.map(d => fill(d.data, d));
 
-        let words = L[i].split(" ");
+        // Compute the layout.
+        const dx = 60; // vertical distance
+        //const dy = width / (root.height + padding);
+        const dy = 200;
+        tree()
+        .nodeSize([dx, dy])
+        .separation(function(a, b) {
+          return (a.parent == b.parent ? 1 : 1.5);
+        })(root);
+
+        let x0 = Infinity; // Initialize to the largest possible value
+        let x1 = -Infinity; // Initialize to the smallest possible value
+
+        root.each(d => {
+            console.log("d.x",d.x)
+            if (d.x < x0) x0 = d.x; // Find the minimum y-coordinate
+            if (d.x > x1) x1 = d.x; // Find the maximum y-coordinate
+        });
+
+        //const treeHeight =  (x1 - x0)/2 + nodeHeight ; // This gives you the vertical span of the tree plus buffer.
+        const treeHeight =   (x1 - x0) +  dx ; // This gives you the vertical span of the tree plus buffer.
+        totalHeight += treeHeight
+        if (index == 0) firstNodeHeight = treeHeight
+
+        // Use the required curve
+        if (typeof curve !== "function") throw new Error(`Unsupported curve`);
         
-        for (word of words) {
-        // Check if need to move to next line
-        if (word.length + lineIndex > maxTextLength) {
+        const svg = zoomableGroup.append("g")
+            .attr("font-family", "sans-serif")
+            .attr("font-size", 10)
+            .attr("transform", `translate(0,${verticalOffset})`)
+            //.attr("transform", `translate(0,${200*index})`)
+            
+        
+        // Update to position this tree below the last one
+        // All graphs are vertically centered at first graph so next graph needs
+        // to be translated by half of the first graph + current graph height + buffer
+        verticalOffset +=  index > 0 ? treeHeight: treeHeight/2 + 2* dx; 
 
-            // Last line
-            if (lineNumber == MAXLINES - 1) {
-            // Replace last 3 characters with ...
-            if (lineIndex > maxTextLength - 3) {
-                line = line.substring(0, line.length - 3) + '...';
-            } else {
-                line += '...'
-            }
+        const graphGroup = svg.append("g");
+
+        const lines = graphGroup.append("g")
+            .attr("fill", "none")
+            .attr("stroke", stroke)
+            .attr("stroke-opacity", strokeOpacity)
+            .attr("stroke-width", strokeWidth)
+            .selectAll("path")
+            .data(root.links())
+            .join("path")
+                .attr("d", d3.link(curve)
+                    .x(d => d.y)
+                    .y(d => d.x));
+
+        const node = graphGroup.append("g")
+        .selectAll("a")
+        .data(root.descendants())
+        .join("a")
+        .attr("xlink:href", link == null ? null : d => link(d.data, d))
+        .attr("transform", d => `translate(${d.y},${d.x})`);
+
+
+
+
+
+        node.append("rect")
+            .attr("fill", d => fill(d.data, d))
+            .attr("rx", 5)
+            .attr("width",  nodeWidth)// .attr("width",  `${maxTextLength*0.85}em`)
+            .attr("height", nodeHeight)
+            .attr("y", -nodeHeight / 2)
+
+        // "+"" Icon
+        const iconGroup = node.append("g")
+                        .attr("transform", `translate(${nodeWidth} 0)`) // Does not allow em as a unit 
+        const iconLink = iconGroup.append("a")
+                        .attr("xlink:href", createTaskLink == null ? null : d => createTaskLink(d.data, d));
+        iconLink.append("circle")
+            .attr("fill", "#555555")
+            .attr("r", 10)
+        iconLink.append("text")
+            .attr("dominant-baseline", "middle")
+            .attr("text-anchor", "middle")
+            .attr("paint-order", "stroke")
+            .attr("fill", "white")
+            .style("font-size", "14px")
+            .text("+")
+            
+
+        if (L) {
+        text = node.append("text")
+            .attr("paint-order", "stroke")
+            .attr("fill", "white")
+            .style("font-size", "14px");
+        
+        // Add text, wrapping it to up to 3 lines
+        text.each(function(d, i) {
+            const MAXLINES = 3;
+            let lineIndex = 0
+            let lineNumber = 0
+            let line = ""
+
+            let words = L[i].split(" ");
+            
+            for (word of words) {
+            // Check if need to move to next line
+            if (word.length + lineIndex > maxTextLength) {
+
+                // Last line
+                if (lineNumber == MAXLINES - 1) {
+                // Replace last 3 characters with ...
+                if (lineIndex > maxTextLength - 3) {
+                    line = line.substring(0, line.length - 3) + '...';
+                } else {
+                    line += '...'
+                }
+                }
+
+                d3.select(this).append("tspan")
+                .attr("x", 5)
+                .attr("dy", lineNumber== 0 ? -nodeHeight/6 : "1em") // Move the tspan to the next line if not first line
+                .text(line); 
+
+                lineNumber += 1
+                lineIndex = 0
+                line = ""
+
+                if (lineNumber >= MAXLINES) break
             }
 
+            line += word + " "
+            lineIndex += word.length + 1
+
+            }
+
+            // Append Last line if max words not reached
+            if (lineNumber < MAXLINES) {
             d3.select(this).append("tspan")
             .attr("x", 5)
-            .attr("dy", lineNumber== 0 ? -nodeHeight/6 : "1em") // Move the tspan to the next line if not first line
+            .attr("dy", lineNumber == 0 ? -nodeHeight/6 : "1em") // Move the tspan to the next line if not first line
             .text(line); 
+            }
 
-            lineNumber += 1
-            lineIndex = 0
-            line = ""
-
-            if (lineNumber >= MAXLINES) break
+        });
         }
 
-        line += word + " "
-        lineIndex += word.length + 1
-
-        }
-
-        // Append Last line if max words not reached
-        if (lineNumber < MAXLINES) {
-        d3.select(this).append("tspan")
-        .attr("x", 5)
-        .attr("dy", lineNumber == 0 ? -nodeHeight/6 : "1em") // Move the tspan to the next line if not first line
-        .text(line); 
-        }
-
-    });
-    }
-
-    
-    return svg.node();
+        
+        
+    })
+    // Update view box to fit graph
+    const viewBoxHorizontalOffset = -30
+    const viewBoxVerticalOffset = -firstNodeHeight/2
+    const viewBoxHeight = totalHeight * 1.1; // Prevent graph from overflowing
+    totalSVG.attr("viewBox", [viewBoxHorizontalOffset, viewBoxVerticalOffset, width, viewBoxHeight]);
+    return totalSVG.node();
 }

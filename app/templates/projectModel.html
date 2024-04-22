@@ -3,8 +3,9 @@
 
 {% block editProjectContent %}
 
-<div class="absolute bg-black w-full h-full bg-opacity-75 z-50 text-white">
-    <div class="w-96 md:[w-45rem] lg:w-[50rem] bg-neutral-800 mx-auto mt-20 px-5 py-5 rounded-lg sm:text-xl">
+
+<div class="absolute bg-black w-full h-full px-3 sm:px-0 bg-opacity-75 text-white">
+    <div class="w-full sm:w-96 md:[w-45rem] lg:w-[50rem] bg-neutral-800 mx-auto sm:mt-8 px-5 py-5 rounded-lg sm:text-xl  z-40">
 
         <form action="{{submitLink}}" method="post">
             {% csrf_token %}
@@ -19,8 +20,12 @@
                 {{ form.name }}
                 <div class="inline"> {{ form.startDate }} - {{ form.endDate }} </div>
 
-                <div class="flex justify-end">
+                <div class="py-8">
+                    Contributors
+                    <div class="pt-1">{{ form.contributors }}</div>
+                </div>
 
+                <div class="flex justify-end ">
                     <!-- Save Button -->
                     <button type='submit' class="mt-1 mb-4 px-2 py-1 rounded-md  text-white bg-neutral-600 hover:bg-gray-500 text-center">
                         Save
@@ -35,19 +40,18 @@
 </div>
 {% if deleteLink %}
 <script>
-    /*
-    * Deletes tasks when button is clicked.
-    */
-    
-    document.getElementById('deleteTaskButton').addEventListener('click', async function (event) {
-        event.preventDefault();
-        const response = await fetch('{{apiUrl}}/tasks/?id={{taskID}}', { method: 'DELETE' })
-        if (!response.ok) throw new Error('Network response was not ok')
-    
-        // Navigate to project after deleting
-        window.location.href = "{{deleteLink}}"
+/*
+* Deletes tasks when button is clicked.
+*/
 
-    })   
+document.getElementById('deleteTaskButton').addEventListener('click', async function (event) {
+  event.preventDefault()
+  const response = await fetch('{{apiUrl}}/tasks/?id={{taskID}}', { method: 'DELETE' })
+  if (!response.ok) throw new Error('Network response was not ok')
+
+  // Navigate to project after deleting
+  window.location.href = '{{deleteLink}}'
+})
 </script>
 {% endif %}
 

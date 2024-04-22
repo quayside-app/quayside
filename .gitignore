@@ -1,7 +1,8 @@
+.vscode/
 venv/
 .env
 node_modules/
-__pycache__
-*/__pycache__/
+**/__pycache__/
+/staticfiles/
 env
 launch.json

@@ -7,7 +7,7 @@
 </head>
 
 <body>
-  <div class="relative flex justify-center">
+  <div class="relative ">
     {% block taskContent %}{% endblock %}
     {% block editProjectContent %}{% endblock %}
 
@@ -20,34 +20,39 @@
 
 <script src="{% static 'app/js/tree.js' %}"></script>
 <script>
-  // Renders graph using tree.js
-  (async function () {
+// Renders graph using tree.js
+(async function () {
+  try {
     const response = await fetch('{{ apiUrl }}/tasks/?projectID={{projectID}}')
-    if (!response.ok) throw new Error('REST tasks response was not ok.')
     const tasks = await response.json()
-  
+    if (!response.ok) throw new Error(tasks.message || 'Network response was not ok')
+
     const graphElement = document.getElementById('graph')
 
-    // // eslint-disable-next-line no-undef
-    const trees = createTaskTrees(tasks);
+    // eslint-disable-next-line no-undef
+    const trees = createTaskTrees(tasks)
 
-    trees.forEach((tree, index) => {
-        // Create a separate SVG for each tree and append it to the body or a specific container
-        const treeSVG = Tree(tree, {
-        label: (d, n) => d.name,
-        link: (d, n)  => `task/${d.id}`,
-        createTaskLink: (d, n)  =>  `create-task/${d.id}`,
-        fill: (d, n)  => {
-          if(d.status === "In-Progress") return '#EFA610' // Yellow
-          else if (d.status === "Done") return '#01796E' // Teal
-          else return'#323232'
-        }, 
-        width: graphElement.offsetWidth,
-      })
+    // eslint-disable-next-line no-undef
+    const treeSVG = Trees(trees, {
+      label: (d, n) => d.name,
+      link: (d, n) => `task/${d.id}`,
+      createTaskLink: (d, n) => `create-task/${d.id}`,
+      fill: (d, n) => {
+        if (d.status === 'In-Progress') return '#EFA610' // Yellow
+        else if (d.status === 'Done') return '#01796E' // Teal
+        else return '#323232'
+      },
+      width: graphElement.offsetWidth,
+      height: window.innerHeight - 180 // Full height minus padding
+    })
 
-        // Append the SVG to the document
-        graphElement.appendChild(treeSVG);
-  });
+    // Append the SVG to the document
+    graphElement.appendChild(treeSVG)
+  } catch (error) {
+    // Handle network errors
+    console.error('There was a problem with the fetch operation:', error.message)
+    alert('There was a problem displaying your tasks.') // TODO DO SOMETHING ELSE INSTEAD OF THIS
+  }
 })()
 </script>
 

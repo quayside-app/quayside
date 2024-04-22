@@ -1,45 +1,43 @@
-{% extends '_base.html' %}
+
 {% load static %}
 
-{% block content %}
-<script>
-</script>
-<div class=" bg-black w-full h-screen bg-opacity-60">
-    <div class="flex  p-10">
-
-        <div class="p-5  text-white  bg-neutral-800 rounded-lg ">
-            <div class="flex flex-wrap font-semibold text-xl">
-                <div class="w-5/6 ">Create Project</div>
-                <a id="exitButton" class="w-1/6 text-right  hover:text-gray-500" href="/">✕</a> <!-- Go home if exit -->
-            </div>
-
-            <form action="/create-project/" method="post" id="createProjectForm">
-                {% csrf_token %} <!-- Required by Django to prevent Cross Site Scripting -->
-
-                <!-- Project Input(s) -->
-                <div class="pt-4 w-96">
-                    {{ form }}
-                </div>
-
-                <!-- Submit Button -->
-                <div id="createButton">
-                    <div class="flex justify-end">
-                        <button type='submit' class="my-4  px-2 py-1 rounded-md  text-white bg-neutral-600 hover:bg-gray-500 text-center">
-                            Create
-                        </button>
-                    </div>
-                </div>
-            </form>
-
-        </div>
+<div id="newProjectModal" class="hidden fixed top-20 left-4 z-40 p-5  text-white  bg-neutral-800 rounded-lg shadow-lg shadow-black">
+    <div class="flex flex-wrap font-semibold text-xl">
+        <div class="w-5/6 "> Create Project</div>
+        <button id="exitButton" class="w-1/6 text-right  hover:text-gray-500">✕</button> <!-- Go home if exit -->
     </div>
+
+    <form action="/create-project/" method="post" id="createProjectForm">
+        {% csrf_token %} <!-- Required by Django to prevent Cross Site Scripting -->
+
+        <!-- Project Input(s) -->
+        <div class="pt-4 w-72 md:w-96">
+            {{ newProjectForm }} <!-- Comes from the context processor (since in the base class)-->
+        </div>
+
+        <!-- Submit Button -->
+        <div id="createButton">
+            <div class="flex justify-end">
+                <button type='submit' class="my-4  px-2 py-1 rounded-md  text-white bg-neutral-600 hover:bg-gray-500 text-center">
+                    Create
+                </button>
+            </div>
+        </div>
+    </form>
+
 </div>
+
+<script src="{% static 'app/js/toggleModal.js' %}"></script>
+
 <script>
-document.getElementById('createProjectForm').addEventListener('submit', function(event) {
+// newProjectButton is in sidebar.html
+// eslint-disable-next-line no-undef
+setModal('newProjectModal', 'newProjectModal', ['newProjectButton'], ['exitButton'])
 
-    let createButton =  document.getElementById('createButton');
+document.getElementById('createProjectForm').addEventListener('submit', function (event) {
+  const createButton = document.getElementById('createButton')
 
-    createButton.innerHTML = 
+  createButton.innerHTML =
         `
         <div class="flex justify-center">
             <div class="my-4  px-2 py-1">
@@ -50,10 +48,7 @@ document.getElementById('createProjectForm').addEventListener('submit', function
         </div
         `
 
-    let exitButton = document.getElementById('exitButton')
-    exitButton.classList.toggle('invisible')
-
-});
+  const exitButton = document.getElementById('exitButton')
+  exitButton.classList.toggle('invisible')
+})
 </script>
-
-{% endblock %}

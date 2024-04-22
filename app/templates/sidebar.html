@@ -7,10 +7,10 @@
 (async function () {
   try {
     const response = await fetch('{{ apiUrl }}/projects/?userIDs={{userID}}')
-
-    if (!response.ok) throw new Error('Network response was not ok')
     const projects = await response.json()
-    console.log(projects)
+
+    if (!response.ok) throw new Error(projects.message || 'Network response was not ok')
+
     const projectListElement = document.getElementById('projectsList')
     projects.forEach(function (project) {
       const listLink = document.createElement('a')
@@ -20,7 +20,8 @@
       projectListElement.appendChild(listLink)
     })
   } catch (error) {
-    console.error('There has been a problem with fetching projects:', error)
+    console.error('There has been a problem with fetching projects:', error.message)
+    alert('There was an error displaying your list of projects')
   }
 })()
 </script>
@@ -43,30 +44,30 @@
   }
 </style>
 
-<div class="">
-    <div id="sidebarContent" class="w-60 bg-neutral-800 min-h-screen text-white hidden sm:block relative">
-        <div class="px-4 pt-2">
-            <div class="mt-4 sm:text-xl text-center font-medium rounded-lg  py-1 bg-neutral-600 hover:bg-neutral-500">
-                <a href="/create-project"> + Project</a>
-            </div>
+<div class="absolute sm:static z-30">
+  <div id="sidebarContent" class=" relative w-44 bg-neutral-800 min-h-screen px-4 pt-2 text-white hidden sm:block">
+    <button id="newProjectButton" class=" w-full mt-4 sm:text-xl text-center font-medium rounded-lg  py-1 bg-neutral-600 hover:bg-neutral-500">
+      + Project
+    </button>
 
-            <div class="mt-8">
-                <!-- Starred Dropdown -->
-                {% comment %} {% include "components/dropdown.html" with id="starred" title="Starred" %} {% endcomment %}
-                <!-- Projects Dropdown -->
-                {% include "components/dropdown.html" with id="projects" title="Projects" %}
-                <!-- Team Dropdown -->
-                {% comment %} {% include "components/dropdown.html" with id="team" title="Team" %} {% endcomment %}
-                <!-- Objectives Dropdown-->
-                {% comment %} {% include "components/dropdown.html" with id="objectives" title="Objectives" %} {% endcomment %}
-            </div>
-        </div>
+    <div class="mt-8">
+        <!-- Starred Dropdown -->
+        {% comment %} {% include "components/dropdown.html" with id="starred" title="Starred" %} {% endcomment %}
+        <!-- Projects Dropdown -->
+        {% include "components/dropdown.html" with id="projects" title="Projects" %}
+        <!-- Team Dropdown -->
+        {% comment %} {% include "components/dropdown.html" with id="team" title="Team" %} {% endcomment %}
+        <!-- Objectives Dropdown-->
+        {% comment %} {% include "components/dropdown.html" with id="objectives" title="Objectives" %} {% endcomment %}
+    </div>
+</div>
 
-        <button id="collapseButton" class="z-50 absolute p-1 bottom-3 left-3 sm:left-32 rotate-180 sm:rotate-0">
-            <div class="flex rounded-md stroke-white bg-neutral-600 hover:bg-neutral-500">
-                {% include "components/svg/arrow.svg" %}
-            </div>
-        </button>
+  <button id="collapseButton" class="z-50 fixed p-1 bottom-3 left-3 sm:left-32 rotate-180 sm:rotate-0">
+    <div class="flex rounded-md stroke-white bg-neutral-600 hover:bg-neutral-500">
+      {% include "components/svg/arrow.svg" %}
+    </div>
+  </button>
+  {% include "newProjectModal.html" %}
 
         <!-- Four Rectangle Buttons -->
         {% comment %} <div class="absolute bottom-14 left-0 right-0 grid grid-cols-2 gap-0 border-t">
@@ -83,7 +84,7 @@
                 Feedback
             </button>
         </div> {% endcomment %}
-    </div>
+
     
 </div>
 
@@ -127,8 +128,8 @@ function toggleDropdown(type) {
 
 
 // Hides dropdowns by default
-['starred', 'projects', 'team', 'objectives'].forEach(type => {
-    toggleDropdown(type);
-  });
+// ['starred', 'projects', 'team', 'objectives'].forEach(type => {
+//     toggleDropdown(type);
+//   });
 
 </script>
