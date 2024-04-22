@@ -31,7 +31,8 @@
             {%endif%}
 
                 <div class="w-full pt-14">
-                    <div class="" style="background-image: url('{% static 'app/images/background.png' %}'); background-position:center center; background-size:cover;">
+                    <div class=""
+                        style="background-image: url('{% if user.preferences.background_style %}{% static 'app/static/app/images/background-'|add:user.preferences.background_style|add:'.png' %}{% else %}{% static 'app/images/background-dark.png' %}{% endif %}'); background-position:center center; background-size:cover;">
                         {% block content %}
                         {% endblock content %}
                     </div>

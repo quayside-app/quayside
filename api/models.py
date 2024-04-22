@@ -8,6 +8,17 @@ class User(mongo.Document):
     lastName = mongo.StringField()
     teamIDs = mongo.ListField(mongo.ObjectIdField())
     apiKey = mongo.StringField()
+
+    preferences = mongo.DictField(
+        background_image=mongo.StringField(null=True),
+        color_todo=mongo.StringField(null=True),
+        color_in_progress=mongo.StringField(null=True),
+        color_done=mongo.StringField(null=True),
+        color_website=mongo.StringField(null=True),
+        color_text=mongo.StringField(null=True)
+    )
+
+
     meta = {
         "collection": "User",  # Need to specify UPPER Case
         "strict": False,  # If true, throws weird error for __v
