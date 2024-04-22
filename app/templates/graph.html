@@ -32,25 +32,22 @@
     // eslint-disable-next-line no-undef
     const trees = createTaskTrees(tasks)
 
-    //trees.forEach((tree, index) => {
-      // Create a separate SVG for each tree and append it to the body or a specific container
-      // eslint-disable-next-line no-undef
-      const treeSVG = Tree(trees, {
-        label: (d, n) => d.name,
-        link: (d, n) => `task/${d.id}`,
-        createTaskLink: (d, n) => `create-task/${d.id}`,
-        fill: (d, n) => {
-          if (d.status === 'In-Progress') return '#EFA610' // Yellow
-          else if (d.status === 'Done') return '#01796E' // Teal
-          else return '#323232'
-        },
-        width: graphElement.offsetWidth,
-        height: window.innerHeight - 180 // Full height minus padding
-      })
+    // eslint-disable-next-line no-undef
+    const treeSVG = Trees(trees, {
+      label: (d, n) => d.name,
+      link: (d, n) => `task/${d.id}`,
+      createTaskLink: (d, n) => `create-task/${d.id}`,
+      fill: (d, n) => {
+        if (d.status === 'In-Progress') return '#EFA610' // Yellow
+        else if (d.status === 'Done') return '#01796E' // Teal
+        else return '#323232'
+      },
+      width: graphElement.offsetWidth,
+      height: window.innerHeight - 180 // Full height minus padding
+    })
 
-      // Append the SVG to the document
-      graphElement.appendChild(treeSVG)
-    //})
+    // Append the SVG to the document
+    graphElement.appendChild(treeSVG)
   } catch (error) {
     // Handle network errors
     console.error('There was a problem with the fetch operation:', error.message)

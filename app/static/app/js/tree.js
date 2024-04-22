@@ -64,7 +64,7 @@ function createTaskTrees(tasks) {
  * @returns {Object} The SVG node representing the tree visualization.
  * 
  */
-function Tree(dataList, {
+function Trees(dataList, {
     label, // given a node d, returns the display name
     link, // given a node d, its link (if any)
     createTaskLink,
@@ -81,16 +81,15 @@ function Tree(dataList, {
     const nodeWidth = 150 //Pixels
     const nodeHeight = 50;  // Pixels
     const maxTextLength = 18
+    let firstNodeHeight = 0
 
-    let yOffset = 0; // Initial Y-offset at the top of the SVG
-    let totalHeight = 0; // Total height of SVG
+    let verticalOffset = 0; // Initial vertical-offset at the top of the SVG
+    let totalHeight = 0;
 
 
     const totalSVG = d3.create("svg")
     .attr("width", width)
     .attr("height", height)
-    //.attr("style", "max-width: 100%; max-height: 100%; min-height:100%")
-    //.attr("viewBox", [-30, -150, width, height])
     .call(d3.zoom()
         .scaleExtent([0.75, 5])
         .on("zoom", (event) => {
@@ -102,6 +101,7 @@ function Tree(dataList, {
 
 
     dataList.forEach((data, index) => {
+        
         const root = d3.hierarchy(data);
 
         // Compute labels
@@ -119,30 +119,19 @@ function Tree(dataList, {
           return (a.parent == b.parent ? 1 : 1.2);
         })(root);
 
-
-
-        let y0 = Infinity; 
-        let y1 = -Infinity; 
+        let x0 = Infinity; // Initialize to the largest possible value
+        let x1 = -Infinity; // Initialize to the smallest possible value
 
         root.each(d => {
-            if (d.y < y0) y0 = d.y; // Find the minimum y-coordinate
-            if (d.y > y1) y1 = d.y; // Find the maximum y-coordinate
+            console.log("d.x",d.x)
+            if (d.x < x0) x0 = d.x; // Find the minimum y-coordinate
+            if (d.x > x1) x1 = d.x; // Find the maximum y-coordinate
         });
 
-        const treeHeight = y1 - y0; // This gives you the vertical span of the tree
-
-        // let x0 = Infinity; // Initialize to the largest possible value
-        // let x1 = -Infinity; // Initialize to the smallest possible value
-
-        // root.each(d => {
-        //     if (d.x < x0) x0 = d.x; // Find the minimum y-coordinate
-        //     if (d.x > x1) x1 = d.x; // Find the maximum y-coordinate
-        // });
-
-        // const treeHeight = x1 - x0; // This gives you the vertical span of the tree
-
-        yOffset += index > 0 ? treeHeight : 0; // Update yOffset to position this tree below the last one
+        //const treeHeight =  (x1 - x0)/2 + nodeHeight ; // This gives you the vertical span of the tree plus buffer.
+        const treeHeight =   (x1 - x0) +  dx ; // This gives you the vertical span of the tree plus buffer.
         totalHeight += treeHeight
+        if (index == 0) firstNodeHeight = treeHeight
 
         // Use the required curve
         if (typeof curve !== "function") throw new Error(`Unsupported curve`);
@@ -150,8 +139,19 @@ function Tree(dataList, {
         const svg = zoomableGroup.append("g")
             .attr("font-family", "sans-serif")
             .attr("font-size", 10)
-            .attr("transform", `translate(0,${yOffset})`)
-            .attr("id", "graph-svg")
+            .attr("transform", `translate(0,${verticalOffset})`)
+            //.attr("transform", `translate(0,${200*index})`)
+            
+        
+        // Update to position this tree below the last one
+        // All graphs are vertically centered at first graph so next graph needs
+        // to be translated by half of the first graph + current graph height + buffer
+        verticalOffset +=  index > 0 ? treeHeight: treeHeight/2 + 2* dx; 
+
+        console.log("----", index)
+        console.log("x0 x1", x0, x1)
+        console.log("treeHeight", treeHeight)
+        console.log("verticalOffset", verticalOffset)
 
 
 
@@ -264,7 +264,10 @@ function Tree(dataList, {
         
         
     })
-    // Update offset of viewbox
-    totalSVG.attr("viewBox", [-30, -(totalHeight)/4, width, height]);
+    // Update view box to fit graph
+    const viewBoxHorizontalOffset = 200
+    const viewBoxVerticalOffset = -firstNodeHeight/2
+    const viewBoxHeight = totalHeight * 1.1; // Prevent graph from overflowing
+    totalSVG.attr("viewBox", [viewBoxHorizontalOffset, viewBoxVerticalOffset, width, viewBoxHeight]);
     return totalSVG.node();
 }
