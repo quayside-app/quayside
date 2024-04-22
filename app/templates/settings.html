@@ -3,7 +3,7 @@
 
 {% block content %}
 
-<div class=" text-white border-white bg-gray-900 min-h-screen px-20 pt-5">
+<div class=" text-white border-white bg-gray-900 min-h-screen overflow-scroll px-20 pt-5">
 
   <div class="">
     <div class="py-4">
@@ -43,12 +43,45 @@
  
       <p class="text-lg mt-5">Select the background image</p>
       <div class="mt-2">
-        <button class="bg-btn mr-4 mb-4 border-2 border-blue-700 w-32 h-20" style="background-image: url('{% static 'app/images/background-dark.png' %}'); background-position:center center; background-size:cover;"></button>
-        <button class="bg-btn mr-4 mb-4 border-2 border-transparent w-32 h-20" style="background-image: url('{% static 'app/images/background-light.png' %}'); background-position:center center; background-size:cover;"></button>
-        <button class="bg-btn mr-4 mb-4 border-2 border-transparent w-32 h-20" style="background-image: url('{% static 'app/images/background-neon.png' %}'); background-position:center center; background-size:cover;"></button>
+        <button id="dark" class="img-btn mr-4 mb-4 border-2 border-blue-500 w-32 h-20" style="background-image: url('{% static 'app/images/background-dark.png' %}'); background-position:center center; background-size:cover;" onclick="selectImage(event, 'dark')"></button>
+        <button id="light" class="img-btn mr-4 mb-4 border-2 border-transparent w-32 h-20" style="background-image: url('{% static 'app/images/background-light.png' %}'); background-position:center center; background-size:cover;" onclick="selectImage(event, 'light')"></button>
+        <button id="neon" class="img-btn mr-4 mb-4 border-2 border-transparent w-32 h-20" style="background-image: url('{% static 'app/images/background-neon.png' %}'); background-position:center center; background-size:cover;" onclick="selectImage(event, 'neon')"></button>
+        <script>
+          function selectImage(evt, imgName) {
+            let i, imgButtons;
+
+            // Get all elements with class="img-btn" and remove the border.
+            imgButtons = document.querySelectorAll(".img-btn");
+            for (i = 0; i < imgButtons.length; i++) {
+              imgButtons[i].classList.add("border-transparent");
+              imgButtons[i].classList.remove("border-blue-500");
+            }
+
+            // Add a border to the selected img button.
+            evt.currentTarget.classList.add("border-blue-500");
+            evt.currentTarget.classList.remove("border-transparent");
+          }
+
+        </script>
       </div>
 
       <p class="text-lg mt-5">Select the task status colors</p>
+      <div class="mt-2 grid grid-cols-4 gap-4 w-60">
+        <p>TODO</p>
+        <button class="border"></button>
+        <div class="border"></div>
+        <div class="border"></div>
+
+        <p>TODO</p>
+        <div class="border"></div>
+        <div class="border"></div>
+        <div class="border"></div>
+
+        <p>TODO</p>
+        <div class="border"></div>
+        <div class="border"></div>
+        <div class="border"></div>
+      </div>
       <p class="text-lg mt-5">Select the website color</p>
       <p class="text-lg mt-5">Select the font color</p>
       <button class="border mt-8 px-2 rounded-md hover:bg-red-600">Reset Theme</button>
