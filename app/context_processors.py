@@ -8,7 +8,6 @@ from api.views.v1.users import UsersAPIView
 from app.forms import NewProjectForm
 
 
-
 def global_context(request):
     """
     Sets context variables used by EVERY HTML template.
@@ -18,7 +17,6 @@ def global_context(request):
     @returns {dict} - A dictionary with the API URL and the user ID,
         where the user ID is an empty string if not authenticated.
     """
-
 
     # Get userID from jwt if they are logged in
     load_dotenv()
@@ -36,7 +34,6 @@ def global_context(request):
             print(f"User update failed: {data.get('message')}")
             return HttpResponseServerError(f"An error occurred: {data.get('message')}")
         username = data[0].get("username")
-
 
     return {
         "apiUrl": "/api/v1",
