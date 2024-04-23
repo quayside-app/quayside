@@ -11,18 +11,19 @@ class NewProjectForm(forms.Form):
         widget=forms.TextInput(
             attrs={
                 "placeholder": "Operation bake a cake",
-                "class": "w-72 md:w-96 block mt-3 p-2 text-sm rounded-md bg-neutral-600 outline-none placeholder-gray-400",
+                "class": "w-72 md:w-96 block mt-2 mb-4 p-2  text-sm rounded-md bg-neutral-600 outline-none placeholder-gray-400",
                 "type": "text",
             }
         ),
     )
 
     description = forms.CharField(
-        label="Describe your project",
+        label="Describe your project:",
+        required=False,
         widget=forms.Textarea(
             attrs={
-                "placeholder": "I want to bake a chocolate cake for my friends birthday party.",
-                "class": "w-72 md:w-96 block mt-1 mb-2 p-2 text-sm rounded-md bg-neutral-600 outline-none placeholder-gray-400",
+                "placeholder": "I want to bake a chocolate cake for my friend's birthday party.",
+                "class": "w-72 md:w-96 block mt-2 mb-2 p-2 text-sm rounded-md bg-neutral-600 outline-none placeholder-gray-400",
                 "rows": 4,
             }
         ),
@@ -134,6 +135,7 @@ class ProjectForm(forms.Form):
     )
     contributors = forms.CharField(
         label="",
+        required=False,
         widget=forms.Textarea(
             attrs={
                 "placeholder": "Contributor Emails",

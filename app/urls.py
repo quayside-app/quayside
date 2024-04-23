@@ -34,6 +34,11 @@ urlpatterns = [
         views.createTaskView,
         name="create-task-view",
     ),
+    path(
+        "project/<str:projectID>/kanban/create-task/",
+        views.createTaskView,
+        name="create-task-view",
+    ),
     #path("login/", views.userLogin, name="login-view"),
     #path("logout/", views.userLogout, name="userLogout-view"),
     path("welcome/", views.logout, name="logout-view"),

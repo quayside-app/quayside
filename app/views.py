@@ -331,8 +331,10 @@ def createTaskView(request, projectID, parentTaskID=""):
                 return HttpResponseServerError(
                     f"An error occurred: {message.get('message')}"
                 )
+        if "kanban" in request.path:
+            return redirect(f"/project/{projectID}/kanban")
 
-            return redirect(f"/project/{projectID}/graph")
+        return redirect(f"/project/{projectID}/graph")
 
     # If a GET (or any other method) we"ll create a blank form for them to render
     else:
