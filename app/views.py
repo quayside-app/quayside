@@ -119,19 +119,25 @@ def editProjectView(request, projectID):
 
             # Splits on comma, space, or newline. Makes sure only unique emails
             emails = set(re.split(r"\s*[, \n]+\s*", newData["contributors"].strip()))
-            del newData["contributors"]
-            emails = [{"email": email} for email in emails if email]
+            # Filter out empty strings
+            emails = {email for email in emails if email}
 
-            contributorData, httpsCode = UsersAPIView.getUsers(emails)
-            if httpsCode != status.HTTP_200_OK:
-                print(
-                    f"Could not query contributor ids for project: {contributorData.get('message')}"
-                )
-                return HttpResponseServerError(
-                    f"Could not query contributor ids for project: {contributorData.get('message')}"
-                )
+            userIDs = []
+            if emails:
+                del newData["contributors"]
+                emails = [{"email": email} for email in emails if email]
 
-            userIDs = [user["id"] for user in contributorData]
+                contributorData, httpsCode = UsersAPIView.getUsers(emails)
+                if httpsCode != status.HTTP_200_OK:
+                    print(
+                        f"Could not query contributor ids for project: {contributorData.get('message')}"
+                    )
+                    return HttpResponseServerError(
+                        f"Could not query contributor ids for project: {contributorData.get('message')}"
+                    )
+
+                userIDs = [user["id"] for user in contributorData]
+
             currentUserID = decodeApiKey(getAuthorizationToken(request)).get("userID")
             if currentUserID not in userIDs:
                 userIDs.append(currentUserID)
@@ -144,7 +150,7 @@ def editProjectView(request, projectID):
                 print(f"Task update failed: {message}")
                 return HttpResponseServerError(f"An error occurred: {message}")
 
-            return redirect(f"/project/{projectID}/")
+            return redirect(f"/project/{projectID}/graph")
 
     # If a GET (or any other method) we"ll create a blank form
     else:
@@ -331,8 +337,10 @@ def createTaskView(request, projectID, parentTaskID=""):
                 return HttpResponseServerError(
                     f"An error occurred: {message.get('message')}"
                 )
+        if "kanban" in request.path:
+            return redirect(f"/project/{projectID}/kanban")
 
-            return redirect(f"/project/{projectID}/graph")
+        return redirect(f"/project/{projectID}/graph")
 
     # If a GET (or any other method) we"ll create a blank form for them to render
     else:
