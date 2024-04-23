@@ -22,7 +22,7 @@ class NewProjectForm(forms.Form):
         widget=forms.Textarea(
             attrs={
                 "placeholder": "I want to bake a chocolate cake for my friends birthday party.",
-                "class": "w-96 block mt-1 mb-2 p-2 text-sm rounded-md bg-neutral-600 outline-none placeholder-gray-400",
+                "class": "w-72 md:w-96 block mt-1 mb-2 p-2 text-sm rounded-md bg-neutral-600 outline-none placeholder-gray-400",
                 "rows": 4,
             }
         ),
