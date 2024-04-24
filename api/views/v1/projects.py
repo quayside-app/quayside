@@ -272,7 +272,7 @@ class ProjectsAPIView(APIView):
             # Returns data including new primary key
             return serializer.data, status.HTTP_201_CREATED
 
-        return serializer.errors, status.HTTP_400_BAD_REQUEST
+        return {"message":serializer.errors}, status.HTTP_400_BAD_REQUEST
 
     @staticmethod
     def deleteProjects(projectData, authorizationToken):

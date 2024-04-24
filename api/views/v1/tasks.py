@@ -248,7 +248,7 @@ class TasksAPIView(APIView):
             serializer.save()  # Updates tasks
             return serializer.data, status.HTTP_200_OK
 
-        return serializer.errors, status.HTTP_400_BAD_REQUEST
+        return {"message":serializer.errors}, status.HTTP_400_BAD_REQUEST
 
     @staticmethod
     def deleteTasks(taskData, authorizationToken):

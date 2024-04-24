@@ -21,7 +21,7 @@ class User(mongo.Document):
 
 class Project(mongo.Document):
     name = mongo.StringField()
-    description = mongo.StringField()
+    description = mongo.StringField(null=True)
     types = mongo.ListField(mongo.StringField())
     objectives = mongo.ListField(mongo.StringField())
     startDate = mongo.DateField(null=True)  # Allow null values
