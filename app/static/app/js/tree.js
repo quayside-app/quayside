@@ -117,27 +117,29 @@ function Trees(dataList, {
           return (a.parent == b.parent ? 1 : 1.5);
         })(root);
 
-        let x0 = Infinity; // Initialize to the largest possible value
-        let x1 = -Infinity; // Initialize to the smallest possible value
-
-        root.each(d => {
-            console.log("d.x",d.x)
-            if (d.x < x0) x0 = d.x; // Find the minimum y-coordinate
-            if (d.x > x1) x1 = d.x; // Find the maximum y-coordinate
-        });
-
-        const treeHeight =   (x1 - x0) +  dx ; // This gives you the vertical span of the tree plus buffer.
-        verticalOffset += treeHeight/2;
-
         // Use the required curve
         if (typeof curve !== "function") throw new Error(`Unsupported curve`);
-        
+
+        let yMin = Infinity; // Initialize to the largest possible value
+        let yMax = -Infinity; // Initialize to the smallest possible value
+        console.log(index)
+        root.each(d => {
+            if (d.x < yMin) yMin = d.x; // Find the minimum vertical coordinate
+            if (d.x > yMax) yMax = d.x; // Find the maximum vertical coordinate
+            console.log("   d.x", d.x, )
+        });
+
+        const treeHeight = (yMax - yMin) +  dx  // This gives you the vertical span of the tree plus buffer.
+        const topTreeHeight = yMin < 0 ? -yMin : treeHeight/2  // Tree height above parent node.
+        verticalOffset += topTreeHeight
+        console.log("   treeHeight", treeHeight )
+
         const svg = zoomableGroup.append("g")
             .attr("font-family", "sans-serif")
             .attr("font-size", 10)
             .attr("transform", `translate(0,${verticalOffset})`)
         
-        verticalOffset += treeHeight/2; 
+        verticalOffset += (treeHeight- topTreeHeight) // Add rest of tree height below parent node
 
 
         const graphGroup = svg.append("g");
