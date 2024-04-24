@@ -64,6 +64,7 @@ class GeneratedTasksAPIView(APIView):
 
         projectName = serializer.validated_data["name"]
         projectID = serializer.validated_data["projectID"]
+        totalProjectMinutes = 0
 
         # Load ChatGPT creds
         load_dotenv()
@@ -167,6 +168,8 @@ class GeneratedTasksAPIView(APIView):
                 totalMinutes = 0
                 for task in subtasks:
                     totalMinutes += task["durationMinutes"]
+                    
+                totalProjectMinutes += totalMinutes if totalMinutes > 0 else durationMinutes
                 
                 newTasks.insert(0, 
                     {
@@ -207,7 +210,7 @@ class GeneratedTasksAPIView(APIView):
         rootID = None
         if len(newTasks) != 1:
             data, httpsCode = TasksAPIView.createTasks(
-                {"projectID": projectID, "name": projectName, "durationMinutes": durationMinutes}, authorizationToken
+                {"projectID": projectID, "name": projectName, "durationMinutes": totalProjectMinutes}, authorizationToken
             )
             if httpsCode != status.HTTP_201_CREATED:
                 return data, httpsCode
@@ -215,8 +218,6 @@ class GeneratedTasksAPIView(APIView):
 
             rootID = taskData["id"]
             createdTasks.append(taskData)
-
-        print(newTasks)
 
         for task in newTasks:
             taskData = parseTask(task, rootID, projectID)
