@@ -81,10 +81,8 @@ function Trees(dataList, {
     const nodeWidth = 150 //Pixels
     const nodeHeight = 50;  // Pixels
     const maxTextLength = 18
-    let firstNodeHeight = 0
 
     let verticalOffset = 0; // Initial vertical-offset at the top of the SVG
-    let totalHeight = 0;
 
 
     const totalSVG = d3.create("svg")
@@ -119,34 +117,30 @@ function Trees(dataList, {
           return (a.parent == b.parent ? 1 : 1.5);
         })(root);
 
-        let x0 = Infinity; // Initialize to the largest possible value
-        let x1 = -Infinity; // Initialize to the smallest possible value
-
-        root.each(d => {
-            console.log("d.x",d.x)
-            if (d.x < x0) x0 = d.x; // Find the minimum y-coordinate
-            if (d.x > x1) x1 = d.x; // Find the maximum y-coordinate
-        });
-
-        //const treeHeight =  (x1 - x0)/2 + nodeHeight ; // This gives you the vertical span of the tree plus buffer.
-        const treeHeight =   (x1 - x0) +  dx ; // This gives you the vertical span of the tree plus buffer.
-        totalHeight += treeHeight
-        if (index == 0) firstNodeHeight = treeHeight
-
         // Use the required curve
         if (typeof curve !== "function") throw new Error(`Unsupported curve`);
-        
+
+        let yMin = Infinity; // Initialize to the largest possible value
+        let yMax = -Infinity; // Initialize to the smallest possible value
+        console.log(index)
+        root.each(d => {
+            if (d.x < yMin) yMin = d.x; // Find the minimum vertical coordinate
+            if (d.x > yMax) yMax = d.x; // Find the maximum vertical coordinate
+            console.log("   d.x", d.x, )
+        });
+
+        const treeHeight = (yMax - yMin) +  dx  // This gives you the vertical span of the tree plus buffer.
+        const topTreeHeight = yMin < 0 ? -yMin : treeHeight/2  // Tree height above parent node.
+        verticalOffset += topTreeHeight
+        console.log("   treeHeight", treeHeight )
+
         const svg = zoomableGroup.append("g")
             .attr("font-family", "sans-serif")
             .attr("font-size", 10)
             .attr("transform", `translate(0,${verticalOffset})`)
-            //.attr("transform", `translate(0,${200*index})`)
-            
         
-        // Update to position this tree below the last one
-        // All graphs are vertically centered at first graph so next graph needs
-        // to be translated by half of the first graph + current graph height + buffer
-        verticalOffset +=  index > 0 ? treeHeight: treeHeight/2 + 2* dx; 
+        verticalOffset += (treeHeight- topTreeHeight) // Add rest of tree height below parent node
+
 
         const graphGroup = svg.append("g");
 
@@ -259,8 +253,6 @@ function Trees(dataList, {
     })
     // Update view box to fit graph
     const viewBoxHorizontalOffset = -30
-    const viewBoxVerticalOffset = -firstNodeHeight/2
-    const viewBoxHeight = totalHeight * 1.1; // Prevent graph from overflowing
-    totalSVG.attr("viewBox", [viewBoxHorizontalOffset, viewBoxVerticalOffset, width, viewBoxHeight]);
+    totalSVG.attr("viewBox", [viewBoxHorizontalOffset, 0, width, verticalOffset]);
     return totalSVG.node();
 }
