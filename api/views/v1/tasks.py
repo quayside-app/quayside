@@ -306,6 +306,6 @@ class TasksAPIView(APIView):
             ).delete()
 
         if numberObjectsDeleted == 0:
-            return "No tasks found to delete.", status.HTTP_404_NOT_FOUND
+            return {"message": "No tasks found to delete."}, status.HTTP_404_NOT_FOUND
 
-        return "Task(s) Deleted Successfully", status.HTTP_200_OK
+        return {"message":"Task(s) Deleted Successfully"}, status.HTTP_200_OK
