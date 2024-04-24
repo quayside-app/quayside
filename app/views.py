@@ -254,9 +254,9 @@ def taskView(request, projectID, taskID):
                     durationMinutes += int(duration[0]) * 5 * 8 * 60
                 if quantity.find("d") != -1:
                     durationMinutes += int(duration[0]) * 8 * 60
-                elif quantity.lower().find("h") != -1:
+                elif quantity.find("h") != -1:
                     durationMinutes += int(duration[0]) * 60
-                elif quantity.lower().find("m") != -1:
+                elif quantity.find("m") != -1:
                     durationMinutes += int(duration[0])
 
             # if quantity type was not found and only a digit was typed, assume it's minute value
@@ -295,7 +295,7 @@ def taskView(request, projectID, taskID):
         minutes = durationMinutes % 60
         
         if workWeeks != 0: durationString += str(workWeeks) + "w "
-        if workDays != 0: durationString = str(workDays) + "d "
+        if workDays != 0: durationString += str(workDays) + "d "
         if workHours != 0: durationString += str(workHours) + "h "
         if (minutes != 0) or (durationMinutes == 0): durationString += str(minutes) + "m"
         durationString = durationString.strip()
