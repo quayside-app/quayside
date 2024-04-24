@@ -37,6 +37,7 @@ class TasksAPIView(APIView):
                 - description (str)
                 - startDate (date, 'YYYY-MM-DD')
                 - endDate (date, 'YYYY-MM-DD')
+                - status (str)
                 - durationMinutes (int)
 
 
@@ -71,6 +72,7 @@ class TasksAPIView(APIView):
                 - description (str)
                 - startDate (date, 'YYYY-MM-DD')
                 - endDate (date, 'YYYY-MM-DD')
+                - status (str)
                 - durationMinutes (int)
 
         @return: A Response object with the created task(s) data or an error message.
@@ -110,15 +112,15 @@ class TasksAPIView(APIView):
                 - description (str)
                 - startDate (date, 'YYYY-MM-DD')
                 - endDate (date, 'YYYY-MM-DD')
+                - status (str)
                 - durationMinutes (int)
-                
         @return: A Response object with the updated task data or an error message.
 
         @example javascript
             await fetch(`/api/v1/tasks/`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json'},
-                body: JSON.stringify({id: '1234, name: 'Task2'},
+                body: JSON.stringify({id: '1234', name: 'Task2'},
             });
 
         """

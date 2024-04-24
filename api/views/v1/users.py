@@ -11,8 +11,6 @@ from api.decorators import apiKeyRequired
 from api.utils import getAuthorizationToken, decodeApiKey
 
 
-
-
 # dispatch protects all HTTP requests coming in
 @method_decorator(apiKeyRequired, name="dispatch")
 class UsersAPIView(APIView):

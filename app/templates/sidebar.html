@@ -11,7 +11,7 @@
 
     if (!response.ok) throw new Error(projects.message || 'Network response was not ok')
 
-    const projectListElement = document.getElementById('projectList')
+    const projectListElement = document.getElementById('projectsList')
     projects.forEach(function (project) {
       const listLink = document.createElement('a')
       listLink.href = `/project/${project.id}/graph`
@@ -51,27 +51,45 @@
     </button>
 
     <div class="mt-8">
-      <button id="projectDropdownButton" class="flex pt-4 pb-2 hover:text-neutral-500 stroke-white hover:stroke-neutral-500">
-
-        <div class="sm:text-xl font-medium pr-2">Projects</div>
-        <div class="-rotate-90 my-auto" id="projectDropdown">{% include "components/svg/arrow.svg" %}</div>
-
-      </button>
-
-      <div id="projectListDiv" class="pl-2  overflow-y-scroll max-h-[60dvh]">
-        <ul id="projectList"></ul>
-      </div>
+        <!-- Starred Dropdown -->
+        {% comment %} {% include "components/dropdown.html" with id="starred" title="Starred" %} {% endcomment %}
+        <!-- Projects Dropdown -->
+        {% include "components/dropdown.html" with id="projects" title="Projects" %}
+        <!-- Team Dropdown -->
+        {% comment %} {% include "components/dropdown.html" with id="team" title="Team" %} {% endcomment %}
+        <!-- Objectives Dropdown-->
+        {% comment %} {% include "components/dropdown.html" with id="objectives" title="Objectives" %} {% endcomment %}
     </div>
-  </div>
+</div>
 
-  <button id="collapseButton" class=" z-50 fixed p-1 bottom-3 left-3 sm:left-32 rotate-180 sm:rotate-0">
-    <div class="flex rounded-md stroke-white  bg-neutral-600  hover:bg-neutral-500">
+  <button id="collapseButton" class="z-50 fixed p-1 bottom-3 left-3 sm:left-32 rotate-180 sm:rotate-0">
+    <div class="flex rounded-md stroke-white bg-neutral-600 hover:bg-neutral-500">
       {% include "components/svg/arrow.svg" %}
     </div>
   </button>
   {% include "newProjectModal.html" %}
 
+        <!-- Four Rectangle Buttons -->
+        {% comment %} <div class="absolute bottom-14 left-0 right-0 grid grid-cols-2 gap-0 border-t">
+            <button onclick="window.location.href='/invite/'" class="bg-neutral-600 hover:bg-emerald-500 hover:text-black text-white py-4 border-r border-b">
+                Invite
+            </button>
+            <button onclick="window.location.href='/tutorial/'" class="bg-neutral-600 hover:bg-emerald-500 hover:text-black text-white py-4 border-b">
+                Tutorial
+            </button>
+            <button onclick="window.location.href='/marketplace/'" class="bg-neutral-600 hover:bg-emerald-500 hover:text-black text-white py-4 border-r">
+                Marketplace
+            </button>
+            <button onclick="window.location.href='/feedback/'" class="bg-neutral-600 hover:bg-emerald-500 hover:text-black text-white py-4">
+                Feedback
+            </button>
+        </div> {% endcomment %}
+
+    
 </div>
+
+
+
 <script>
   /*
   * Allows sidebar toggle button to work (after DOM has loaded).
@@ -97,12 +115,21 @@
 /*
 * Shows/hides projects with the dropdown.
 */
-document.getElementById('projectDropdownButton').addEventListener('click', function () {
-    const dropdown = document.getElementById('projectDropdown')
-    dropdown.classList.toggle('-rotate-90')
-    dropdown.classList.toggle('rotate-180')
+function toggleDropdown(type) {
+    const dropdown = document.getElementById(`${type}DropdownButton`);
+    const dropdownIcon = document.getElementById(`${type}Dropdown`);
+    const dropdownListDiv = document.getElementById(`${type}ListDiv`);
 
-    const projectListDiv = document.getElementById('projectListDiv')
-    projectListDiv.classList.toggle('hidden')
-})
+    dropdownIcon.classList.toggle('-rotate-90');
+    dropdownIcon.classList.toggle('rotate-180');
+
+    dropdownListDiv.classList.toggle('hidden');
+}
+
+
+// Hides dropdowns by default
+// ['starred', 'projects', 'team', 'objectives'].forEach(type => {
+//     toggleDropdown(type);
+//   });
+
 </script>

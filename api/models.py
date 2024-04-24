@@ -21,6 +21,7 @@ class User(mongo.Document):
 
 class Project(mongo.Document):
     name = mongo.StringField()
+    description = mongo.StringField()
     types = mongo.ListField(mongo.StringField())
     objectives = mongo.ListField(mongo.StringField())
     startDate = mongo.DateField(null=True)  # Allow null values
@@ -60,7 +61,8 @@ class Task(mongo.Document):
     description = mongo.StringField(null=True)
     startDate = mongo.DateField(null=True)
     endDate = mongo.DateField(null=True)
-    status = mongo.StringField(choices=("In-Progress", "Todo", "Done"))
+    status = mongo.StringField(default='Todo', choices=('In-Progress', 'Todo', 'Done'))
+    priority = mongo.IntField(null=True)
     durationMinutes = mongo.IntField(null=False)
 
     meta = {
