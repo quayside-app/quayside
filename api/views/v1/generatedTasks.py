@@ -62,11 +62,15 @@ class GeneratedTasksAPIView(APIView):
             return serializer.errors, status.HTTP_400_BAD_REQUEST
 
         projectName = serializer.validated_data["name"]
+        projectDescription = serializer.validated_data["description"]
         projectID = serializer.validated_data["projectID"]
 
         # Load ChatGPT creds
         load_dotenv()
         openai.api_key = os.getenv("CHATGPT_API_KEY")
+
+        print("========================")
+        print(f"{projectName=}\n{projectDescription=}")
 
         # Call ChatGPT
         completion = openai.chat.completions.create(
@@ -75,15 +79,16 @@ class GeneratedTasksAPIView(APIView):
                 {
                     "role": "system",
                     "content": """You are an assistant for quayside.app, a project management team. 
-                    You are given as input a project or task that a single person or a team 
-                    wants to take on. Divide the task into less than 5 subtasks and list them 
-                    hierarchically in the format where task 1 has subtasks 1.1, 1.2,...
+                    You are given, as input, infromation regarding a project that a single 
+                    person or a team wants to take on. 
+                    Break the project into less than 5 tasks and less than 5 subtasks for each task,
+                    and list them hierarchically in the format where task 1 has subtasks 1.1, 1.2,...
                     and task 2 has subtasks 2.1, 2.2, 2.3,... and so forth. Make sure that every 
                     task is on one line after the number. NEVER create new paragraphs within a 
                     task or subtask.
                     """,
                 },
-                {"role": "user", "content": projectName},
+                {"role": "user", "content": f"Project Name: {projectName}\nProject Description: {projectDescription}"},
             ],
             temperature=0,
             max_tokens=1024,
@@ -176,3 +181,4 @@ class GeneratedTasksAPIView(APIView):
             createdTasks.append(taskData)
 
         return createdTasks, status.HTTP_201_CREATED
+        
