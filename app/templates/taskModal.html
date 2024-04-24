@@ -17,15 +17,20 @@
 
                 <!-- Manually render form for formatting to take effect -->
 
-                {{ form.name}}
+                {{ form.name }}
                 {{ form.status }}
                 <div class="pt-3 sm:pt-0 sm:inline sm:pl-2"> {{ form.startDate }} - {{ form.endDate }} </div>
+				<br>
+				<br>
+				<label class="text-white">Estimated Duration:</label>
+				<br>
+				<div>{{ form.duration }}</div> 
                 {{ form.description }}
 
                 <div class="flex {% if deleteLink %} justify-between {% else %} justify-end {% endif %}">
                     <!-- Delete Button -->
                     {% if deleteLink %}
-                    <button id="deleteTaskButton" class="mt-4 px-2 py-1 rounded-md  text-white bg-neutral-600 hover:bg-red-500 text-center">
+                    <button type="button" id="deleteTaskButton" class="mt-4 px-2 py-1 rounded-md  text-white bg-neutral-600 hover:bg-red-500 text-center">
                         {% include "components/svg/delete.svg" %}
                     </button>
                     {% endif %}

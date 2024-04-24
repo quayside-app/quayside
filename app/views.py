@@ -54,6 +54,8 @@ def projectGraphView(request, projectID):
     data, httpsCode = ProjectsAPIView.getProjects(
         {"id": projectID}, getAuthorizationToken(request)
     )
+    
+    print(data)
 
     if httpsCode != status.HTTP_200_OK:
         print(f"Project GET failed: {data.get('message')}")
@@ -237,30 +239,67 @@ def taskView(request, projectID, taskID):
     if request.method == "POST":
 
         form = TaskForm(request.POST)
-
+        
         if form.is_valid():
+        
             newData = form.cleaned_data
-            newData["id"] = taskID
-            message, status_code = TasksAPIView.updateTask(
-                newData, getAuthorizationToken(request)
-            )
-            if status_code != status.HTTP_200_OK:
-                print(f"Task update failed: {message.get('message')}")
-                return HttpResponseServerError(
-                    f"An error occurred: {message.get('message')}"
-                )
-            return redirect(f"/project/{projectID}/graph")
 
-    # If a GET (or any other method) we"ll create a blank form
+            durationMinutes = 0
+            durationList = re.findall(r"(\d+)(d|h|m|w)", newData["duration"].lower())
+
+            for duration in durationList:
+                quantity = duration[1]
+
+                if quantity.find("w") != -1:
+                    durationMinutes += int(duration[0]) * 5 * 8 * 60
+                if quantity.find("d") != -1:
+                    durationMinutes += int(duration[0]) * 8 * 60
+                elif quantity.find("h") != -1:
+                    durationMinutes += int(duration[0]) * 60
+                elif quantity.find("m") != -1:
+                    durationMinutes += int(duration[0])
+
+            # if quantity type was not found and only a digit was typed, assume it's minute value
+            if newData["duration"].isdigit(): durationMinutes = int(newData["duration"])
+                
+            if (durationMinutes > 0):
+                newData["id"] = taskID
+                newData["durationMinutes"] = durationMinutes
+                message, status_code = TasksAPIView.updateTask(
+                  newData, getAuthorizationToken(request)
+                )
+
+                if status_code != status.HTTP_200_OK:
+                    print(f"Task update failed: {message}")
+                    return HttpResponseServerError(f"An error occurred: {message}")
+                return redirect(f"/project/{projectID}/graph")
+
+    # If a GET (or any other method) we'll create a blank form
     else:
         data, status_code = TasksAPIView.getTasks(
             {"id": taskID}, getAuthorizationToken(request)
         )
+        print(data)
         if status_code != status.HTTP_200_OK:
             print(f"Task fetch failed: {data.get('message')}")
             return HttpResponseServerError(f"An error occurred: {data.get('message')}")
 
         taskData = data[0]
+        
+        durationString = ""
+        durationMinutes = taskData.get("durationMinutes") or 0
+        
+        workWeeks = int(durationMinutes / 60 / 8 / 5)
+        workDays = int(durationMinutes / 60 / 8) % 5
+        workHours = int(durationMinutes / 60) % 8
+        minutes = durationMinutes % 60
+        
+        if workWeeks != 0: durationString += str(workWeeks) + "w "
+        if workDays != 0: durationString += str(workDays) + "d "
+        if workHours != 0: durationString += str(workHours) + "h "
+        if (minutes != 0) or (durationMinutes == 0): durationString += str(minutes) + "m"
+        durationString = durationString.strip()
+        
         # Populate initial form data
         if taskData is not None:
             initialData = {
@@ -269,6 +308,7 @@ def taskView(request, projectID, taskID):
                 "status": taskData.get("status", ""),
                 "startDate": taskData.get("startDate", ""),
                 "endDate": taskData.get("endDate", ""),
+                "duration": durationString
             }
             form = TaskForm(initial=initialData)
         else:
@@ -348,6 +388,7 @@ def createTaskView(request, projectID, parentTaskID=""):
         projectData, httpsCode = ProjectsAPIView.getProjects(
             {"id": projectID}, getAuthorizationToken(request)
         )
+        print(projectData)
         if httpsCode != status.HTTP_200_OK:
             print(
                 f"For creating tasks, project GET failed: {projectData.get('message')}"
