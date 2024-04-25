@@ -64,6 +64,7 @@ class GeneratedTasksAPIView(APIView):
 
         projectName = serializer.validated_data["name"]
         projectID = serializer.validated_data["projectID"]
+        projectDescription = serializer.validated_data["description"]
         totalProjectMinutes = 0
 
         # Load ChatGPT creds
@@ -87,7 +88,7 @@ class GeneratedTasksAPIView(APIView):
                     NEVER create new paragraphs within a task or subtask.
                     """,
                 },
-                {"role": "user", "content": projectName},
+                {"role": "user", "content": f"Project Name: {projectName}\nProject Description: {projectDescription}"},
             ],
             temperature=0,
             max_tokens=1024,
@@ -104,8 +105,6 @@ class GeneratedTasksAPIView(APIView):
 
         degreeOfSeparation = 1
         subtasks = []
-
-        print(lines)
 
         for line in reversed(lines):
             strDuration = re.search(r"\[(\d+(?:\.\d+)?)\s*(minute|hour|day|week)(?:s)?\]", line) # parses duration from text between brackets returned by OpenAI
@@ -220,8 +219,6 @@ class GeneratedTasksAPIView(APIView):
 
             rootID = taskData["id"]
             createdTasks.append(taskData)
-
-        print(newTasks)
 
         for task in newTasks:
             taskData = parseTask(task, rootID, projectID)
