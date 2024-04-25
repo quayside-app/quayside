@@ -272,7 +272,7 @@ class ProjectsAPIView(APIView):
             # Returns data including new primary key
             return serializer.data, status.HTTP_201_CREATED
 
-        return serializer.errors, status.HTTP_400_BAD_REQUEST
+        return {"message":serializer.errors}, status.HTTP_400_BAD_REQUEST
 
     @staticmethod
     def deleteProjects(projectData, authorizationToken):
@@ -298,7 +298,7 @@ class ProjectsAPIView(APIView):
         message, httpsCode = TasksAPIView.deleteTasks(
             {"projectID": ID}, authorizationToken
         )
-        if httpsCode != status.HTTP_200_OK:
+        if httpsCode != status.HTTP_200_OK and httpsCode != status.HTTP_404_NOT_FOUND:
             return message, httpsCode
 
         numberObjectsDeleted = project.delete()
