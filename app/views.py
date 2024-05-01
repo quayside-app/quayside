@@ -263,7 +263,7 @@ def taskView(request, projectID, taskID):
 
 
             # if quantity type was not found and only a int/float was typed, assume it's minute value
-            if re.match(r'^\d*(?:\.\d+)?$', newData["duration"]):
+            if newData["duration"] and re.match(r'^\d*(?:\.\d+)?$', newData["duration"]):
                 durationMinutes = round(float(newData["duration"]))
 
                 
