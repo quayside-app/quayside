@@ -28,15 +28,16 @@
       const response = await fetch('{{ apiUrl }}/kanban/?projectID={{projectID}}')
   
       if (!response.ok) throw new Error('Network response was not ok')
-      const tasks = await response.json()
+      const kanbanTasks = await response.json()
 
-      for (var key in tasks) {
-        // create kanban category colums
-        columns = document.getElementById('columns')
+      // create kanban category columns
+      columns = document.getElementById('columns')
 
+      var orderNumber = 0
+      for (var stat in kanbanTasks["statuses"]) {
         const columnElement = document.createElement('div')
-        const color = 'bg-neutral-800'
-        columnElement.className = "w-1/3 m-2 p-2 rounded-xl " + color
+        const bgColor = 'bg-[#' + stat["color"] + ']'
+        columnElement.className = "w-1/3 m-2 p-2 rounded-xl " + bgColor
 
         const titleElement = document.createElement('div')
         titleElement.className = "font-bold text-md sm:text-2xl my-2"
@@ -48,7 +49,7 @@
         taskDropZone.setAttribute('ondrop', 'drop(event, this)')
         taskDropZone.setAttribute('ondragover', 'allowDrop(event, this)')
 
-        tasks[key].forEach(function (task) {
+        kanbanTasks["taskList"][orderNumber].forEach(function (task) {
           const listLink = document.createElement('a')
           listLink.id = task.id
           listLink.textContent = task.name
@@ -62,6 +63,8 @@
         titleElement.appendChild(taskDropZone)
         columnElement.appendChild(titleElement)
         columns.appendChild(columnElement)
+
+        orderNumber++
       }
 
     } catch (error) {

@@ -81,19 +81,6 @@ def projectKanbanView(request, projectID):
     """
     return render(request, "kanban.html", {"projectID": projectID})
 
-@apiKeyRequired
-def projectKanbanView(request, projectID):
-    """
-    Renders the graph view for a specific project. This view requires an API key in the cookies.
-
-
-    @param {HttpRequest} request - The request object.
-    @param {str} projectID - The ID for the project whose graph is to be rendered.
-    @returns {HttpResponse} - An HttpResponse object that renders the
-        graph.html template with the project ID context.
-    """
-    return render(request, "kanban.html", {"projectID": projectID})
-
 
 @apiKeyRequired
 def editProjectView(request, projectID):

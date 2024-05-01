@@ -46,6 +46,34 @@ class Project(mongo.Document):
         "collection": "Project",  # Need to specify UPPER Case
         "strict": False,  # If true, throws weird error for __v
     }
+    
+    class taskStatues(mongo.EmbeddedDocument):
+        id = mongo.ObjectIdField(),
+        name =  mongo.StringField(),
+        color = mongo.StringField(), # html color code
+        order = mongo.IntField(null=False) # task order on kanban
+
+    # TODO: include a status id instead of using order to back-reference from task?
+    taskStatuses = mongo.ListField(
+        mongo.EmbeddedDocumentField(taskStatues),
+        default=[
+            {
+                "name": "Todo",
+                "color": "afc2ca", # html color code
+                "order": 1 # task order on kanban
+	        },
+            {
+                "name": "In-Progress",
+                "color": "eefb4b",
+                "order": 2 # task order on kanban
+	        },
+            {
+                "name": "Done",
+                "color": "5ff43d", # html color code
+                "order": 3 # task order on kanban
+	        }
+        ]
+    )
 
 
 class Task(mongo.Document):
@@ -61,7 +89,8 @@ class Task(mongo.Document):
     description = mongo.StringField(null=True)
     startDate = mongo.DateField(null=True)
     endDate = mongo.DateField(null=True)
-    status = mongo.StringField(default='Todo', choices=('In-Progress', 'Todo', 'Done'))
+    # status = mongo.StringField(default='Todo', choices=('In-Progress', 'Todo', 'Done'))
+    statusId = mongo.ObjectIdField(),
     priority = mongo.IntField(null=True)
     durationMinutes = mongo.IntField(null=False)
 

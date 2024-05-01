@@ -7,6 +7,8 @@ from api.models import Task
 from api.serializers import TaskSerializer
 from api.decorators import apiKeyRequired
 from api.views.v1.tasks import TasksAPIView
+from api.views.v1.projects import ProjectsAPIView
+from api.utils import getAuthorizationToken
 
 
 @method_decorator(apiKeyRequired, name="dispatch")
@@ -77,25 +79,35 @@ class KanbanAPIView(APIView):
             tasks = Task.objects.filter(projectID=taskData.get("projectID"))
         except Task.DoesNotExist:
             return "Tasks not found for the specified projectID.", status.HTTP_404_NOT_FOUND
+        
+        data, httpsCode = ProjectsAPIView.getProjects({"id": tasks[0]["projectID"]})
+        taskStatues = data.taskStatues
 
-
+        if httpsCode != status.HTTP_200_OK:
+            print(f"Project GET failed: {data.get('message')}")
+            return data, httpsCode
+        
         tasks_by_status = {}
-        for task in tasks:
-            kanbanStatus = task.status
-            if kanbanStatus not in tasks_by_status:
-                tasks_by_status[kanbanStatus] = []
-            tasks_by_status[kanbanStatus].append(task)
+        tasks_by_status["statues"] = sorted(taskStatues.items(), key=lambda status: status.get("order"))
 
-        tasks_by_status = KanbanAPIView.normalizePriority(tasks_by_status)
+        tasks_by_status["taskLists"] = []
 
+        # creates empty task lists for each kanban type
+        for stat in tasks_by_status["statues"]:
+            tasks_by_status["taskLists"][stat.append([])]
 
-        serialized_data = {}
-        for kanban_status, task_list in tasks_by_status.items():
-            serialized_tasks = TaskSerializer(task_list, many=True).data
-            serialized_data[kanban_status] = serialized_tasks
+        for i, task in reversed(list(enumerate(tasks))):
+            # if task does not have a statusId it's put in the first set of tasks or the
+            # left most size of the kanban board
+            if not task.statusId or tasks_by_status["statues"][i].id == task.statusId:
+                tasks_by_status["taskLists"].append(tasks.pop(i))
 
-        if serialized_data:
-            return serialized_data, status.HTTP_200_OK
+        for taskList in tasks_by_status["taskLists"]:
+            KanbanAPIView.normalizePriority(taskList)
+            TaskSerializer(tasks_by_status["taskLists"], many=True).data
+
+        if tasks_by_status["taskLists"]:
+            return tasks_by_status, status.HTTP_200_OK
         else:
             return "No tasks found for the specified projectID.", status.HTTP_404_NOT_FOUND
         
@@ -132,9 +144,9 @@ class KanbanAPIView(APIView):
 
 
         project = updating_task.projectID
-        old_status = updating_task.status
+        old_status = updating_task.statusId
         old_priority = updating_task.priority
-        new_status = taskData.get('status')
+        new_status = taskData.get('statusId')
         new_priority = taskData.get('priority')
 
 
@@ -165,11 +177,10 @@ class KanbanAPIView(APIView):
         updating_task.priority = new_priority
         updating_task.save()
 
-
         return "Kanban successfully updated.", status.HTTP_200_OK
         
     @staticmethod
-    def normalizePriority(tasks_by_status):
+    def normalizePriority(tasksList):
         """
         Normalize the priority of tasks within each status group.
         Ensures all tasks have an integer priority value.
@@ -184,15 +195,11 @@ class KanbanAPIView(APIView):
         Returns:
             dict: Updated tasks grouped by status with normalized priorities.
         """
-        # Loop through status.
-        for status_name, task_list in tasks_by_status.items():
-            # Sort tasks with None pushed to the end
-            sorted_tasks = sorted(task_list, key=lambda x: (x['priority'] is None, x['priority']))
 
-            # Space priority evenly.
-            for index, task in enumerate(sorted_tasks):
-                if task['priority'] != index:
-                    task['priority'] = index
-                    task.save()
-
-        return tasks_by_status
+        taskList = sorted(taskList, key = lambda x: x["priority"])
+        
+        # Space priority evenly.
+        for index, task in enumerate(tasks_by_status):
+            if task['priority'] != index:
+                task['priority'] = index
+                task.save()
