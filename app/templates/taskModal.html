@@ -20,11 +20,13 @@
                 {{ form.name }}
                 {{ form.status }}
                 <div class="pt-3 sm:pt-0 sm:inline sm:pl-2"> {{ form.startDate }} - {{ form.endDate }} </div>
-				<br>
-				<br>
-				<label class="text-white">Estimated Duration:</label>
-				<br>
-				<div>{{ form.duration }}</div> 
+
+				<div class="mt-2 text-white"> 
+                    <span class="mr-2">Estimated Duration: </span>
+                    {{ form.duration }}
+                </div>
+
+
                 {{ form.description }}
 
                 <div class="flex {% if deleteLink %} justify-between {% else %} justify-end {% endif %}">

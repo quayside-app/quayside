@@ -245,41 +245,44 @@ def taskView(request, projectID, taskID):
             newData = form.cleaned_data
 
             durationMinutes = 0
-            durationList = re.findall(r"(\d+)(d|h|m|w)", newData["duration"].lower())
+            # Allow week, day, hour, minute BUT converts to hour/minute
+            durationList = re.findall(r"(\d*\.\d+|\d+)(d|h|m|w)", newData["duration"].lower()) # Matches floats and ints
 
             for duration in durationList:
                 quantity = duration[1]
-
-                if quantity.find("w") != -1:
-                    durationMinutes += int(duration[0]) * 5 * 8 * 60
-                if quantity.find("d") != -1:
-                    durationMinutes += int(duration[0]) * 8 * 60
-                elif quantity.find("h") != -1:
-                    durationMinutes += int(duration[0]) * 60
-                elif quantity.find("m") != -1:
-                    durationMinutes += int(duration[0])
-
-            # if quantity type was not found and only a digit was typed, assume it's minute value
-            if newData["duration"].isdigit(): durationMinutes = int(newData["duration"])
                 
-            if (durationMinutes > 0):
-                newData["id"] = taskID
-                newData["durationMinutes"] = durationMinutes
-                message, status_code = TasksAPIView.updateTask(
-                  newData, getAuthorizationToken(request)
-                )
+                if quantity.find("w") != -1:
+                    durationMinutes += round(float(duration[0]) * 7 * 24 * 60)
+                elif quantity.find("d") != -1:
+                    durationMinutes += round(float(duration[0]) * 24 * 60)
+                elif quantity.find("h") != -1:
+                    
+                    durationMinutes += round(float(duration[0]) * 60)
+                elif quantity.find("m") != -1:
+                    durationMinutes += round(float(duration[0]))
 
-                if status_code != status.HTTP_200_OK:
-                    print(f"Task update failed: {message}")
-                    return HttpResponseServerError(f"An error occurred: {message}")
-                return redirect(f"/project/{projectID}/graph")
+
+            # if quantity type was not found and only a int/float was typed, assume it's minute value
+            if newData["duration"] and re.match(r'^\d*(?:\.\d+)?$', newData["duration"]):
+                durationMinutes = round(float(newData["duration"]))
+
+                
+            newData["durationMinutes"] = durationMinutes
+            newData["id"] = taskID
+            message, status_code = TasksAPIView.updateTask(
+                newData, getAuthorizationToken(request)
+            )
+
+            if status_code != status.HTTP_200_OK:
+                print(f"Task update failed: {message}")
+                return HttpResponseServerError(f"An error occurred: {message}")
+            return redirect(f"/project/{projectID}/graph")
 
     # If a GET (or any other method) we'll create a blank form
     else:
         data, status_code = TasksAPIView.getTasks(
             {"id": taskID}, getAuthorizationToken(request)
         )
-        print(data)
         if status_code != status.HTTP_200_OK:
             print(f"Task fetch failed: {data.get('message')}")
             return HttpResponseServerError(f"An error occurred: {data.get('message')}")
@@ -289,13 +292,11 @@ def taskView(request, projectID, taskID):
         durationString = ""
         durationMinutes = taskData.get("durationMinutes") or 0
         
-        workWeeks = int(durationMinutes / 60 / 8 / 5)
-        workDays = int(durationMinutes / 60 / 8) % 5
-        workHours = int(durationMinutes / 60) % 8
+        
+
+        workHours = int(durationMinutes / 60)
         minutes = durationMinutes % 60
         
-        if workWeeks != 0: durationString += str(workWeeks) + "w "
-        if workDays != 0: durationString += str(workDays) + "d "
         if workHours != 0: durationString += str(workHours) + "h "
         if (minutes != 0) or (durationMinutes == 0): durationString += str(minutes) + "m"
         durationString = durationString.strip()

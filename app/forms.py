@@ -54,7 +54,7 @@ class TaskForm(forms.Form):
         choices=(("Todo", "Todo"), ("In-Progress", "In-Progress"), ("Done", "Done")),
         widget=forms.Select(
             attrs={
-                "class": "text-xs md:text-base inline-block p-1 mt-4 rounded-md  bg-neutral-600 outline-none placeholder-gray-400",
+                "class": "text-base inline-block p-1 mt-4 rounded-md  bg-neutral-600 outline-none placeholder-gray-400",
             }
         ),
     )
@@ -64,7 +64,7 @@ class TaskForm(forms.Form):
         required=False,
         widget=forms.DateInput(
             attrs={
-                "class": "text-xs md:text-base inline-block pl-1 py-1  rounded-md  bg-neutral-600 outline-none placeholder-gray-400",
+                "class": "text-base inline-block pl-1 py-1  rounded-md  bg-neutral-600 outline-none placeholder-gray-400",
                 "type": "date",
             }
         ),
@@ -75,7 +75,7 @@ class TaskForm(forms.Form):
         required=False,
         widget=forms.DateInput(
             attrs={
-                "class": "text-xs md:text-base inline-block pl-1 py-1  rounded-md  bg-neutral-600 outline-none placeholder-gray-400",
+                "class": "text-base inline-block pl-1 py-1  rounded-md  bg-neutral-600 outline-none placeholder-gray-400",
                 "type": "date",
             }
         ),
@@ -95,11 +95,12 @@ class TaskForm(forms.Form):
     
     duration = forms.CharField(
         required=False,
+        max_length=18, # Mongo can handle a max of 8 bytes (~18 digits)
         widget=forms.TextInput(
             attrs={
-                "placeholder": "Ex: 2w 3d 4h 30m",
+                "placeholder": "Ex: 4h 30m",
                 "type": "text",
-                "class": "w-full block bg-neutral-800 outline-none sm:text-2xl font-bold placeholder-gray-400",
+                "class": " inline-block bg-neutral-800 outline-none font-bold placeholder-gray-400",
                 'rows': 1,
             }
         ),
@@ -129,7 +130,7 @@ class ProjectForm(forms.Form):
         required=False,
         widget=forms.DateInput(
             attrs={
-                "class": "inline-block p-1 mt-4 rounded-md  bg-neutral-600 outline-none placeholder-gray-400",
+                "class": " text-base inline-block p-1 mt-4 rounded-md  bg-neutral-600 outline-none placeholder-gray-400",
                 "type": "date",
             }
         ),
@@ -140,7 +141,7 @@ class ProjectForm(forms.Form):
         required=False,
         widget=forms.DateInput(
             attrs={
-                "class": "inline-block p-1 mt-4 rounded-md  bg-neutral-600 outline-none placeholder-gray-400",
+                "class": "text-base inline-block p-1 mt-4 rounded-md  bg-neutral-600 outline-none placeholder-gray-400",
                 "type": "date",
             }
         ),
