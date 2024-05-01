@@ -97,7 +97,7 @@ class TaskForm(forms.Form):
         required=False,
         widget=forms.TextInput(
             attrs={
-                "placeholder": "Ex: 2w 3d 4h 30m",
+                "placeholder": "Ex: 4h 30m",
                 "type": "text",
                 "class": " inline-block bg-neutral-800 outline-none font-bold placeholder-gray-400",
                 'rows': 1,
