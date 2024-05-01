@@ -102,6 +102,10 @@ class KanbanAPIView(APIView):
             if not task.statusId or tasks_by_status["statues"][i].id == task.statusId:
                 tasks_by_status["taskLists"].append(tasks.pop(i))
 
+        # if a status associated with a task no longer exists, put it on the left most column as well
+        for tasks in reversed(list(enumerate(tasks))):
+            tasks_by_status["taskLists"].append(tasks.pop(i))
+
         for taskList in tasks_by_status["taskLists"]:
             KanbanAPIView.normalizePriority(taskList)
             TaskSerializer(tasks_by_status["taskLists"], many=True).data
@@ -144,21 +148,21 @@ class KanbanAPIView(APIView):
 
 
         project = updating_task.projectID
-        old_status = updating_task.statusId
+        old_statusId = updating_task.statusId
         old_priority = updating_task.priority
-        new_status = taskData.get('statusId')
+        new_status_id = taskData.get('statusId')
         new_priority = taskData.get('priority')
 
 
         old_status_tasks = Task.objects.filter(
             projectID=project, 
-            status=old_status, 
+            status=old_statusId, 
             priority__gt=old_priority
         ) # .update(priority = F['priority'] - 1)
 
         new_status_tasks = Task.objects.filter(
             projectID=project,
-            status=new_status,
+            status=new_status_id,
             priority__gte=new_priority
         ) # .update(priority = F['priority'] + 1)
 
@@ -173,14 +177,14 @@ class KanbanAPIView(APIView):
             task.save()
 
 
-        updating_task.status = new_status 
+        updating_task.statusId = new_status_id 
         updating_task.priority = new_priority
         updating_task.save()
 
         return "Kanban successfully updated.", status.HTTP_200_OK
         
     @staticmethod
-    def normalizePriority(tasksList):
+    def normalizePriority(taskList):
         """
         Normalize the priority of tasks within each status group.
         Ensures all tasks have an integer priority value.
@@ -199,7 +203,7 @@ class KanbanAPIView(APIView):
         taskList = sorted(taskList, key = lambda x: x["priority"])
         
         # Space priority evenly.
-        for index, task in enumerate(tasks_by_status):
+        for index, task in enumerate(taskList):
             if task['priority'] != index:
                 task['priority'] = index
                 task.save()

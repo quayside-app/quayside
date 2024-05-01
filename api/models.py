@@ -1,4 +1,5 @@
 import mongoengine as mongo
+from bson.objectid import ObjectId
 
 
 class User(mongo.Document):
@@ -48,7 +49,7 @@ class Project(mongo.Document):
     }
     
     class taskStatues(mongo.EmbeddedDocument):
-        id = mongo.ObjectIdField(),
+        id = mongo.ObjectIdField(required=True, unique=True, default=ObjectId),
         name =  mongo.StringField(),
         color = mongo.StringField(), # html color code
         order = mongo.IntField(null=False) # task order on kanban
@@ -90,7 +91,7 @@ class Task(mongo.Document):
     startDate = mongo.DateField(null=True)
     endDate = mongo.DateField(null=True)
     # status = mongo.StringField(default='Todo', choices=('In-Progress', 'Todo', 'Done'))
-    statusId = mongo.ObjectIdField(),
+    statusId = mongo.ObjectIdField(null=True),
     priority = mongo.IntField(null=True)
     durationMinutes = mongo.IntField(null=False)
 
