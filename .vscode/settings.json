@@ -1,0 +1,18 @@
+{
+    "python.terminal.activateEnvInCurrentTerminal": true,
+	"python.defaultInterpreterPath": "${workspaceFolder}/venv/bin/python",
+
+	"editor.insertSpaces": true,
+
+    "[python]": {
+        "editor.tabSize": 4
+    },
+
+    "[html]": {
+        "editor.tabSize": 2
+    },
+
+    "[javascript]": {
+        "editor.tabSize": 2
+    },
+}
