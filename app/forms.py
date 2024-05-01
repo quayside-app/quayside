@@ -95,6 +95,7 @@ class TaskForm(forms.Form):
     
     duration = forms.CharField(
         required=False,
+        max_length=18, # Mongo can handle a max of 8 bytes (~18 digits)
         widget=forms.TextInput(
             attrs={
                 "placeholder": "Ex: 4h 30m",
