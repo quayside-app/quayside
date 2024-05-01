@@ -262,17 +262,18 @@ def taskView(request, projectID, taskID):
             # if quantity type was not found and only a digit was typed, assume it's minute value
             if newData["duration"].isdigit(): durationMinutes = int(newData["duration"])
                 
-            if (durationMinutes > 0):
-                newData["id"] = taskID
-                newData["durationMinutes"] = durationMinutes
-                message, status_code = TasksAPIView.updateTask(
-                  newData, getAuthorizationToken(request)
-                )
+            #if (durationMinutes > 0):
+                
+            newData["durationMinutes"] = durationMinutes
+            newData["id"] = taskID
+            message, status_code = TasksAPIView.updateTask(
+                newData, getAuthorizationToken(request)
+            )
 
-                if status_code != status.HTTP_200_OK:
-                    print(f"Task update failed: {message}")
-                    return HttpResponseServerError(f"An error occurred: {message}")
-                return redirect(f"/project/{projectID}/graph")
+            if status_code != status.HTTP_200_OK:
+                print(f"Task update failed: {message}")
+                return HttpResponseServerError(f"An error occurred: {message}")
+            return redirect(f"/project/{projectID}/graph")
 
     # If a GET (or any other method) we'll create a blank form
     else:
