@@ -19,11 +19,6 @@ urlpatterns = [
         name=f"{API_VERSION}-projects-list",
     ),
     path(
-        f"{API_VERSION}/statuses/",
-        views.statuses.StatusesAPIView.as_view(),
-        name=f"{API_VERSION}-generated-status",
-    ),
-    path(
         f"{API_VERSION}/tasks/",
         views.tasks.TasksAPIView.as_view(),
         name=f"{API_VERSION}-tasks-list",
