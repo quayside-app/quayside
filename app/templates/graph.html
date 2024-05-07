@@ -24,6 +24,7 @@
 (async function () {
   try {
     const response = await fetch('{{ apiUrl }}/tasks/?projectID={{projectID}}')
+    const status_response = await fetch('{{ apiUrl }}/statues/?projectID={{projectID}}')
     const tasks = await response.json()
     if (!response.ok) throw new Error(tasks.message || 'Network response was not ok')
 
