@@ -50,7 +50,7 @@
     <div class="flex svgSizing ml-2">
 
       <div class="my-auto">
-        <a href="create-task/" class="flex content-center text-center rounded-full mr-4 px-2 py-2 bg-neutral-600 hover:bg-gray-500 ">
+        <a id="newTaskButton" class="flex content-center text-center rounded-full mr-4 px-2 py-2 bg-neutral-600 hover:bg-gray-500 ">
           <button>
             {% include "components/svg/plus.svg" %}
           </button>
@@ -102,20 +102,19 @@
 * Confirms delete and deletes project when button is clicked.
 */
 
-window.onload = function()
-{
-  var path = document.URL.split("/");
-  var format = path[path.length - 2];
-  
-  if(format == 'graph')
-  {
-    document.getElementById('formatButton').href = '/project/{{projectID}}/kanban';
-    document.getElementById('formatText').textContent = 'Kanban';
-  }
-  else
-  {
+window.onload = function() {
+  var pathSegments = document.URL.split('/');
+
+  if (pathSegments.includes('kanban')) {
     document.getElementById('formatButton').href = '/project/{{projectID}}/graph';
     document.getElementById('formatText').textContent = 'Graph';
+    document.getElementById('newTaskButton').href = href="/project/{{projectID}}/kanban/create-task/"
+
+  } else {
+    document.getElementById('formatButton').href = '/project/{{projectID}}/kanban';
+    document.getElementById('formatText').textContent = 'Kanban';
+    document.getElementById('newTaskButton').href = href="/project/{{projectID}}/graph/create-task/"
+
   }
 }
 document.getElementById('deleteProjectButton').addEventListener('click', async function () {
