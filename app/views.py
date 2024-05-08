@@ -30,6 +30,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from api.models import TermsAndConditions, UserTermsAcceptance
+from django.http import JsonResponse
 
 
 def redirectOffSite(_request):
@@ -731,3 +732,26 @@ def terms_and_conditions_view(request):
         return redirect("home")  # Replace 'home' with your actual home view name
     
     return render(request, "terms_and_conditions.html", {"terms": latest_terms})
+
+@login_required
+def terms_and_conditions_api_view(request):
+    """
+    API endpoint to get the latest Terms and Conditions and update acceptance status.
+    """
+    if request.method == "GET":
+        latest_terms = TermsAndConditions.objects.order_by("-created_at").first()
+        return JsonResponse({
+            "version": latest_terms.version,
+            "link": "https://docs.google.com/document/d/1I3ZFXd1Eup1dRAF2FppHakrP_vOhKTSTyti-lIjYTMs/edit",
+        })
+    
+    elif request.method == "POST":
+        version = request.POST.get("version")
+        UserTermsAcceptance.objects.update_or_create(
+            user=request.user,
+            defaults={
+                'accepted_version': version,
+                'accepted_at': timezone.now(),
+            }
+        )
+        return JsonResponse({"status": "success"})

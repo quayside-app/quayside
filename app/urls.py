@@ -55,4 +55,6 @@ urlpatterns = [
     path("auth/<str:provider>/", views.requestAuth, name="authorize"),
     path("callback/", views.Callback.as_view(), name="callback"),
     path('redirect/', views.redirectOffSite,name='offsite-redirect'),
+    path("terms-and-conditions/", views.terms_and_conditions_view, name="terms_and_conditions"),
+    path("terms-and-conditions/api/", views.terms_and_conditions_api_view, name="terms_and_conditions_api"),
 ]

@@ -54,6 +54,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django_browser_reload.middleware.BrowserReloadMiddleware",  # For automatic reload
+    "api.middleware.TermsAndConditionsMiddleware", # Ensure T&Cs are accepted
 ]
 
 ROOT_URLCONF = "quayside.urls"

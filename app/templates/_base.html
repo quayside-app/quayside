@@ -3,42 +3,138 @@
 
 <!DOCTYPE html>
 <html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>quayside</title>
+    <link rel="icon" href="{% static 'app/images/logo_dark.png' %}">
 
-    <head>
-        <meta charset="UTF-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>quayside</title>
-        <link rel="icon" href="{% static 'app/images/logo_dark.png' %}">
+    {% compress css %}
+    <link rel="stylesheet" href="{% static 'app/src/output.css' %}">
+    <style>
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.5);
+    }
+    .modal-content {
+        background-color: #fefefe;
+        margin: 15% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+    }
+    .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+    }
+    .close:hover,
+    .close:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+    }
+    </style>
+    {% endcompress %}
+</head>
 
-        {% compress css %}
-        <link rel="stylesheet" href="{% static '/app/src/output.css' %}">
-        {% endcompress %}
+<body>
+    <div class="w-full h-screen overflow-hidden"
+        style="background-image: url('{% static 'app/images/background-dark.png' %}'); background-position:center center; background-size:cover;">
 
-    </head>
-
-    <body class >
-        <div class="w-full h-screen overflow-hidden" style="background-image: url('{% static 'app/images/background-dark.png' %}'); background-position:center center; background-size:cover;">
-
-            <div class="fixed w-full h-14 z-40">
-                {% include "navbar.html" %}
-            </div>
-            {%if userID %}
-            <div class="flex h-screen">
-                <div class="pt-14 z-40">
-                    {% include 'sidebar.html' %}
-                </div>
-            {%endif%}
-
-                <div class="w-full pt-14">
-                    <div class="" >
-                        {% block content %}
-                        {% endblock content %}
-                    </div>
-                </div>
-            </div>
-
+        <div class="fixed w-full h-14 z-40">
+            {% include "navbar.html" %}
         </div>
-    </body>
+        {% if userID %}
+        <div class="flex h-screen">
+            <div class="pt-14 z-40">
+                {% include 'sidebar.html' %}
+            </div>
+        {% endif %}
 
+            <div class="w-full pt-14">
+                <div>
+                    {% block content %}
+                    {% endblock content %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Terms and Conditions Modal -->
+    <div id="termsModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>Terms and Conditions</h2>
+            <p>Here is a link to the T&Cs:
+                <a href="https://docs.google.com/document/d/1I3ZFXd1Eup1dRAF2FppHakrP_vOhKTSTyti-lIjYTMs/edit" target="_blank">
+                    Terms and Conditions
+                </a>
+            </p>
+            <label>
+                <input type="checkbox" id="termsCheckbox">
+                I have read and agree to the terms.
+            </label>
+            <button id="acceptButton" onclick="acceptTerms()" disabled>Accept</button>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+    function fetchTerms() {
+        fetch("{% url 'terms_and_conditions_api' %}")
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById("acceptButton").setAttribute("data-version", data.version);
+            document.getElementById("termsModal").style.display = "block";
+            document.getElementById("termsCheckbox").addEventListener("change", toggleAcceptButton);
+        });
+    }
+
+    function closeModal() {
+        document.getElementById("termsModal").style.display = "none";
+    }
+
+    function toggleAcceptButton() {
+        const checkbox = document.getElementById("termsCheckbox");
+        const button = document.getElementById("acceptButton");
+        button.disabled = !checkbox.checked;
+    }
+
+    function acceptTerms() {
+        const termsVersion = document.getElementById("acceptButton").getAttribute("data-version");
+        fetch("{% url 'terms_and_conditions_api' %}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+                "X-CSRFToken": "{{ csrf_token }}"
+            },
+            body: `version=${termsVersion}`
+        }).then(response => response.json())
+        .then(data => {
+            if (data.status === "success") {
+                closeModal();
+                location.reload();
+            }
+        });
+    }
+
+    {% if user.is_authenticated %}
+        {% if not user.usertermsacceptance or user.usertermsacceptance.accepted_version != latest_terms.version %}
+            <script>
+                fetchTerms();
+            </script>
+        {% endif %}
+    {% endif %}
+    </script>
+</body>
 </html>
