@@ -26,6 +26,11 @@ from api.views.v1.users import UsersAPIView
 from app.context_processors import global_context
 from app.forms import NewProjectForm, TaskForm, ProjectForm
 
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from django.utils import timezone
+from api.models import TermsAndConditions, UserTermsAcceptance
+
 
 def redirectOffSite(_request):
     return redirect("https://github.com/quayside-app/quayside")
@@ -707,3 +712,22 @@ class Callback(TemplateView):
                 return HttpResponseServerError(f"An error occurred: {message}")
 
         return response
+
+@login_required
+def terms_and_conditions_view(request):
+    """
+    View to render the terms and conditions page and process user acceptance.
+    """
+    latest_terms = TermsAndConditions.objects.order_by("-created_at").first()
+    
+    if request.method == "POST":
+        UserTermsAcceptance.objects.update_or_create(
+            user=request.user,
+            defaults={
+                'accepted_version': latest_terms.version,
+                'accepted_at': timezone.now(),
+            }
+        )
+        return redirect("home")  # Replace 'home' with your actual home view name
+    
+    return render(request, "terms_and_conditions.html", {"terms": latest_terms})

@@ -1,4 +1,5 @@
 import mongoengine as mongo
+from datetime import datetime
 
 
 class User(mongo.Document):
@@ -69,3 +70,30 @@ class Task(mongo.Document):
         "collection": "Task",  # Need to specify UPPER Case
         "strict": False,  # If true, throws weird error for __v
     }
+
+class TermsAndConditions(mongo.Document):
+    version = mongo.StringField(required=True, unique=True)
+    content = mongo.StringField(required=True)
+    created_at = mongo.DateTimeField(default=datetime.now)
+
+    meta = {
+        "collection": "TermsAndConditions",
+        "ordering": ["-created_at"],
+        "strict": False
+    }
+
+    def __str__(self):
+        return f"Terms {self.version}"
+
+class UserTermsAcceptance(mongo.Document):
+    user = mongo.ReferenceField("User", required=True, unique=True)
+    accepted_version = mongo.StringField(required=True)
+    accepted_at = mongo.DateTimeField(default=datetime.now)
+
+    meta = {
+        "collection": "UserTermsAcceptance",
+        "strict": False
+    }
+
+    def __str__(self):
+        return f"{self.user.email} accepted {self.accepted_version}"
