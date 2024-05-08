@@ -122,17 +122,17 @@ function Trees(dataList, {
 
         let yMin = Infinity; // Initialize to the largest possible value
         let yMax = -Infinity; // Initialize to the smallest possible value
-        console.log(index)
+
         root.each(d => {
             if (d.x < yMin) yMin = d.x; // Find the minimum vertical coordinate
             if (d.x > yMax) yMax = d.x; // Find the maximum vertical coordinate
-            console.log("   d.x", d.x, )
+            
         });
 
         const treeHeight = (yMax - yMin) +  dx  // This gives you the vertical span of the tree plus buffer.
         const topTreeHeight = yMin < 0 ? -yMin : treeHeight/2  // Tree height above parent node.
         verticalOffset += topTreeHeight
-        console.log("   treeHeight", treeHeight )
+        
 
         const svg = zoomableGroup.append("g")
             .attr("font-family", "sans-serif")

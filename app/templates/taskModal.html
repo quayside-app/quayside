@@ -1,11 +1,13 @@
-{% extends baseTemplate %}
+
 {% load static %}
 
-{% block taskContent %}
 
 <div class="absolute bg-black w-full h-full px-3 sm:px-0 bg-opacity-75  text-white svgSizing">
     <div class=" relative z-40 w-full  sm:mx-auto sm:w-96 md:[w-45rem] lg:w-[50rem] bg-neutral-800  px-2 sm:mt-8 sm:px-5 pt-10 sm:py-5 rounded-lg sm:text-xl">
 
+        <form id="taskForm">
+
+        </form>
         <form action="{{submitLink}}" method="post">
             {% csrf_token %}
 
@@ -66,9 +68,34 @@
     </div>
 
 </div>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    console.log("HERERER")
+    function loadTaskForm(projectID, taskID) {
+        const url = `/taskModal/${projectID}/${taskID}/`;
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Update modal form content
+            console.log("HEERREEE:", data)
+            document.getElementById("taskForm").innerHTML = data.form_html;
+        })
+        .catch(error => console.error('Error fetching form data:', error));
+    }
+
+    loadTaskForm("6628690ce18109dc014f53e0", "6629666936f92810c39a87a3");
+});
+</script>
 {% if deleteLink %}
 
 <script>
+
+
     /*
     * Confirms delete and deletes task when button is clicked.
     */
@@ -124,7 +151,7 @@
         }
     })
 
+
     </script>
 {% endif %}
 
-{% endblock %}

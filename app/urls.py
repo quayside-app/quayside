@@ -30,6 +30,11 @@ urlpatterns = [
         name="task-detail-view",
     ),
     path(
+        "taskModal/<str:projectID>/<str:taskID>/",
+        views.taskView2,
+        name="task-detail-view2",
+    ),
+    path(
         "project/<str:projectID>/graph/create-task/<str:parentTaskID>/",
         views.createTaskView,
         name="create-task-view",

@@ -7,7 +7,7 @@ from rest_framework import status
 
 
 from django.shortcuts import render, redirect
-from django.http import HttpResponseRedirect, HttpResponseServerError
+from django.http import HttpResponseRedirect, HttpResponseServerError, JsonResponse
 from django.views.generic.base import TemplateView
 
 from api.decorators import apiKeyRequired
@@ -235,7 +235,7 @@ def taskView(request, projectID, taskID):
         submitLink = f"/project/{projectID}/kanban/task/{taskID}/"
         exitLink = f"/project/{projectID}/kanban"
         deleteLink = f"/project/{projectID}/kanban"
-        
+
     if request.method == "POST":
 
         form = TaskForm(request.POST)
@@ -330,6 +330,109 @@ def taskView(request, projectID, taskID):
 
 
 @apiKeyRequired
+def taskView2(request, projectID, taskID):
+    """
+    Renders the view for a specific task within a project as a form.
+    If the request method is GET or any other method, a form populated with the task's existing
+    data is provided for editing or a blank form for creation.
+    If the request method is POST and the form is valid, the task is updated with the provided data.
+    This view requires an API key in the cookies.
+
+    @param {HttpRequest} request - The request object, which can be GET or POST.
+    @param {str} projectID - The ID for the project to which the task belongs.
+    @param {str} taskID - The ID for the task to be viewed or edited.
+
+    @returns {HttpResponse} - An HttpResponse object that renders the taskModal.html
+        template with the project ID, task ID, and task form context.
+    """
+
+
+    if request.method == "POST":
+
+        form = TaskForm(request.POST)
+        
+        if form.is_valid():
+        
+            newData = form.cleaned_data
+
+            durationMinutes = 0
+            # Allow week, day, hour, minute BUT converts to hour/minute
+            durationList = re.findall(r"(\d*\.\d+|\d+)(d|h|m|w)", newData["duration"].lower()) # Matches floats and ints
+
+            for duration in durationList:
+                quantity = duration[1]
+                
+                if quantity.find("w") != -1:
+                    durationMinutes += round(float(duration[0]) * 7 * 24 * 60)
+                elif quantity.find("d") != -1:
+                    durationMinutes += round(float(duration[0]) * 24 * 60)
+                elif quantity.find("h") != -1:
+                    
+                    durationMinutes += round(float(duration[0]) * 60)
+                elif quantity.find("m") != -1:
+                    durationMinutes += round(float(duration[0]))
+
+
+            # if quantity type was not found and only a int/float was typed, assume it's minute value
+            if newData["duration"] and re.match(r'^\d*(?:\.\d+)?$', newData["duration"]):
+                durationMinutes = round(float(newData["duration"]))
+
+                
+            newData["durationMinutes"] = durationMinutes
+            newData["id"] = taskID
+            message, status_code = TasksAPIView.updateTask(
+                newData, getAuthorizationToken(request)
+            )
+
+            if status_code != status.HTTP_200_OK:
+                print(f"Task update failed: {message}")
+                return HttpResponseServerError(f"An error occurred: {message}")
+            #return redirect(exitLink) # TODO
+
+    # If a GET (or any other method) we'll create a blank form
+    else:
+        data, status_code = TasksAPIView.getTasks(
+            {"id": taskID}, getAuthorizationToken(request)
+        )
+        if status_code != status.HTTP_200_OK:
+            print(f"Task fetch failed: {data.get('message')}")
+            return HttpResponseServerError(f"An error occurred: {data.get('message')}")
+
+        taskData = data[0]
+        
+        durationString = ""
+        durationMinutes = taskData.get("durationMinutes") or 0
+        
+        
+
+        workHours = int(durationMinutes / 60)
+        minutes = durationMinutes % 60
+        
+        if workHours != 0: durationString += str(workHours) + "h "
+        if (minutes != 0) or (durationMinutes == 0): durationString += str(minutes) + "m"
+        durationString = durationString.strip()
+        
+        # Populate initial form data
+        if taskData is not None:
+            initialData = {
+                "name": taskData.get("name", ""),
+                "description": taskData.get("description", ""),
+                "status": taskData.get("status", ""),
+                "startDate": taskData.get("startDate", ""),
+                "endDate": taskData.get("endDate", ""),
+                "duration": durationString
+            }
+            form = TaskForm(initial=initialData)
+        else:
+            form = TaskForm()
+    form_html = render(request, 'form_partial.html', {'form': form}).content.decode('utf-8')
+    return JsonResponse({
+        'form_html': form_html,
+        'projectID': projectID,
+        'taskID': taskID,
+    })
+
+@apiKeyRequired
 def createTaskView(request, projectID, parentTaskID=""):
     """
     Renders the view for creating a task within a project as a form.
@@ -409,6 +512,8 @@ def createTaskView(request, projectID, parentTaskID=""):
             "exitLink": exitLink,
         },
     )
+
+
 
 
 @apiKeyRequired
