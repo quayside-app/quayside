@@ -134,8 +134,13 @@ class TasksAPIView(APIView):
         Deletes a task or list of task. Requires 'apiToken' passed in auth header or cookies.
 
         @param {HttpRequest} request - The request object.
-            The query parameters MUST be:
-                - id (objectID str) [REQUIRED]
+            The query parameters can be (either id or projectID is required):
+                - id (objectID str)  If passed, deletes that project.
+                - projectID (objectID str) If passed, deletes all tasks in a project.
+                - deleteChildren (bool str) "true" deletes current task and all children , "false" just 
+                    deletes current node (if id passed).
+
+
 
         @return: A Response object with a success or an error message.
 
@@ -271,6 +276,7 @@ class TasksAPIView(APIView):
             )
 
         userID = decodeApiKey(authorizationToken).get("userID")
+        numberObjectsDeleted = 0
         if "id" in taskData:
             task = Task.objects.get(id=taskData["id"])
             # Check if userID is in the project the task belongs to
@@ -279,23 +285,26 @@ class TasksAPIView(APIView):
                 return {
                     "message": "User not authorized to delete this task"
                 }, status.HTTP_403_FORBIDDEN
-
-            childTasks = Task.objects(parentTaskID=task["id"])
-            for childTask in childTasks:
-                message, httpsCode = TasksAPIView.updateTask(
-                    {"id": childTask["id"], "parentTaskID": task["parentTaskID"]},
-                    authorizationToken,
-                )
-                if httpsCode != status.HTTP_200_OK:
-                    print(
-                        f"Error moving children while deleting task: {message.get('message')}"
+            
+            if taskData.get("deleteChildren", "false") == "true":
+                numberObjectsDeleted = deleteAllChildren(taskData["id"])
+            else:
+                childTasks = Task.objects(parentTaskID=task["id"])
+                for childTask in childTasks:
+                    message, httpsCode = TasksAPIView.updateTask(
+                        {"id": childTask["id"], "parentTaskID": task["parentTaskID"]},
+                        authorizationToken,
                     )
-                    return (
-                        f"Error moving children while deleting task: {message.get('message')}",
-                        status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    )
+                    if httpsCode != status.HTTP_200_OK:
+                        print(
+                            f"Error moving children while deleting task: {message.get('message')}"
+                        )
+                        return (
+                            f"Error moving children while deleting task: {message.get('message')}",
+                            status.HTTP_500_INTERNAL_SERVER_ERROR,
+                        )
 
-            numberObjectsDeleted = Task.objects(id=taskData["id"]).delete()
+                numberObjectsDeleted = Task.objects(id=taskData["id"]).delete()
         else:  # projectIDs
             # Check if userID is in the project
             project = Project.objects.get(id=taskData["projectID"])
@@ -312,3 +321,17 @@ class TasksAPIView(APIView):
             return {"message": "No tasks found to delete."}, status.HTTP_404_NOT_FOUND
 
         return {"message":"Task(s) Deleted Successfully"}, status.HTTP_200_OK
+
+@staticmethod
+def deleteAllChildren(taskID):
+    """
+    Recursively deletes a task and all its children, and returns the total count of deleted objects.
+    @param taskID: ID of task to delete along with all its children.
+    @return: Total number of tasks deleted.
+    """
+    numberObjectsDeleted = 0
+    children = Task.objects(parentTaskID=taskID)
+    for child in children:
+        numberObjectsDeleted += deleteAllChildren(child.id)
+    numberObjectsDeleted += Task.objects(id=taskID).delete()
+    return numberObjectsDeleted
