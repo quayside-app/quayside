@@ -226,16 +226,16 @@ def taskView(request, projectID, taskID):
         template with the project ID, task ID, and task form context.
     """
 
+    baseTemplate = "graph.html"
+    submitLink = f"/project/{projectID}/graph/task/{taskID}/"
+    exitLink = f"/project/{projectID}/graph"
+    deleteLink = f"/project/{projectID}/graph"
     if "kanban" in request.path:
         baseTemplate = "kanban.html"
         submitLink = f"/project/{projectID}/kanban/task/{taskID}/"
         exitLink = f"/project/{projectID}/kanban"
         deleteLink = f"/project/{projectID}/kanban"
-    else:
-        baseTemplate = "graph.html"
-        submitLink = f"/project/{projectID}/graph/task/{taskID}/"
-        exitLink = f"/project/{projectID}/graph"
-        deleteLink = f"/project/{projectID}/graph"
+        
     if request.method == "POST":
 
         form = TaskForm(request.POST)
