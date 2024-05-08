@@ -48,7 +48,7 @@ class Project(mongo.Document):
         "strict": False,  # If true, throws weird error for __v
     }
     
-    class taskStatues(mongo.EmbeddedDocument):
+    class taskStatuses(mongo.EmbeddedDocument):
         id = mongo.ObjectIdField(required=True, unique=True, default=ObjectId),
         name =  mongo.StringField(),
         color = mongo.StringField(), # html color code
@@ -56,7 +56,7 @@ class Project(mongo.Document):
 
     # TODO: include a status id instead of using order to back-reference from task?
     taskStatuses = mongo.ListField(
-        mongo.EmbeddedDocumentField(taskStatues),
+        mongo.EmbeddedDocumentField(taskStatuses),
         default=[
             {
                 "name": "Todo",
