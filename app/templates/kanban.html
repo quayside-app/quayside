@@ -52,42 +52,26 @@
   
       if (!response.ok) throw new Error('Network response was not ok')
       const tasks = await response.json()
-      const todoListElement = document.getElementById('Todo')
-      tasks['Todo'].forEach(function (task) {
-        const listLink = document.createElement('a')
-        listLink.id = task.id
-        listLink.textContent = task.name
-        listLink.draggable = 'true'
-        listLink.setAttribute('ondragstart', 'drag(event)')
-        listLink.className = 'block rounded-lg my-2 p-1 hover:bg-neutral-500 bg-neutral-600 '
-        listLink.setAttribute('priority', task.priority)
-        todoListElement.appendChild(listLink)
-      })
 
-      const inProgListElement = document.getElementById('In-Progress')
-      tasks['In-Progress'].forEach(function (task) {
-        const listLink = document.createElement('a')
-        listLink.id = task.id
 
-        listLink.textContent = task.name
-        listLink.draggable = 'true'
-        listLink.setAttribute('ondragstart', 'drag(event)')
-        listLink.className = 'block rounded-lg my-2 p-1 hover:bg-neutral-500 bg-neutral-600 '
-        listLink.setAttribute('priority', task.priority)
-        inProgListElement.appendChild(listLink)
-      })
+      for (status of ['Todo', 'In-Progress', 'Done']) {
+        const todoListElement = document.getElementById(status)
 
-      const doneListElement = document.getElementById('Done')
-      tasks['Done'].forEach(function (task) {
-        const listLink = document.createElement('a')
-        listLink.id = task.id
-        listLink.textContent = task.name
-        listLink.draggable = 'true'
-        listLink.setAttribute('ondragstart', 'drag(event)')
-        listLink.className = 'block rounded-lg my-2 p-1 hover:bg-neutral-500 bg-neutral-600 '
-        listLink.setAttribute('priority', task.priority)
-        doneListElement.appendChild(listLink)
-      })
+        if (status in tasks && tasks[status] !== null && tasks[status] !== undefined) {
+          tasks[status].forEach(function (task) {
+            const listLink = document.createElement('a')
+            listLink.id = task.id
+            listLink.textContent = task.name
+            listLink.href = `task/${listLink.id}`;
+            listLink.draggable = 'true'
+            listLink.setAttribute('ondragstart', 'drag(event)')
+            listLink.className = 'block rounded-lg my-2 p-1 hover:bg-neutral-500 bg-neutral-600 '
+            listLink.setAttribute('priority', task.priority)
+            todoListElement.appendChild(listLink)
+          })
+        }
+      }
+  
     } catch (error) {
       console.error('There has been a problem with fetching projects:', error)
     }
