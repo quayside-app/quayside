@@ -228,7 +228,7 @@ def taskView(request, projectID, taskID):
 
     if "kanban" in request.path:
         baseTemplate = "kanban.html"
-        submitLink = f"/project/{projectID}/kanban/task/{taskID}"
+        submitLink = f"/project/{projectID}/kanban/task/{taskID}/"
         exitLink = f"/project/{projectID}/kanban"
         deleteLink = f"/project/{projectID}/kanban"
     else:
@@ -276,7 +276,7 @@ def taskView(request, projectID, taskID):
             if status_code != status.HTTP_200_OK:
                 print(f"Task update failed: {message}")
                 return HttpResponseServerError(f"An error occurred: {message}")
-            return redirect(f"/project/{projectID}/graph")
+            return redirect(exitLink)
 
     # If a GET (or any other method) we'll create a blank form
     else:

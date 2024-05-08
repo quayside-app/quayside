@@ -17,10 +17,15 @@ urlpatterns = [
     path(
         "project/<str:projectID>/",
         views.editProjectView,
-        name="task-detail-view",
+        name="project-detail-view",
     ),
     path(
         "project/<str:projectID>/graph/task/<str:taskID>/",
+        views.taskView,
+        name="task-detail-view",
+    ),
+    path(
+        "project/<str:projectID>/kanban/task/<str:taskID>/",
         views.taskView,
         name="task-detail-view",
     ),
