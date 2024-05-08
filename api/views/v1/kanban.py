@@ -7,7 +7,7 @@ from api.models import Task
 from api.serializers import TaskSerializer
 from api.decorators import apiKeyRequired
 from api.views.v1.tasks import TasksAPIView
-from api.views.v1.projects import ProjectsAPIView
+from api.views.v1.statuses import StatusesAPIView
 from api.utils import getAuthorizationToken
 
 
@@ -80,26 +80,26 @@ class KanbanAPIView(APIView):
         except Task.DoesNotExist:
             return "Tasks not found for the specified projectID.", status.HTTP_404_NOT_FOUND
         
-        data, httpsCode = ProjectsAPIView.getProjects({"id": tasks[0]["projectID"]})
-        taskStatues = data.taskStatues
+        data, httpsCode = StatusesAPIView.getStatuses({"id": tasks[0]["projectID"]})
+        taskStatuses = data
 
         if httpsCode != status.HTTP_200_OK:
             print(f"Project GET failed: {data.get('message')}")
             return data, httpsCode
         
         tasks_by_status = {}
-        tasks_by_status["statues"] = sorted(taskStatues.items(), key=lambda status: status.get("order"))
+        tasks_by_status["statuses"] = sorted(taskStatuses.items(), key=lambda status: status.get("order"))
 
         tasks_by_status["taskLists"] = []
 
         # creates empty task lists for each kanban type
-        for stat in tasks_by_status["statues"]:
+        for stat in tasks_by_status["statuses"]:
             tasks_by_status["taskLists"][stat.append([])]
 
         for i, task in reversed(list(enumerate(tasks))):
             # if task does not have a statusId it's put in the first set of tasks or the
             # left most size of the kanban board
-            if not task.statusId or tasks_by_status["statues"][i].id == task.statusId:
+            if not task.statusId or tasks_by_status["statuses"][i].id == task.statusId:
                 tasks_by_status["taskLists"].append(tasks.pop(i))
 
         # if a status associated with a task no longer exists, put it on the left most column as well

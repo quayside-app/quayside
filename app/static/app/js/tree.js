@@ -39,7 +39,7 @@ function createTaskTrees(tasks) {
 
     // Step 3: Convert each tree to the desired format (name instead of id)
     const convertToNameFormat = (node) => {
-        const newNode = { name: node.name, id: node.id, status: node.status, children: [] };
+        const newNode = { name: node.name, id: node.id, statusId: node.statusId, children: [] };
         if (node.children.length) {
             newNode.children = node.children.map(convertToNameFormat);
         }

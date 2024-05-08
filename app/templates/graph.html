@@ -26,6 +26,9 @@
     const response = await fetch('{{ apiUrl }}/tasks/?projectID={{projectID}}')
     const status_response = await fetch('{{ apiUrl }}/statuses/?projectID={{projectID}}')
     const tasks = await response.json()
+
+    // TODO: make use of the status information to color code each task node
+    const statuses = await status_response.json()
     if (!response.ok) throw new Error(tasks.message || 'Network response was not ok')
 
     const graphElement = document.getElementById('graph')
@@ -34,6 +37,8 @@
     const trees = createTaskTrees(tasks)
 
     // eslint-disable-next-line no-undef
+
+
     const treeSVG = Trees(trees, {
       label: (d, n) => d.name,
       link: (d, n) => `task/${d.id}`,
