@@ -1,4 +1,5 @@
 import mongoengine as mongo
+from datetime import datetime
 
 
 class User(mongo.Document):
@@ -69,3 +70,9 @@ class Task(mongo.Document):
         "collection": "Task",  # Need to specify UPPER Case
         "strict": False,  # If true, throws weird error for __v
     }
+
+class Feedback(mongo.Document):
+    userID = mongo.ObjectIdField()
+    projectID = mongo.ObjectIdField()
+    taskID = mongo.ObjectIdField(null=True)
+    dateCreated = mongo.DateTimeField(default=datetime.now(datetime.timezone.UTC))
