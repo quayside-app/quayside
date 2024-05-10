@@ -1,0 +1,27 @@
+
+{% load static %}
+
+<div class="absolute bottom-40 right-5">
+    <img id="duckImage" class="w-24">
+</div>
+
+<script>
+    // Toggle image every 1.5 seconds
+    const images = [
+        "{% static 'app/images/duck.png' %}",
+        "{% static 'app/images/duck_sit.png' %}"
+    ];
+
+    const imgElement = document.getElementById('duckImage');
+
+    // Variable to track which image is currently shown
+    let currentIndex = 0;
+
+    // Function to toggle the image source
+    function toggleImage() {
+        currentIndex = (currentIndex + 1) % images.length; 
+        imgElement.src = images[currentIndex];
+    }
+
+    setInterval(toggleImage, 1000); // 200 is happy duck
+</script>
