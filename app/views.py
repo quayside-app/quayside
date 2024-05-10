@@ -10,6 +10,7 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponseRedirect, HttpResponseServerError
 from django.views.generic.base import TemplateView
 
+
 from api.decorators import apiKeyRequired
 from api.utils import (
     decryptApiKey,
@@ -29,9 +30,8 @@ from app.forms import NewProjectForm, TaskForm, ProjectForm
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
-from api.models import TermsAndConditions, UserTermsAcceptance
+from api.models import UserTermsAcceptance
 from django.http import JsonResponse
-
 
 def redirectOffSite(_request):
     return redirect("https://github.com/quayside-app/quayside")
@@ -715,43 +715,52 @@ class Callback(TemplateView):
         return response
 
 @login_required
+def sign_tc(request):
+    """
+    View to update the Terms and Conditions acceptance for the current user.
+    """
+    user = request.user
+
+    # Record the acceptance in `UserTermsAcceptance`
+    UserTermsAcceptance.objects.update_or_create(
+        user=user,
+        defaults={'accepted_at': timezone.now()}
+    )
+
+    messages.success(request, "Terms and Conditions signed successfully.")
+    return redirect('home')  # Replace 'home' with your actual home view name
+
+@login_required
 def terms_and_conditions_view(request):
     """
     View to render the terms and conditions page and process user acceptance.
     """
-    latest_terms = TermsAndConditions.objects.order_by("-created_at").first()
-    
     if request.method == "POST":
         UserTermsAcceptance.objects.update_or_create(
             user=request.user,
-            defaults={
-                'accepted_version': latest_terms.version,
-                'accepted_at': timezone.now(),
-            }
+            defaults={'accepted_at': timezone.now()}
         )
-        return redirect("home")  # Replace 'home' with your actual home view name
-    
-    return render(request, "terms_and_conditions.html", {"terms": latest_terms})
+        messages.success(request, "Terms and Conditions signed successfully.")
+        return redirect('home')  # Replace 'home' with your actual home view name
+
+    return render(request, "terms_and_conditions.html")
 
 @login_required
 def terms_and_conditions_api_view(request):
     """
-    API endpoint to get the latest Terms and Conditions and update acceptance status.
+    API endpoint to update acceptance status.
     """
-    if request.method == "GET":
-        latest_terms = TermsAndConditions.objects.order_by("-created_at").first()
-        return JsonResponse({
-            "version": latest_terms.version,
-            "link": "https://docs.google.com/document/d/1I3ZFXd1Eup1dRAF2FppHakrP_vOhKTSTyti-lIjYTMs/edit",
-        })
-    
-    elif request.method == "POST":
-        version = request.POST.get("version")
+    if request.method == "POST":
         UserTermsAcceptance.objects.update_or_create(
             user=request.user,
-            defaults={
-                'accepted_version': version,
-                'accepted_at': timezone.now(),
-            }
+            defaults={'accepted_at': timezone.now()}
         )
         return JsonResponse({"status": "success"})
+
+@login_required
+def tc_acceptance_status(request):
+    """
+    API endpoint to check if a user has signed the latest Terms and Conditions.
+    """
+    user_tc_accepted = UserTermsAcceptance.objects.filter(user=request.user).exists()
+    return JsonResponse({'user_tc_accepted': user_tc_accepted})

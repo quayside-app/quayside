@@ -45,6 +45,41 @@
     }
     </style>
     {% endcompress %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var isAuthenticated = {{ userID|yesno:"true,false" }};
+            console.log('Page has fully loaded.');
+    
+            if (isAuthenticated) {
+                console.log('User is authenticated, checking T&C status...');
+                fetch('{% url "tc_acceptance_status" %}', { credentials: 'include' })
+                    .then(response => {
+                        console.log('Received response status:', response.status);
+                        if (!response.ok) {
+                            console.error('Error fetching T&C status:', response.status);
+                            return { user_tc_accepted: false }; // Assume signed to prevent modal display
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('T&C status data:', data);
+                        if (!data.user_tc_accepted) {
+                            console.log('User has not signed T&Cs. Showing T&C modal...');
+                            document.getElementById('tc-modal').style.display = 'block';
+                        } else {
+                            console.log('User has already signed T&Cs.');
+                        }
+                    })
+                    .catch(error => console.error('Error fetching T&C status:', error));
+            } else {
+                console.log('User is not authenticated.');
+            }
+        });
+    
+        function closeModal() {
+            document.getElementById('tc-modal').style.display = 'none';
+        }
+    </script>
 </head>
 
 <body>
@@ -71,70 +106,12 @@
     </div>
 
     <!-- Terms and Conditions Modal -->
-    <div id="termsModal" class="modal">
+    <div id="tc-modal" class="modal">
         <div class="modal-content">
-            <span class="close" onclick="closeModal()">&times;</span>
-            <h2>Terms and Conditions</h2>
-            <p>Here is a link to the T&Cs:
-                <a href="https://docs.google.com/document/d/1I3ZFXd1Eup1dRAF2FppHakrP_vOhKTSTyti-lIjYTMs/edit" target="_blank">
-                    Terms and Conditions
-                </a>
-            </p>
-            <label>
-                <input type="checkbox" id="termsCheckbox">
-                I have read and agree to the terms.
-            </label>
-            <button id="acceptButton" onclick="acceptTerms()" disabled>Accept</button>
+            <span class="close" onclick="closeModal()">✕</span>
+            <p>Sign the doc!</p>
+            <a href="{% url 'sign_tc' %}" class="btn">Sign Now</a>
         </div>
     </div>
-
-    <!-- JavaScript -->
-    <script>
-    function fetchTerms() {
-        fetch("{% url 'terms_and_conditions_api' %}")
-        .then(response => response.json())
-        .then(data => {
-            document.getElementById("acceptButton").setAttribute("data-version", data.version);
-            document.getElementById("termsModal").style.display = "block";
-            document.getElementById("termsCheckbox").addEventListener("change", toggleAcceptButton);
-        });
-    }
-
-    function closeModal() {
-        document.getElementById("termsModal").style.display = "none";
-    }
-
-    function toggleAcceptButton() {
-        const checkbox = document.getElementById("termsCheckbox");
-        const button = document.getElementById("acceptButton");
-        button.disabled = !checkbox.checked;
-    }
-
-    function acceptTerms() {
-        const termsVersion = document.getElementById("acceptButton").getAttribute("data-version");
-        fetch("{% url 'terms_and_conditions_api' %}", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded",
-                "X-CSRFToken": "{{ csrf_token }}"
-            },
-            body: `version=${termsVersion}`
-        }).then(response => response.json())
-        .then(data => {
-            if (data.status === "success") {
-                closeModal();
-                location.reload();
-            }
-        });
-    }
-
-    {% if user.is_authenticated %}
-        {% if not user.usertermsacceptance or user.usertermsacceptance.accepted_version != latest_terms.version %}
-            <script>
-                fetchTerms();
-            </script>
-        {% endif %}
-    {% endif %}
-    </script>
 </body>
 </html>
