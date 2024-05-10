@@ -115,7 +115,7 @@ class FeedbackAPIView(APIView):
         #TODO: use auth token to check if user is admin
 
         try:
-            if len(feedbackData) > 1:
+            if len(feedbackData) == 1:
                 return { "message": "Need to have ONLY a id, taskID, or projectID property." }, status.HTTP_400_BAD_REQUEST
             
             feedback_objs = []
@@ -173,7 +173,7 @@ class FeedbackAPIView(APIView):
         @return      A tuple of (response_data, http_status).
         """
         #TODO: make use auth token to check if user is admin
-        if len(feedbackData) > 1:
+        if len(feedbackData) == 1:
             return { "message": "Need to have ONLY a id, taskID, or projectID property." }, status.HTTP_400_BAD_REQUEST
         
         numberObjectsDeleted:int = 0
