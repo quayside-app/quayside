@@ -74,6 +74,7 @@ class Task(mongo.Document):
 class Feedback(mongo.Document):
     userID = mongo.ObjectIdField()
     projectID = mongo.ObjectIdField()
-    taskID = mongo.ObjectIdField(null=True)
+    taskID = mongo.ObjectIdField(null=True)  # for now
     dateCreated = mongo.DateTimeField(default=datetime.now(timezone.utc))
     mood = mongo.IntField(null=0)
+    explanation = mongo.StringField(null=True)

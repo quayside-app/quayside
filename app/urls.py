@@ -9,6 +9,12 @@ urlpatterns = [
         views.projectGraphView,
         name="project-graph-view",
     ),
+
+    path(
+        "project/<str:projectID>/graph/give-feedback",
+        views.createTaskFeedback,
+        name="task-feedback-form",
+    ),
     path(
         "project/<str:projectID>/kanban/",
         views.projectKanbanView,

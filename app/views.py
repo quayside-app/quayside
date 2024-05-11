@@ -18,6 +18,7 @@ from api.utils import (
     getAuthorizationToken,
     decodeApiKey,
 )
+from api.views.v1.feedback import FeedbackAPIView
 from api.views.v1.tasks import TasksAPIView
 from api.views.v1.generatedTasks import GeneratedTasksAPIView
 from api.views.v1.projects import ProjectsAPIView
@@ -66,6 +67,36 @@ def projectGraphView(request, projectID):
         request, "graph.html", {"projectID": projectID, "projectData": data[0], "TaskFeedbackForm": TaskFeedbackForm}
     )
 
+
+@apiKeyRequired
+def createTaskFeedback(request, projectID):
+
+    data, httpsCode = ProjectsAPIView.getProjects(
+        {"id": projectID}, getAuthorizationToken(request)
+    )
+
+    if request.method == "POST":
+        form = TaskFeedbackForm(request.POST)
+
+        if form.is_valid():
+            newData = form.cleaned_data
+            newData["projectID"] = projectID
+            currentUserID = decodeApiKey(getAuthorizationToken(request)).get("userID")
+            newData['userID'] = currentUserID
+
+            message, httpsCode = FeedbackAPIView.createFeedback(
+                newData, getAuthorizationToken(request)
+            )
+            if httpsCode != status.HTTP_200_OK:
+                print(f"Task update failed: {message}")
+                return HttpResponseServerError(f"An error occurred: {message}")
+
+    # now go back to the graph
+    return render(
+        request, "graph.html", {"projectID": projectID, "projectData": data[0], "TaskFeedbackForm": TaskFeedbackForm}
+    )
+
+    
 
 @apiKeyRequired
 def projectKanbanView(request, projectID):
