@@ -1,18 +1,17 @@
-# Standard Library Imports
+# generic imports
 import os
 import re
 import urllib.parse
-
-# Third-party Imports
 import requests
 from oauthlib.oauth2 import WebApplicationClient as WAC
 from rest_framework import status
 
-# Django Imports
+# django imports
 from django.shortcuts import render, redirect
 from django.http import HttpResponseRedirect, HttpResponseServerError
+from django.views.generic.base import TemplateView
 
-# Local Imports from `api`
+# api imports
 from api.decorators import apiKeyRequired
 from api.utils import (
     decryptApiKey,
@@ -21,18 +20,14 @@ from api.utils import (
     getAuthorizationToken,
     decodeApiKey,
 )
-from api.views.v1 import (
-    FeedbackAPIView,
-    TasksAPIView,
-    GeneratedTasksAPIView,
-    ProjectsAPIView,
-    UsersAPIView
-)
+from api.views.v1.feedback import FeedbackAPIView
+from api.views.v1.tasks import TasksAPIView
+from api.views.v1.generatedTasks import GeneratedTasksAPIView
+from api.views.v1.projects import ProjectsAPIView
+from api.views.v1.users import UsersAPIView
 
-# Local Imports from `app`
 from app.context_processors import global_context
 from app.forms import NewProjectForm, TaskForm, ProjectForm, TaskFeedbackForm
-
 
 
 def redirectOffSite(request):
@@ -47,6 +42,11 @@ def logout(request):
     return response
 
 
+def viewRouter(request, **kwargs):
+    """
+    reroutes 
+    """
+    pass
 
 
 
