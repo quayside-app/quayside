@@ -24,7 +24,7 @@ from api.views.v1.projects import ProjectsAPIView
 from api.views.v1.users import UsersAPIView
 
 from app.context_processors import global_context
-from app.forms import NewProjectForm, TaskForm, ProjectForm
+from app.forms import NewProjectForm, TaskForm, ProjectForm, TaskFeedbackForm
 
 
 def redirectOffSite(_request):
@@ -55,7 +55,6 @@ def projectGraphView(request, projectID):
         {"id": projectID}, getAuthorizationToken(request)
     )
     
-    print(data)
 
     if httpsCode != status.HTTP_200_OK:
         print(f"Project GET failed: {data.get('message')}")
@@ -64,7 +63,7 @@ def projectGraphView(request, projectID):
         )
 
     return render(
-        request, "graph.html", {"projectID": projectID, "projectData": data[0]}
+        request, "graph.html", {"projectID": projectID, "projectData": data[0], "TaskFeedbackForm": TaskFeedbackForm}
     )
 
 

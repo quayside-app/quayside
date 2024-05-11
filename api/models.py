@@ -1,5 +1,5 @@
 import mongoengine as mongo
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 class User(mongo.Document):
@@ -75,4 +75,5 @@ class Feedback(mongo.Document):
     userID = mongo.ObjectIdField()
     projectID = mongo.ObjectIdField()
     taskID = mongo.ObjectIdField(null=True)
-    dateCreated = mongo.DateTimeField(default=datetime.now(datetime.timezone.UTC))
+    dateCreated = mongo.DateTimeField(default=datetime.now(timezone.utc))
+    mood = mongo.IntField(null=0)

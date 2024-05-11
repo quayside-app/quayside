@@ -1,27 +1,72 @@
 
 {% load static %}
 
-<div class="absolute bottom-40 right-5">
-    <img id="duckImage" class="w-24">
+<style>
+    @keyframes bounce {
+        0%, 100% {
+            transform: translateY(0) rotateY(30deg);
+        }
+        50% {
+            transform: translateY(-40px) rotate(45deg);
+        }
+}
+
+.bounce {
+    animation: bounce 1s infinite;
+}
+</style>
+
+<div id='duckDiv' class="absolute bottom-40 right-5 duckTriggerAble bounce">
+    
+
+    <div>
+        <a id="clickMeDuck" class="button hidden">Click to Show!</a>
+    </div>
+
+    <div>
+        <a id="hideMeDuck" class="button">Click to Hide!</a>
+    </div>
+
+    <img id="duckImage" class="w-24 cursor-pointer">
 </div>
 
+
 <script>
-    // Toggle image every 1.5 seconds
-    const images = [
-        "{% static 'app/images/duck.png' %}",
-        "{% static 'app/images/duck_sit.png' %}"
-    ];
+    // wait until the whole doc is loaded... all of it
+    let duckSpeed = 1000;
+    document.addEventListener('DOMContentLoaded', function() {
+        const images = [
+            "{% static 'app/images/duck.png' %}",
+            "{% static 'app/images/duck_sit.png' %}"
+        ];
 
-    const imgElement = document.getElementById('duckImage');
+        const imgElement = document.getElementById('duckImage');
+        let currentIndex = 0;
 
-    // Variable to track which image is currently shown
-    let currentIndex = 0;
+        function toggleImage() {
+            currentIndex = (currentIndex + 1) % images.length;
+            imgElement.src = images[currentIndex];
+        }
 
-    // Function to toggle the image source
-    function toggleImage() {
-        currentIndex = (currentIndex + 1) % images.length; 
-        imgElement.src = images[currentIndex];
-    }
+        setInterval(toggleImage, duckSpeed);
 
-    setInterval(toggleImage, 1000); // 200 is happy duck
+        let duckTriggerables = document.getElementsByClassName('duckTriggerAble')
+        
+        for (let triggerable of duckTriggerables) {
+            triggerable.addEventListener('click', function() {  
+                                                                
+                                                                let feedbackDiv = document.getElementById('taskFeedBackFormDiv');
+                                                                feedbackDiv.classList.toggle('hidden');
+                                                                
+                                                                // toggle the animation changes
+                                                                document.getElementById('clickMeDuck').classList.toggle('hidden');
+                                                                document.getElementById('hideMeDuck').classList.toggle('hidden');
+                                                                document.getElementById('duckDiv').classList.toggle('bounce');
+
+                                                            
+                                                                
+                                                            });
+        }
+    });
+
 </script>
