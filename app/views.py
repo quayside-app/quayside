@@ -366,6 +366,7 @@ def taskView(request, projectID, taskID):
             "submitLink": submitLink,
             "exitLink": exitLink,
             "deleteLink": deleteLink,
+            "TaskFeedbackForm": TaskFeedbackForm
         },
     )
 
@@ -447,7 +448,7 @@ def createTaskView(request, projectID, parentTaskID=""):
             "projectID": projectID,
             "baseTemplate": baseTemplate,
             "submitLink": submitLink,
-            "exitLink": exitLink,
+            "exitLink": exitLink, "TaskFeedbackForm": TaskFeedbackForm,
         },
     )
 

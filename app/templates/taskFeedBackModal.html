@@ -8,8 +8,11 @@
 
         <!-- Project Input(s) -->
         <div class="pt-4 w-72 md:w-96">
+            <h3 id="formDescriptor"></h3>
             {{ TaskFeedbackForm }} <!-- Comes from the context processor (since in the base class)-->
         </div>
+
+        <input id='taskID' type="hidden" name="taskID" value="{{ taskID }}">
 
         <!-- Submit Button -->
         <div id="submitButton">
@@ -24,6 +27,13 @@
 </div>
 
 <script>
+    let taskID = "{{ taskID }}";
 
+    let formDescriptor = document.getElementById("formDescriptor");
+    if (taskID != ""){
+        formDescriptor.innerHTML = "For task: {{ taskID }}"
+    } else {
+        formDescriptor.innerHTML = "For project: {{ projectID }}"
+    }
 </script>
 
