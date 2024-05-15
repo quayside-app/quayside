@@ -1013,6 +1013,15 @@ video {
   border-radius: 0.75rem;
 }
 
+.rounded-t-\[64px\] {
+  border-top-left-radius: 64px;
+  border-top-right-radius: 64px;
+}
+
+.rounded-bl-\[64px\] {
+  border-bottom-left-radius: 64px;
+}
+
 .border {
   border-width: 1px;
 }
@@ -1131,10 +1140,6 @@ video {
 
 .p-5 {
   padding: 1.25rem;
-}
-
-.p-6 {
-  padding: 1.5rem;
 }
 
 .px-2 {
@@ -1518,10 +1523,6 @@ video {
 
   .md\:w-96 {
     width: 24rem;
-  }
-
-  .md\:w-80 {
-    width: 20rem;
   }
 
   .md\:text-3xl {
