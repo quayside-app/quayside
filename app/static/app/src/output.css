@@ -544,10 +544,6 @@ video {
   --tw-backdrop-sepia:  ;
 }
 
-.visible {
-  visibility: visible;
-}
-
 .invisible {
   visibility: hidden;
 }
@@ -584,6 +580,10 @@ video {
   bottom: 10rem;
 }
 
+.bottom-52 {
+  bottom: 13rem;
+}
+
 .left-0 {
   left: 0px;
 }
@@ -608,6 +608,10 @@ video {
   right: 0px;
 }
 
+.right-36 {
+  right: 9rem;
+}
+
 .right-5 {
   right: 1.25rem;
 }
@@ -618,58 +622,6 @@ video {
 
 .top-20 {
   top: 5rem;
-}
-
-.bottom-10 {
-  bottom: 2.5rem;
-}
-
-.bottom-20 {
-  bottom: 5rem;
-}
-
-.bottom-48 {
-  bottom: 12rem;
-}
-
-.bottom-24 {
-  bottom: 6rem;
-}
-
-.bottom-32 {
-  bottom: 8rem;
-}
-
-.bottom-56 {
-  bottom: 14rem;
-}
-
-.bottom-64 {
-  bottom: 16rem;
-}
-
-.bottom-72 {
-  bottom: 18rem;
-}
-
-.right-48 {
-  right: 12rem;
-}
-
-.right-44 {
-  right: 11rem;
-}
-
-.right-4 {
-  right: 1rem;
-}
-
-.right-36 {
-  right: 9rem;
-}
-
-.bottom-52 {
-  bottom: 13rem;
 }
 
 .z-0 {
@@ -947,10 +899,6 @@ video {
   width: 100vw;
 }
 
-.w-40 {
-  width: 10rem;
-}
-
 .max-w-sm {
   max-width: 24rem;
 }
@@ -1065,37 +1013,6 @@ video {
   border-radius: 0.75rem;
 }
 
-.rounded-t-lg {
-  border-top-left-radius: 0.5rem;
-  border-top-right-radius: 0.5rem;
-}
-
-.rounded-t-3xl {
-  border-top-left-radius: 1.5rem;
-  border-top-right-radius: 1.5rem;
-}
-
-.rounded-t-full {
-  border-top-left-radius: 9999px;
-  border-top-right-radius: 9999px;
-}
-
-.rounded-br-lg {
-  border-bottom-right-radius: 0.5rem;
-}
-
-.rounded-bl-lg {
-  border-bottom-left-radius: 0.5rem;
-}
-
-.rounded-bl-3xl {
-  border-bottom-left-radius: 1.5rem;
-}
-
-.rounded-bl-full {
-  border-bottom-left-radius: 9999px;
-}
-
 .border {
   border-width: 1px;
 }
@@ -1208,12 +1125,16 @@ video {
   padding: 0.75rem;
 }
 
+.p-4 {
+  padding: 1rem;
+}
+
 .p-5 {
   padding: 1.25rem;
 }
 
-.p-4 {
-  padding: 1rem;
+.p-6 {
+  padding: 1.5rem;
 }
 
 .px-2 {
@@ -1591,20 +1512,16 @@ video {
 }
 
 @media (min-width: 768px) {
+  .md\:w-72 {
+    width: 18rem;
+  }
+
   .md\:w-96 {
     width: 24rem;
   }
 
-  .md\:w-6 {
-    width: 1.5rem;
-  }
-
-  .md\:w-64 {
-    width: 16rem;
-  }
-
-  .md\:w-72 {
-    width: 18rem;
+  .md\:w-80 {
+    width: 20rem;
   }
 
   .md\:text-3xl {

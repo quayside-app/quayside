@@ -1,7 +1,8 @@
 
 {% load static %}
 
-<div id="taskFeedBackFormDiv" class="absolute bottom-52 right-36  z-50 p-4  text-white  bg-neutral-800 rounded-t-3xl rounded-bl-3xl shadow-lg shadow-black w-72 md:w-72">
+<div id="taskFeedBackFormDiv" class="absolute bottom-52 right-36  z-50 p-4 text-center text-white  bg-neutral-800  shadow-lg shadow-black w-72 md:w-72"
+    style="border-bottom-left-radius: 4rem; border-top-left-radius: 4rem; border-top-right-radius: 4rem;">
 <!--absolute bottom-40 right-5-->
     <form action="/project/{{ projectID }}/graph/give-feedback" method="post" id="taskFeedbackForm">
         {% csrf_token %} <!-- Required by Django to prevent Cross Site Scripting -->
