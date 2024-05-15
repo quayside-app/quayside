@@ -1,7 +1,7 @@
 
 {% load static %}
 
-<style>
+<!-- <style>
     @keyframes bounce {
         0%, 100% {
             transform: translateY(0) rotateY(30deg);
@@ -12,11 +12,11 @@
 }
 
 .bounce {
-    animation: bounce 1s infinite;
+    animation: bounce 2s infinite;
 }
-</style>
+</style> -->
 
-<div id='duckDiv' class="absolute bottom-40 right-5 duckTriggerAble bounce">
+<div id='duckDiv' class="absolute bottom-40 right-5 duckTriggerAble bounce z-50">
     
 
     <div>
@@ -27,13 +27,13 @@
         <a id="hideMeDuck" class="button">Click to Hide!</a>
     </div>
 
-    <img id="duckImage" class="w-24 cursor-pointer">
+    <img id="duckImage" class="w-24 cursor-pointer" src="{% static 'app/images/duck.png' %}">
 </div>
 
 
 <script>
     // wait until the whole doc is loaded... all of it
-    let duckSpeed = 1000;
+    let duckSpeed = 2000;
     document.addEventListener('DOMContentLoaded', function() {
         const images = [
             "{% static 'app/images/duck.png' %}",
@@ -54,18 +54,16 @@
         
         for (let triggerable of duckTriggerables) {
             triggerable.addEventListener('click', function() {  
-                                                                
-                                                                let feedbackDiv = document.getElementById('taskFeedBackFormDiv');
-                                                                feedbackDiv.classList.toggle('hidden');
-                                                                
-                                                                // toggle the animation changes
-                                                                document.getElementById('clickMeDuck').classList.toggle('hidden');
-                                                                document.getElementById('hideMeDuck').classList.toggle('hidden');
-                                                                document.getElementById('duckDiv').classList.toggle('bounce');
 
-                                                            
-                                                                
-                                                            });
+                let feedbackDiv = document.getElementById('taskFeedBackFormDiv');
+                feedbackDiv.classList.toggle('hidden');
+                
+                // toggle the animation changes
+                document.getElementById('clickMeDuck').classList.toggle('hidden');
+                document.getElementById('hideMeDuck').classList.toggle('hidden');
+                document.getElementById('duckDiv').classList.toggle('bounce');
+
+            });
         }
     });
 
