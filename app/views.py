@@ -75,9 +75,16 @@ def projectGraphView(request, projectID):
         )
 
     return render(
-        request, "graph.html", {"projectID": projectID, "projectData": data[0], "TaskFeedbackForm": TaskFeedbackForm}
+        request, "graph.html", {"projectID": projectID, 
+                                "projectData": data[0], **generate_TaskFeedbackForm(request)}
     )
 
+def generate_TaskFeedbackForm(request):
+    payload = {
+        "userID": global_context(request).get("userID"),
+        "TaskFeedbackForm": TaskFeedbackForm
+    }
+    return payload
 
 @apiKeyRequired
 def createTaskFeedback(request, projectID):
@@ -87,6 +94,7 @@ def createTaskFeedback(request, projectID):
     )
 
     if request.method == "POST":
+
         form = TaskFeedbackForm(request.POST)
 
         if form.is_valid():
@@ -98,16 +106,21 @@ def createTaskFeedback(request, projectID):
             message, httpsCode = FeedbackAPIView.createFeedback(
                 newData, getAuthorizationToken(request)
             )
+
             if httpsCode != status.HTTP_200_OK:
                 print(f"Task update failed: {message}")
                 return HttpResponseServerError(f"An error occurred: {message}")
+        else:
+            return HttpResponseServerError(f"An error occurred: form not valid")
 
     # now go back to the graph
     return render(
-        request, "graph.html", {"projectID": projectID, "projectData": data[0], "TaskFeedbackForm": TaskFeedbackForm}
+        request, "graph.html", {"projectID": projectID, 
+                                "projectData": data[0], 
+                                **generate_TaskFeedbackForm(request)}
     )
 
-    
+
 
 @apiKeyRequired
 def projectKanbanView(request, projectID):
@@ -366,7 +379,7 @@ def taskView(request, projectID, taskID):
             "submitLink": submitLink,
             "exitLink": exitLink,
             "deleteLink": deleteLink,
-            "TaskFeedbackForm": TaskFeedbackForm
+            **generate_TaskFeedbackForm(request)
         },
     )
 
@@ -448,7 +461,7 @@ def createTaskView(request, projectID, parentTaskID=""):
             "projectID": projectID,
             "baseTemplate": baseTemplate,
             "submitLink": submitLink,
-            "exitLink": exitLink, "TaskFeedbackForm": TaskFeedbackForm,
+            "exitLink": exitLink, **generate_TaskFeedbackForm(request),
         },
     )
 

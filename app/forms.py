@@ -34,7 +34,7 @@ class TaskFeedbackForm(forms.Form):
     userID = forms.CharField(widget=forms.HiddenInput())  # Assuming the user ID is handled in the background
     projectID = forms.CharField(widget=forms.HiddenInput())  # Assuming the project ID is handled in the background
     taskID = forms.CharField(required=False, widget=forms.HiddenInput())  # Optional, can be null
-    dateCreated = forms.DateTimeField(initial=datetime.now(timezone.utc), widget=forms.HiddenInput())  # Default to current time
+    dateCreated = forms.DateTimeField(widget=forms.HiddenInput())  # Default to current time
     mood = forms.ChoiceField(
         choices=(
             (1, "Very Unhappy"),
@@ -57,6 +57,9 @@ class TaskFeedbackForm(forms.Form):
             "rows": 3,
         })
     )
+
+
+
 
 
 
