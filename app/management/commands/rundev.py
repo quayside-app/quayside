@@ -23,14 +23,14 @@ def check_env_and_update():
     envProperties = []
     
     # using "with open" ensures that the file gets opened and closed without having to explicitly call f.close()
-    with open(envCheckerPath, "r") as checkerFile, open(envFilePath, 'a+') as envFile:
+    with open(envCheckerPath, 'r') as checkerFile, open(envFilePath, 'r') as envFile:
         for check_line in checkerFile.read().splitlines():
             if check_line == "":
                 continue
 
             checkerProperties.append(check_line.strip())
             
-        for i, line in enumerate(envFile.read().splitlines()):
+        for line in envFile.read().splitlines():
             if line == "":
                 continue
 
@@ -42,14 +42,20 @@ def check_env_and_update():
             continue
         
         if property not in envProperties:
-            print(f".env file missing manditory {property}")
+            print(f".env file missing manditory property {property}")
             return False
               
-    with open(envCheckerPath, '+a') as f:
+    with open(envCheckerPath, "+a") as checkerFile:
+        # seek to last character of file
+        checkerFile.seek(0, os.SEEK_END) 
+        checkerFile.seek(checkerFile.tell() - 1, os.SEEK_SET)
+        if checkerFile.read(1) != "\n":
+            checkerFile.write("\n")
+            
         for prop in envProperties:
             if (prop not in checkerProperties):
                 print(f"adding {prop} variable to env checker")
-                f.write(prop + "\n")
+                checkerFile.write(prop + "\n")
                 
     return True
 
