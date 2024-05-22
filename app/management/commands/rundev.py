@@ -8,46 +8,46 @@ def check_env_and_update():
     # checks .env for all the required fields
     # print('Checking Environment Variables...')
     
-    env_file_path = os.path.join(file_dir, ".env")
-    env_checker_path = os.path.join(file_dir, "env_check_file")
+    envFilePath = os.path.join(file_dir, ".env")
+    envCheckerPath = os.path.join(file_dir, "env_check_file")
     
-    if not os.path.exists(env_file_path):
+    if not os.path.exists(envFilePath):
         print("The .env file does not exist, you should create it!")
         return False
         
-    if not os.path.exists(env_checker_path):
-        os.mknod(env_checker_path)
+    if not os.path.exists(envCheckerPath):
+        os.mknod(envCheckerPath)
         print('env_check_file not found, creating...')
         
-    checker_properties = []
-    env_properties = []
+    checkerProperties = []
+    envProperties = []
     
     # using "with open" ensures that the file gets opened and closed without having to explicitly call f.close()
-    with open(env_checker_path, "r") as checker_file, open(env_file_path, 'a+') as env_file:
-        for check_line in checker_file.read().splitlines():
+    with open(envCheckerPath, "r") as checkerFile, open(envFilePath, 'a+') as envFile:
+        for check_line in checkerFile.read().splitlines():
             if check_line == "":
                 continue
 
-            checker_properties.append(check_line.strip())
+            checkerProperties.append(check_line.strip())
             
-        for i, line in enumerate(env_file.read().splitlines()):
+        for i, line in enumerate(envFile.read().splitlines()):
             if line == "":
                 continue
 
-            env_properties.append(line.split("=")[0].strip())
+            envProperties.append(line.split("=")[0].strip())
             
-    for property in checker_properties:
+    for property in checkerProperties:
         # if is empty
         if not property:
             continue
         
-        if property not in env_properties:
+        if property not in envProperties:
             print(f".env file missing manditory {property}")
             return False
               
-    with open(env_checker_path, '+a') as f:
-        for prop in env_properties:
-            if (prop not in checker_properties):
+    with open(envCheckerPath, '+a') as f:
+        for prop in envProperties:
+            if (prop not in checkerProperties):
                 print(f"adding {prop} variable to env checker")
                 f.write(prop + "\n")
                 
