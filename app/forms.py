@@ -3,16 +3,28 @@ from django import forms
 
 class NewProjectForm(forms.Form):
     """
-    A form for creating a new project with a description.
+    A form for creating a new project with a name and description.
     """
 
-    description = forms.CharField(
-        label="What is your project about?",
+    name = forms.CharField(
+        label="What is your project called?",
         widget=forms.TextInput(
             attrs={
-                "placeholder": "Bake a cake",
-                "class": "w-72 md:w-96 block mt-3 p-2 text-sm rounded-md bg-neutral-600 outline-none placeholder-gray-400",
+                "placeholder": "Operation bake a cake",
+                "class": "w-72 md:w-96 block mt-2 mb-4 p-2  text-sm rounded-md bg-neutral-600 outline-none placeholder-gray-400",
                 "type": "text",
+            }
+        ),
+    )
+
+    description = forms.CharField(
+        label="Describe your project:",
+        required=False,
+        widget=forms.Textarea(
+            attrs={
+                "placeholder": "I want to bake a chocolate cake for my friend's birthday party.",
+                "class": "w-72 md:w-96 block mt-2 mb-2 p-2 text-sm rounded-md bg-neutral-600 outline-none placeholder-gray-400",
+                "rows": 4,
             }
         ),
     )
@@ -31,7 +43,7 @@ class TaskForm(forms.Form):
                 "placeholder": "Name",
                 "type": "text",
                 "class": "w-full block bg-neutral-800 outline-none sm:text-2xl font-bold",
-                'rows': 1,
+                "rows": 1,
             }
         ),
     )
@@ -39,11 +51,10 @@ class TaskForm(forms.Form):
     status = forms.ChoiceField(
         label="",
         required=False,
-        choices=(("Todo", "Todo"), ("In-Progress",
-                 "In-Progress"), ("Done", "Done")),
+        choices=(("Todo", "Todo"), ("In-Progress", "In-Progress"), ("Done", "Done")),
         widget=forms.Select(
             attrs={
-                "class": " text-xs md:text-base inline-block p-1 mt-4 rounded-md  bg-neutral-600 outline-none placeholder-gray-400",
+                "class": "text-base inline-block p-1 mt-4 rounded-md  bg-neutral-600 outline-none placeholder-gray-400",
             }
         ),
     )
@@ -53,7 +64,7 @@ class TaskForm(forms.Form):
         required=False,
         widget=forms.DateInput(
             attrs={
-                "class": "text-xs md:text-base inline-block pl-1 py-1  rounded-md  bg-neutral-600 outline-none placeholder-gray-400",
+                "class": "text-base inline-block pl-1 py-1  rounded-md  bg-neutral-600 outline-none placeholder-gray-400",
                 "type": "date",
             }
         ),
@@ -64,7 +75,7 @@ class TaskForm(forms.Form):
         required=False,
         widget=forms.DateInput(
             attrs={
-                "class": "text-xs md:text-base inline-block pl-1 py-1  rounded-md  bg-neutral-600 outline-none placeholder-gray-400",
+                "class": "text-base inline-block pl-1 py-1  rounded-md  bg-neutral-600 outline-none placeholder-gray-400",
                 "type": "date",
             }
         ),
@@ -78,7 +89,19 @@ class TaskForm(forms.Form):
                 "placeholder": "Description...",
                 "type": "text",
                 "class": "w-full block p-2 mt-4 rounded-md  bg-neutral-600 outline-none placeholder-gray-400",
-
+            }
+        ),
+    )
+    
+    duration = forms.CharField(
+        required=False,
+        max_length=18, # Mongo can handle a max of 8 bytes (~18 digits)
+        widget=forms.TextInput(
+            attrs={
+                "placeholder": "Ex: 4h 30m",
+                "type": "text",
+                "class": " inline-block bg-neutral-800 outline-none font-bold placeholder-gray-400",
+                'rows': 1,
             }
         ),
     )
@@ -97,7 +120,7 @@ class ProjectForm(forms.Form):
                 "placeholder": "Project Name",
                 "type": "text",
                 "class": "w-full block bg-neutral-800 outline-none sm:text-2xl font-bold",
-                'rows': 1,
+                "rows": 1,
             }
         ),
     )
@@ -107,7 +130,7 @@ class ProjectForm(forms.Form):
         required=False,
         widget=forms.DateInput(
             attrs={
-                "class": " inline-block p-1 mt-4 rounded-md  bg-neutral-600 outline-none placeholder-gray-400",
+                "class": " text-base inline-block p-1 mt-4 rounded-md  bg-neutral-600 outline-none placeholder-gray-400",
                 "type": "date",
             }
         ),
@@ -118,8 +141,20 @@ class ProjectForm(forms.Form):
         required=False,
         widget=forms.DateInput(
             attrs={
-                "class": " inline-block p-1 mt-4 rounded-md  bg-neutral-600 outline-none placeholder-gray-400",
+                "class": "text-base inline-block p-1 mt-4 rounded-md  bg-neutral-600 outline-none placeholder-gray-400",
                 "type": "date",
+            }
+        ),
+    )
+    contributors = forms.CharField(
+        label="",
+        required=False,
+        widget=forms.Textarea(
+            attrs={
+                "placeholder": "Contributor Emails",
+                "type": "text",
+                "class": "w-full p-2  rounded-md  bg-neutral-600 outline-none placeholder-gray-400",
+                "rows": 2,
             }
         ),
     )

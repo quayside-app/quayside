@@ -1,26 +1,21 @@
 from django.http import JsonResponse
 import jwt
 from api.models import User
-
-
-from api.utils import decodeApiKey, decryptApiKey
+from api.utils import decodeApiKey, decryptApiKey, getAuthorizationToken
 
 
 def apiKeyRequired(function):
     """
     Wraps function to authenticate it.
-    Allows token to be passed in the authorization header OR through cookies (header good for scripts,
+    Requires authorization token to be passed in the authorization header OR through cookies (header good for scripts,
     cookies good for websites).
 
     @param function Function to be wrapped.
     """
 
     def wrap(request, *args, **kwargs):
-        token = request.META.get("HTTP_AUTHORIZATION")
 
-        # Try cookies if there is not a token in the header
-        if not token:
-            token = request.COOKIES.get("apiToken")
+        token = getAuthorizationToken(request)
 
         # If no token anywhere, raise an error
         if not token:

@@ -1,14 +1,14 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-
 from mongoengine.errors import NotUniqueError
-
+from mongoengine import Q
 from django.utils.decorators import method_decorator
 
 from api.models import User
 from api.serializers import UserSerializer
 from api.decorators import apiKeyRequired
+from api.utils import getAuthorizationToken, decodeApiKey
 
 
 # dispatch protects all HTTP requests coming in
@@ -20,14 +20,14 @@ class UsersAPIView(APIView):
 
     def get(self, request):
         """
-        Retrieves user information based on optional query parameters. If no parameters are provided,
-        retrieves a list of all users. Supports filtering by user ID or email address.
+        Retrieves users information. Only users can access all their own data if they pass their id.
+        Other users can access email, id, and username if they pass email or id.
         Requires 'apiToken' passed in auth header or cookies.
 
         @param {HttpRequest} request - The request object.
             The query parameters can be:
-                - id (objectID str): Filter users by ID.
-                - email (str): Filter users by email address.
+                - id (str): Filter user by ID.
+                - email (str): Filter user by email.
 
         @return A Response object containing a JSON array of serialized user objects that match the query parameters.
         If no users match the query, a 400 Bad Request response is returned.
@@ -46,7 +46,9 @@ class UsersAPIView(APIView):
         try:
             queryParams = request.query_params.dict()
 
-            responseData, httpStatus = self.getUser(queryParams)
+            responseData, httpStatus = self.getUsers(
+                queryParams, getAuthorizationToken(request)
+            )
 
             return Response(responseData, httpStatus)
 
@@ -124,11 +126,13 @@ class UsersAPIView(APIView):
             });
 
         """
-        responseData, httpStatus = self.updateUser(request.data)
+        responseData, httpStatus = self.updateUser(
+            request.data, getAuthorizationToken(request)
+        )
         return Response(responseData, status=httpStatus)
 
     @staticmethod
-    def updateUser(userData):
+    def updateUser(userData, authorizationToken):
         """
         Service API function that can be called internally as well as through the API to update
         a user based on input data.
@@ -137,7 +141,15 @@ class UsersAPIView(APIView):
         @return      A tuple of (response_data, http_status).
         """
         if "id" not in userData:
-            return "Error: Parameter 'id' required", status.HTTP_400_BAD_REQUEST
+            return {
+                "message": "Error: Parameter 'id' required"
+            }, status.HTTP_400_BAD_REQUEST
+
+        userID = decodeApiKey(authorizationToken).get("userID")
+        if userID != userData["id"]:
+            return {
+                "message": "Unauthorized to update that user."
+            }, status.HTTP_401_UNAUTHORIZED
 
         try:
             task = User.objects.get(id=userData["id"])
@@ -153,35 +165,52 @@ class UsersAPIView(APIView):
         return serializer.errors, status.HTTP_400_BAD_REQUEST
 
     @staticmethod
-    def getUser(userData):
+    def getUsers(userData, authorizationToken=None):
         """
-        Service API function that can be called internally as well as through the API to get a user
+        Service API function that can be called internally as well as through the API to get a user.
 
         @param userData      Dict of data for a single user.
         @return      A tuple of (response_data, http_status).
         """
 
-        user_id = userData.get("id") or None
-        email = userData.get("email") or None
+        if not isinstance(userData, list):
+            # If authorized user is getting information about their self, return all data
+            userID = decodeApiKey(authorizationToken).get("userID")
+            if "id" in userData and userID == userData["id"]:
+                if not userData.get("id") and not userData.get("email"):
+                    return {
+                        "message": "UserID or email required."
+                    }, status.HTTP_400_BAD_REQUEST
+                user = User.objects.filter(**userData).first()
+                serializedUser = UserSerializer(user).data
+                return [serializedUser], status.HTTP_200_OK
 
-        if user_id and email:
+            userData = [userData]
+
+        # Else return only id, email, and username
+        userIDs = [user.get("id") for user in userData if user.get("id")]
+        emails = [user.get("email") for user in userData if user.get("email")]
+
+        if not userIDs and not emails:
             return {
-                "message": "Only user id or email needed. Hint: remove email=<> from the url"
+                "message": "No valid user IDs or emails provided."
             }, status.HTTP_400_BAD_REQUEST
 
-        user = None
-        if user_id:
-            user = User.objects.filter(id=user_id).first()
-        elif email:
-            user = User.objects.filter(email=email).first()
-        else:
-            user = User.objects.filter(None)
+        users = User.objects.filter(Q(id__in=userIDs) | Q(email__in=emails))
 
-        if not user:
-            return {"message": "User(s) not found."}, status.HTTP_400_BAD_REQUEST
-
-        serialized_user = UserSerializer(user).data
-        return {"user": serialized_user}, status.HTTP_200_OK
+        if not users:
+            return {"message": "No users found."}, status.HTTP_404_NOT_FOUND
+        serializedUsers = []
+        for user in users:
+            serializedUser = UserSerializer(user).data
+            serializedUsers.append(
+                {
+                    "id": serializedUser.get("id"),
+                    "email": serializedUser.get("email"),
+                    "username": serializedUser.get("username"),
+                }
+            )
+        return serializedUsers, status.HTTP_200_OK
 
     @staticmethod
     def createUser(userData):
@@ -219,3 +248,26 @@ class UsersAPIView(APIView):
                 "error": "Internal server error.",
                 "details": str(e),
             }, status.HTTP_500_INTERNAL_SERVER_ERROR
+
+    @staticmethod
+    def getAuthenticatedUser(userData):
+        """
+        THIS SHOULD ONLY BE USED FOR AUTHORIZATION WHEN LOGGING IN. DO NOT MAKE THIS A PUBLIC ROUTE.
+
+        @param userData      Dict of data for a single user. Must contain email
+        @return      A tuple of (response_data, http_status).
+        """
+
+        if "email" not in userData:
+            return "Error: Parameter 'email' required", status.HTTP_400_BAD_REQUEST
+
+        user = User.objects.filter(email=userData["email"]).first()
+
+        if not user:
+            return {"message": "User not found."}, status.HTTP_404_NOT_FOUND
+
+        serializedUser = UserSerializer(user).data
+        return {
+            "apiKey": serializedUser.get("apiKey"),
+            "id": serializedUser.get("id"),
+        }, status.HTTP_200_OK

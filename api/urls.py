@@ -28,6 +28,11 @@ urlpatterns = [
         views.generatedTasks.GeneratedTasksAPIView.as_view(),
         name=f"{API_VERSION}-generated-tasks",
     ),
+    path(
+        f"{API_VERSION}/kanban/",
+        views.kanban.KanbanAPIView.as_view(),
+        name=f"{API_VERSION}-kanban-board"
+    )
 ]
 
 # GET /api/v1/users/:username                   Get information about a user

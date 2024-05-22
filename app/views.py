@@ -1,36 +1,41 @@
 import os
-from oauthlib.oauth2 import WebApplicationClient as WAC
+import re
+import urllib.parse
 import requests
+from oauthlib.oauth2 import WebApplicationClient as WAC
 from rest_framework import status
 
+
 from django.shortcuts import render, redirect
-from django.http import HttpResponseRedirect, HttpResponseServerError, HttpResponse
+from django.http import HttpResponseRedirect, HttpResponseServerError
 from django.views.generic.base import TemplateView
 
 from api.decorators import apiKeyRequired
-from api.utils import decryptApiKey, createEncodedApiKey, encryptApiKey
+from api.utils import (
+    decryptApiKey,
+    createEncodedApiKey,
+    encryptApiKey,
+    getAuthorizationToken,
+    decodeApiKey,
+)
 from api.views.v1.tasks import TasksAPIView
 from api.views.v1.generatedTasks import GeneratedTasksAPIView
 from api.views.v1.projects import ProjectsAPIView
 from api.views.v1.users import UsersAPIView
 
-from .context_processors import global_context
-from .forms import NewProjectForm, TaskForm, ProjectForm
-
-import urllib.parse
+from app.context_processors import global_context
+from app.forms import NewProjectForm, TaskForm, ProjectForm
 
 
-def redirectOffSite(request):
-    return redirect('https://github.com/quayside-app/quayside')
+def redirectOffSite(_request):
+    return redirect("https://github.com/quayside-app/quayside")
 
 
-
-
-def logout(request):
-    response = redirect('/')
-    response.delete_cookie('apiToken')
-    response.delete_cookie('csrftoken')
-    response.delete_cookie('sessionid')
+def logout(_request):
+    response = redirect("/")
+    response.delete_cookie("apiToken")
+    response.delete_cookie("csrftoken")
+    response.delete_cookie("sessionid")
     return response
 
 
@@ -45,7 +50,49 @@ def projectGraphView(request, projectID):
     @returns {HttpResponse} - An HttpResponse object that renders the
         graph.html template with the project ID context.
     """
-    return render(request, "graph.html", {"projectID": projectID})
+    # Check if project exists
+    data, httpsCode = ProjectsAPIView.getProjects(
+        {"id": projectID}, getAuthorizationToken(request)
+    )
+    
+    print(data)
+
+    if httpsCode != status.HTTP_200_OK:
+        print(f"Project GET failed: {data.get('message')}")
+        return HttpResponseServerError(
+            f"Could not query project: {data.get('message')}"
+        )
+
+    return render(
+        request, "graph.html", {"projectID": projectID, "projectData": data[0]}
+    )
+
+
+@apiKeyRequired
+def projectKanbanView(request, projectID):
+    """
+    Renders the graph view for a specific project. This view requires an API key in the cookies.
+
+
+    @param {HttpRequest} request - The request object.
+    @param {str} projectID - The ID for the project whose graph is to be rendered.
+    @returns {HttpResponse} - An HttpResponse object that renders the
+        graph.html template with the project ID context.
+    """
+    return render(request, "kanban.html", {"projectID": projectID})
+
+@apiKeyRequired
+def projectKanbanView(request, projectID):
+    """
+    Renders the graph view for a specific project. This view requires an API key in the cookies.
+
+
+    @param {HttpRequest} request - The request object.
+    @param {str} projectID - The ID for the project whose graph is to be rendered.
+    @returns {HttpResponse} - An HttpResponse object that renders the
+        graph.html template with the project ID context.
+    """
+    return render(request, "kanban.html", {"projectID": projectID})
 
 
 @apiKeyRequired
@@ -69,23 +116,83 @@ def editProjectView(request, projectID):
         if form.is_valid():
             newData = form.cleaned_data
             newData["id"] = projectID
-            message, status_code = ProjectsAPIView.updateProject(newData)
 
-            if status_code != status.HTTP_200_OK:
+            # Replace user emails with userIDs to save
+
+            # Splits on comma, space, or newline. Makes sure only unique emails
+            emails = set(re.split(r"\s*[, \n]+\s*", newData["contributors"].strip()))
+            # Filter out empty strings
+            emails = {email for email in emails if email}
+
+            userIDs = []
+            if emails:
+                del newData["contributors"]
+                emails = [{"email": email} for email in emails if email]
+
+                contributorData, httpsCode = UsersAPIView.getUsers(emails)
+                if httpsCode != status.HTTP_200_OK:
+                    print(
+                        f"Could not query contributor ids for project: {contributorData.get('message')}"
+                    )
+                    return HttpResponseServerError(
+                        f"Could not query contributor ids for project: {contributorData.get('message')}"
+                    )
+
+                userIDs = [user["id"] for user in contributorData]
+
+            currentUserID = decodeApiKey(getAuthorizationToken(request)).get("userID")
+            if currentUserID not in userIDs:
+                userIDs.append(currentUserID)
+
+            newData["userIDs"] = userIDs
+            message, httpsCode = ProjectsAPIView.updateProject(
+                newData, getAuthorizationToken(request)
+            )
+            if httpsCode != status.HTTP_200_OK:
                 print(f"Task update failed: {message}")
                 return HttpResponseServerError(f"An error occurred: {message}")
 
-            return redirect(f"/project/{projectID}/")
+            return redirect(f"/project/{projectID}/graph")
 
     # If a GET (or any other method) we"ll create a blank form
     else:
-        projectData = ProjectsAPIView.getProjects({"id": projectID})[0][0]
-        # Populate initial form data
+        projectData, httpsCode = ProjectsAPIView.getProjects(
+            {"id": projectID}, getAuthorizationToken(request)
+        )
+        if httpsCode != status.HTTP_200_OK:
+            print(f"Project GET failed: {projectData.get('message')}")
+            return HttpResponseServerError(
+                f"Could not query project: {projectData.get('message')}"
+            )
+
+        projectData = projectData[0]
+
+        # Get contributor emails
+        contributorString = ""
+        currentUserID = decodeApiKey(getAuthorizationToken(request)).get("userID")
+        userIDs = projectData.get("userIDs")
+
+        contributorIDs = [{"id": ID} for ID in userIDs if ID != currentUserID]
+        if contributorIDs:
+            contributorData, httpsCode = UsersAPIView.getUsers(contributorIDs)
+            if httpsCode != status.HTTP_200_OK:
+                print(
+                    f"Could not query contributor emails for project: {contributorData.get('message')}"
+                )
+                return HttpResponseServerError(
+                    f"Could not query contributor emails for project: {contributorData.get('message')}"
+                )
+
+            contributorString = ", ".join(
+                [contributor["email"] for contributor in contributorData]
+            )
+
         if projectData is not None:
             initialData = {
                 "name": projectData.get("name", ""),
                 "startDate": projectData.get("startDate", ""),
                 "endDate": projectData.get("endDate", ""),
+                "contributors": contributorString,
             }
             form = ProjectForm(initial=initialData)
         else:
@@ -93,11 +200,12 @@ def editProjectView(request, projectID):
     return render(
         request,
         "projectModel.html",
-        {"form": form,
-         "projectID": projectID,
-         "submitLink": f"/project/{projectID}/",
-         "exitLink": f"/project/{projectID}/graph",
-         },
+        {
+            "form": form,
+            "projectID": projectID,
+            "submitLink": f"/project/{projectID}/",
+            "exitLink": f"/project/{projectID}/graph",
+        },
     )
 
 
@@ -118,33 +226,81 @@ def taskView(request, projectID, taskID):
         template with the project ID, task ID, and task form context.
     """
 
-    if 'kanban' in request.path:
-        baseTemplate = 'kanban.html'
-        submitLink = f"/project/{projectID}/kanban/task/{taskID}"
+    baseTemplate = "graph.html"
+    submitLink = f"/project/{projectID}/graph/task/{taskID}/"
+    exitLink = f"/project/{projectID}/graph"
+    deleteLink = f"/project/{projectID}/graph"
+    if "kanban" in request.path:
+        baseTemplate = "kanban.html"
+        submitLink = f"/project/{projectID}/kanban/task/{taskID}/"
         exitLink = f"/project/{projectID}/kanban"
         deleteLink = f"/project/{projectID}/kanban"
-    else:
-        baseTemplate = 'graph.html'
-        submitLink = f"/project/{projectID}/graph/task/{taskID}"
-        exitLink = f"/project/{projectID}/graph"
-        deleteLink = f"/project/{projectID}/graph"
+        
     if request.method == "POST":
 
         form = TaskForm(request.POST)
-
+        
         if form.is_valid():
+        
             newData = form.cleaned_data
+
+            durationMinutes = 0
+            # Allow week, day, hour, minute BUT converts to hour/minute
+            durationList = re.findall(r"(\d*\.\d+|\d+)(d|h|m|w)", newData["duration"].lower()) # Matches floats and ints
+
+            for duration in durationList:
+                quantity = duration[1]
+                
+                if quantity.find("w") != -1:
+                    durationMinutes += round(float(duration[0]) * 7 * 24 * 60)
+                elif quantity.find("d") != -1:
+                    durationMinutes += round(float(duration[0]) * 24 * 60)
+                elif quantity.find("h") != -1:
+                    
+                    durationMinutes += round(float(duration[0]) * 60)
+                elif quantity.find("m") != -1:
+                    durationMinutes += round(float(duration[0]))
+
+
+            # if quantity type was not found and only a int/float was typed, assume it's minute value
+            if newData["duration"] and re.match(r'^\d*(?:\.\d+)?$', newData["duration"]):
+                durationMinutes = round(float(newData["duration"]))
+
+                
+            newData["durationMinutes"] = durationMinutes
             newData["id"] = taskID
-            message, status_code = TasksAPIView.updateTask(newData)
+            message, status_code = TasksAPIView.updateTask(
+                newData, getAuthorizationToken(request)
+            )
 
             if status_code != status.HTTP_200_OK:
                 print(f"Task update failed: {message}")
                 return HttpResponseServerError(f"An error occurred: {message}")
-            return redirect(f"/project/{projectID}/graph")
+            return redirect(exitLink)
 
-    # If a GET (or any other method) we"ll create a blank form
+    # If a GET (or any other method) we'll create a blank form
     else:
-        taskData = TasksAPIView.getTasks({"id": taskID})[0][0]
+        data, status_code = TasksAPIView.getTasks(
+            {"id": taskID}, getAuthorizationToken(request)
+        )
+        if status_code != status.HTTP_200_OK:
+            print(f"Task fetch failed: {data.get('message')}")
+            return HttpResponseServerError(f"An error occurred: {data.get('message')}")
+
+        taskData = data[0]
+        
+        durationString = ""
+        durationMinutes = taskData.get("durationMinutes") or 0
+        
+        
+
+        workHours = int(durationMinutes / 60)
+        minutes = durationMinutes % 60
+        
+        if workHours != 0: durationString += str(workHours) + "h "
+        if (minutes != 0) or (durationMinutes == 0): durationString += str(minutes) + "m"
+        durationString = durationString.strip()
+        
         # Populate initial form data
         if taskData is not None:
             initialData = {
@@ -153,6 +309,7 @@ def taskView(request, projectID, taskID):
                 "status": taskData.get("status", ""),
                 "startDate": taskData.get("startDate", ""),
                 "endDate": taskData.get("endDate", ""),
+                "duration": durationString
             }
             form = TaskForm(initial=initialData)
         else:
@@ -160,13 +317,14 @@ def taskView(request, projectID, taskID):
     return render(
         request,
         "taskModal.html",
-        {"form": form,
-         "projectID": projectID,
-         "taskID": taskID,
-         "baseTemplate": baseTemplate,
-         "submitLink": submitLink,
-         "exitLink": exitLink,
-         "deleteLink": deleteLink
+        {
+            "form": form,
+            "projectID": projectID,
+            "taskID": taskID,
+            "baseTemplate": baseTemplate,
+            "submitLink": submitLink,
+            "exitLink": exitLink,
+            "deleteLink": deleteLink,
         },
     )
 
@@ -186,17 +344,24 @@ def createTaskView(request, projectID, parentTaskID=""):
     @returns {HttpResponse} - An HttpResponse object that renders the taskModal.html
         template with the project ID, task ID, and task form context.
     """
-    if 'kanban' in request.path:
-        baseTemplate = 'kanban.html'
-        submitLink = f"/project/{projectID}/kanban/create-task/{parentTaskID}"
-        exitLink =  f"/project/{projectID}/kanban"
+    if "kanban" in request.path:
+        baseTemplate = "kanban.html"
+        if parentTaskID:
+            submitLink = f"/project/{projectID}/kanban/create-task/{parentTaskID}/"
+        else:
+            submitLink = f"/project/{projectID}/kanban/create-task/"
+        exitLink = f"/project/{projectID}/kanban"
     else:
-        baseTemplate = 'graph.html'
-        submitLink = f"/project/{projectID}/graph/create-task/{parentTaskID}"
-        exitLink =  f"/project/{projectID}/graph"
+        baseTemplate = "graph.html"
+        if parentTaskID:
+            submitLink = f"/project/{projectID}/graph/create-task/{parentTaskID}/"
+        else: 
+            submitLink = f"/project/{projectID}/graph/create-task/"
+        exitLink = f"/project/{projectID}/graph"
 
     # Create new task on post
     if request.method == "POST":
+
         form = TaskForm(request.POST)
 
         if form.is_valid():
@@ -204,25 +369,44 @@ def createTaskView(request, projectID, parentTaskID=""):
             newData["projectID"] = projectID
             if parentTaskID and parentTaskID != "":
                 newData["parentTaskID"] = parentTaskID
-            message, status_code = TasksAPIView.createTasks(newData)
+            message, httpsCode = TasksAPIView.createTasks(
+                newData, getAuthorizationToken(request)
+            )
 
-            if status_code != status.HTTP_201_CREATED:
+            if httpsCode != status.HTTP_201_CREATED:
                 print(f"Task creation failed: {message}")
-                return HttpResponseServerError(f"An error occurred: {message}")
+                return HttpResponseServerError(
+                    f"An error occurred: {message.get('message')}"
+                )
+        if "kanban" in request.path:
+            return redirect(f"/project/{projectID}/kanban")
 
-            return redirect(f"/project/{projectID}/graph")
+        return redirect(f"/project/{projectID}/graph")
 
     # If a GET (or any other method) we"ll create a blank form for them to render
     else:
+        # Check if user has access to project
+        projectData, httpsCode = ProjectsAPIView.getProjects(
+            {"id": projectID}, getAuthorizationToken(request)
+        )
+        print(projectData)
+        if httpsCode != status.HTTP_200_OK:
+            print(
+                f"For creating tasks, project GET failed: {projectData.get('message')}"
+            )
+            return HttpResponseServerError(
+                f"Could not access project to create task(s): {projectData.get('message')}"
+            )
         form = TaskForm()
     return render(
         request,
         "taskModal.html",
-        {"form": form,
-         "projectID": projectID,
-         "baseTemplate": baseTemplate,
-         "submitLink": submitLink,
-         "exitLink": exitLink,
+        {
+            "form": form,
+            "projectID": projectID,
+            "baseTemplate": baseTemplate,
+            "submitLink": submitLink,
+            "exitLink": exitLink,
         },
     )
 
@@ -249,25 +433,99 @@ def createProjectView(request):
         form = NewProjectForm(request.POST)
         if form.is_valid():
             # Process the data in form.cleaned_data as required
-            name = form.cleaned_data["description"]
+            name = form.cleaned_data["name"]
+            description = form.cleaned_data["description"]
 
-            projectData, _ = ProjectsAPIView.createProjects(
-                {"name": name, "userIDs": [userId]}
+            projectData, httpsCode = ProjectsAPIView.createProjects(
+                {
+                    "name": name,
+                    "description": description, 
+                    "userIDs": [userId]
+                }, getAuthorizationToken(request)
             )
+            if httpsCode != status.HTTP_201_CREATED:
+                print(f"Project Creation failed: {projectData.get('message')}")
+                return HttpResponseServerError(
+                    f"Could not create project: {projectData.get('message')}"
+                )
+
             projectID = projectData.get("id")
-            GeneratedTasksAPIView.generateTasks(
-                {"projectID": projectID, "name": name})
+
+            message, httpsCode = GeneratedTasksAPIView.generateTasks(
+                {
+                    "projectID": projectID, 
+                    "name": name,
+                    "description": description,
+                }
+            , getAuthorizationToken(request)
+            )
+            if httpsCode != status.HTTP_201_CREATED:
+                print(f"Task generation failed: {projectData.get('message')}")
+                return HttpResponseServerError(
+                    f"Could not generate tasks: {message.get('message')}"
+                )
 
             # Redirect to project
             return HttpResponseRedirect(f"/project/{projectID}/graph")
 
     # If a GET (or any other method), create a blank form
-   # else:
-        # form = NewProjectForm()
+    # else:
+    # form = NewProjectForm()
     # If anything else throw error
-    #return render(request, "newProjectModal.html", {"form": form})
-    return HttpResponseServerError(f"Only POSTs are allowed for createProjectView")
-    #return redirect(request.META.get('HTTP_REFERER', '/'))
+    # return render(request, "newProjectModal.html", {"form": form})
+    return HttpResponseServerError("Only POSTs are allowed for createProjectView")
+    # return redirect(request.META.get('HTTP_REFERER', '/'))
+
+
+
+@apiKeyRequired
+def settingsView(request):
+    return render(request, "settings.html", {})
+
+
+@apiKeyRequired
+def inviteView(request):
+    return render(request, "invite.html", {})
+
+
+@apiKeyRequired
+def tutorialView(request):
+    return render(request, "tutorial.html", {})
+
+
+@apiKeyRequired
+def marketplaceView(request):
+    return render(request, "marketplace.html", {})
+
+
+@apiKeyRequired
+def feedbackView(request):
+    return render(request, "feedback.html", {})
+
+
+@apiKeyRequired
+def settingsView(request):
+    return render(request, "settings.html", {})
+
+
+@apiKeyRequired
+def inviteView(request):
+    return render(request, "invite.html", {})
+
+
+@apiKeyRequired
+def tutorialView(request):
+    return render(request, "tutorial.html", {})
+
+
+@apiKeyRequired
+def marketplaceView(request):
+    return render(request, "marketplace.html", {})
+
+
+@apiKeyRequired
+def feedbackView(request):
+    return render(request, "feedback.html", {})
 
 
 def requestAuth(_request, provider):
@@ -278,23 +536,25 @@ def requestAuth(_request, provider):
     @returns {HttpResponseRedirect} - A redirect response that navigates the user to OAuth
         authorization page.
     """
-    clientID = ''
-    authorization_url = ''
+    clientID = ""
+    authorization_url = ""
     providerScope = []
-    _request.session['provider'] = provider
+    _request.session["provider"] = provider
 
-    if (provider == 'GitHub'):
+    if provider == "GitHub":
         clientID = os.getenv("GITHUB_CLIENT_ID")
         authorization_url = "https://github.com/login/oauth/authorize"
         providerScope = ["user"]
 
-    elif (provider == 'Google'):
+    elif provider == "Google":
         clientID = os.getenv("GOOGLE_CLIENT_ID")
-        authorization_url = 'https://accounts.google.com/o/oauth2/v2/auth'
-        providerScope = ["https://www.googleapis.com/auth/userinfo.profile",
-                         "https://www.googleapis.com/auth/userinfo.email"]
+        authorization_url = "https://accounts.google.com/o/oauth2/v2/auth"
+        providerScope = [
+            "https://www.googleapis.com/auth/userinfo.profile",
+            "https://www.googleapis.com/auth/userinfo.email",
+        ]
     else:
-        raise AttributeError('Unsupported ouath provider')
+        raise AttributeError("Unsupported ouath provider")
 
     print(clientID)
     print(authorization_url)
@@ -324,23 +584,26 @@ class Callback(TemplateView):
         print(self.request)
         data = self.request.GET
         authcode = data["code"]
-        provider = self.request.session['provider']
+        try:
+            provider = self.request.session['provider']
+        except:
+            return redirect("/")
 
         # state = data["state"]
 
         # Get API token
-        if (provider == 'GitHub'):
+        if provider == "GitHub":
             token_url = "https://github.com/login/oauth/access_token"
             clientID = os.getenv("GITHUB_CLIENT_ID")
             clientSecret = os.getenv("GITHUB_CLIENT_SECRET")
-            username = 'login'
+            username = "login"
             apiRequestURL = os.getenv("GITHUB_API_URL_user")
 
-        elif (provider == 'Google'):
-            token_url = 'https://accounts.google.com/o/oauth2/token'
-            clientID = os.getenv('GOOGLE_CLIENT_ID')
+        elif provider == "Google":
+            token_url = "https://accounts.google.com/o/oauth2/token"
+            clientID = os.getenv("GOOGLE_CLIENT_ID")
             clientSecret = os.getenv("GOOGLE_CLIENT_SECRET")
-            username = 'name'
+            username = "name"
             apiRequestURL = os.getenv("GOOGLE_API_URL_userprofile")
         client = WAC(clientID)
 
@@ -348,24 +611,20 @@ class Callback(TemplateView):
             code=authcode,
             redirect_uri=os.getenv("REDIRECT_URI"),
             client_id=clientID,
-            client_secret=clientSecret
+            client_secret=clientSecret,
         )
 
-        if (provider == 'Google'):  # caters request and header to google specifications
+        if provider == "Google":  # caters request and header to google specifications
             data = dict(urllib.parse.parse_qsl(data))
             response = requests.post(token_url, json=data, timeout=10)
             client.parse_request_body_response(response.text)
-            header = {
-                "Authorization": f"Bearer {client.token['access_token']}"}
+            header = {"Authorization": f"Bearer {client.token['access_token']}"}
         else:  # caters to GitHub specifications
             response = requests.post(token_url, data=data, timeout=10)
             client.parse_request_body_response(response.text)
             header = {"Authorization": f"token {client.token['access_token']}"}
 
-        response = requests.get(
-            apiRequestURL, headers=header, timeout=10
-        )
-
+        response = requests.get(apiRequestURL, headers=header, timeout=10)
 
         oauthUserInfo = response.json()
 
@@ -376,20 +635,20 @@ class Callback(TemplateView):
             )
             oauthUserInfo["email"] = response.json()[0]["email"]
 
-        userInfo = UsersAPIView.getUser({"email": oauthUserInfo.get("email")})[0].get(
-            "user"
-        )
-
         # Create a user in our db if none exists
         if oauthUserInfo.get("username"):
             username = oauthUserInfo.get("username")
         else:
             username = oauthUserInfo.get("email").split("@")[0]
-        if not userInfo:
+
+        userInfo, httpsCode = UsersAPIView.getAuthenticatedUser(
+            {"email": oauthUserInfo.get("email")}
+        )
+        if httpsCode == status.HTTP_404_NOT_FOUND:
             try:
                 names = oauthUserInfo.get("name", "").split()
             except:
-                names = ["quayside","user"]
+                names = ["quayside", "user"]
             if not names:
                 names = [""]
 
@@ -405,23 +664,10 @@ class Callback(TemplateView):
                 print(f"User creation failed: {userInfo}")
                 return HttpResponseServerError(f"An error occurred: {userInfo}")
 
-        # Make sure to add email not created already (oath doesn't require username I think but does require email)
-        if "username" not in userInfo or not userInfo["username"]:
-            message, httpsCode = UsersAPIView.updateUser(
-                {
-                    "id": userInfo["id"],
-                    "username": username,
-                }
-            )
-            if httpsCode != status.HTTP_200_OK:
-                print(f"User update failed: {message}")
-                return HttpResponseServerError(f"An error occurred: {message}")
-
         # Redirect instead of rendering (to make it update)
         response = redirect("/")
 
         apiToken = userInfo.get("apiKey")  # Get API key
-
 
         if apiToken:
             apiToken = decryptApiKey(apiToken)
@@ -435,7 +681,8 @@ class Callback(TemplateView):
                 {
                     "id": userInfo["id"],
                     "apiKey": encryptedApiKey,
-                }
+                },
+                apiToken,
             )
             if httpsCode != status.HTTP_200_OK:
                 print(f"User update failed: {message}")
@@ -445,5 +692,18 @@ class Callback(TemplateView):
         # Setting httponly is safer and doesn't let the key be accessed by js (to prevent xxs).
         # Instead the browser will always pass the cookie to the server.
         response.set_cookie("apiToken", apiToken, httponly=True)
+
+        # Make sure to add email not created already (oath doesn't require username I think but does require email)
+        if "username" not in userInfo or not userInfo["username"]:
+            message, httpsCode = UsersAPIView.updateUser(
+                {
+                    "id": userInfo["id"],
+                    "username": username,
+                },
+                apiToken,
+            )
+            if httpsCode != status.HTTP_200_OK:
+                print(f"User update failed: {message}")
+                return HttpResponseServerError(f"An error occurred: {message}")
 
         return response

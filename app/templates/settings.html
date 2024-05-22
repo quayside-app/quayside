@@ -1,0 +1,119 @@
+{% extends '_base.html' %}
+{% load static %}
+
+{% block content %}
+
+<div class=" text-white border-white bg-gray-900 min-h-screen overflow-scroll px-20 pt-5">
+
+  <div class="">
+    <div class="py-4">
+      <h1 class="text-3xl">quayside.app Settings</h1>
+    </div>
+
+    <!-- Tab buttons -->
+    <div class="flex mb-4 border-b border-gray-600">
+      <button class="tab-btn mr-4 border-b-2 border-blue-500" onclick="openTab(event, 'account')">Account</button>
+      <button class="tab-btn mr-4 border-b-2 border-transparent" onclick="openTab(event, 'team')">Team</button>
+      <button class="tab-btn mr-4 border-b-2 border-transparent" onclick="openTab(event, 'theme')">Theme</button>
+      <button class="tab-btn mr-4 border-b-2 border-transparent" onclick="openTab(event, 'projects')">Projects</button>
+      <button class="tab-btn mr-4 border-b-2 border-transparent" onclick="openTab(event, 'email')">Email</button>
+      <button class="tab-btn mr-4 border-b-2 border-transparent" onclick="openTab(event, 'notifications')">Notifications</button>
+    </div>
+
+    <!-- Tab content -->
+    <div id="account" class="tab-content">
+      <!-- Account settings here -->
+      <p>Future home of ACCOUNT settings.</p>
+    </div>
+
+    <div id="team" class="tab-content" style="display:none;">
+      <!-- Team settings here -->
+      <p>Future home of TEAM settings.</p>
+    </div>
+
+    <div id="theme" class="tab-content" style="display:none;">
+      <!-- Theme settings here -->
+      <p class="border border-red-700 bg-black">THEME SETTINGS UNDER CONSTRUCTION. THIS IS A SNEAK PEAK!</p>
+      <p class="text-lg">Make quayside.app your own!</p>
+      <p class="text-lg mt-5">Select a preset theme</p>
+      <div class="mt-2">
+        <button class="theme-btn mr-4 mb-4 border-2 w-32 h-20 z-10 bg-[url('app/static/app/images/background.png')]"></button>
+        <button class="theme-btn mr-4 mb-4 border-2 w-32 h-20"></button>
+        <button class="theme-btn mr-4 mb-4 border-2 w-32 h-20"></button>
+      </div>
+ 
+      <p class="text-lg mt-5">Select the background image</p>
+      <div class="mt-2">
+        <button id="dark" class="img-btn mr-4 mb-4 border-2 border-blue-500 w-32 h-20" style="background-image: url('{% static 'app/images/background-dark.png' %}'); background-position:center center; background-size:cover;" onclick="selectImage(event, 'dark')"></button>
+        <button id="light" class="img-btn mr-4 mb-4 border-2 border-transparent w-32 h-20" style="background-image: url('{% static 'app/images/background-light.png' %}'); background-position:center center; background-size:cover;" onclick="selectImage(event, 'light')"></button>
+        <button id="neon" class="img-btn mr-4 mb-4 border-2 border-transparent w-32 h-20" style="background-image: url('{% static 'app/images/background-neon.png' %}'); background-position:center center; background-size:cover;" onclick="selectImage(event, 'neon')"></button>
+        <script>
+          function selectImage(evt, imgName) {
+            let i, imgButtons;
+
+            // Get all elements with class="img-btn" and remove the border.
+            imgButtons = document.querySelectorAll(".img-btn");
+            for (i = 0; i < imgButtons.length; i++) {
+              imgButtons[i].classList.add("border-transparent");
+              imgButtons[i].classList.remove("border-blue-500");
+            }
+
+            // Add a border to the selected img button.
+            evt.currentTarget.classList.add("border-blue-500");
+            evt.currentTarget.classList.remove("border-transparent");
+          }
+
+        </script>
+      </div>
+
+      <p class="text-lg mt-5">Select the task status colors</p>
+      <p class="text-lg mt-5">Select the website color</p>
+      <p class="text-lg mt-5">Select the font color</p>
+      <button class="border mt-8 px-2 rounded-md hover:bg-red-600">Reset Theme</button>
+
+    </div>
+
+    <div id="projects" class="tab-content" style="display:none;"> 
+      <!-- Projects settings here -->
+      <p>Future home of PROJECTS settings.</p>
+    </div>
+
+    <div id="email" class="tab-content" style="display:none;">
+      <!-- Projects settings here -->
+      <p>Future home of EMAIL settings.</p>
+    </div>
+
+    <div id="notifications" class="tab-content" style="display:none;">
+      <!-- Projects settings here -->
+      <p>Future home of NOTIFICATIONS settings.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  function openTab(evt, tabName) {
+    // Declare all variables
+    let i, tabContent, tabButtons;
+
+    // Get all elements with class="tab-content" and hide them
+    tabContent = document.querySelectorAll(".tab-content");
+    for (i = 0; i < tabContent.length; i++) {
+      tabContent[i].style.display = "none";
+    }
+
+    // Get all elements with class="tab-btn" and remove the active and red border classes
+    tabButtons = document.querySelectorAll(".tab-btn");
+    for (i = 0; i < tabButtons.length; i++) {
+      tabButtons[i].classList.add("border-transparent");
+      tabButtons[i].classList.remove("border-blue-500");
+    }
+
+    // Show the current tab, and add an "active" class to the button that opened the tab
+    document.getElementById(tabName).style.display = "block";
+    evt.currentTarget.classList.add("border-blue-500");
+    evt.currentTarget.classList.remove("border-transparent");
+  }
+
+</script>
+
+{% endblock %}

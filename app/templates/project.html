@@ -10,14 +10,16 @@
 (async function () {
   try {
     const response = await fetch('{{apiUrl}}/projects?id={{projectID}}')
-    if (!response.ok) throw new Error('Network response was not ok')
     const projects = await response.json()
+    if (!response.ok) throw new Error(projects.message || 'Network response was not ok')
     const project = projects[0]
 
     const projectNameElement = document.getElementById('projectName')
     projectNameElement.textContent = 'Project: ' + project.name
   } catch (error) {
-    console.error('There has been a problem with fetching projects:', error)
+    // Handle network errors
+    console.error('There was a problem with the fetch operation:', error.message)
+    alert('There was a problem displaying your project details.') // TODO DO SOMETHING ELSE INSTEAD OF THIS
   }
 })()
 </script>
@@ -38,24 +40,36 @@
 <div class=" text-white relative">
 
   <div class="flex justify-between bg-neutral-800 rounded-lg py-2 px-4 m-3 sm:m-6">
-    <div id="projectName" class="my-auto sm:text-2xl"></div>
+    <div class="flex justify-between">
+      <div id="projectName" class="my-auto sm:text-2xl"></div>
+      <a id ='formatButton' href= "#" class=" my-auto rounded-full ml-4 px-2 py-1 bg-neutral-600 hover:bg-gray-500 ">
+        <div id = "formatText" class=" sm:text-xl font-semibold mx-1 "></div>
+      </a> 
+    </div>
 
-    <div class="flex svgSizing ">
+    <div class="flex svgSizing ml-2">
 
-      <a href="create-task/" class="flex content-center text-center rounded-full mr-4 px-2 py-2 bg-neutral-600 hover:bg-gray-500 ">
-        <button>
-          {% include "components/svg/plus.svg" %}
+      <div class="my-auto">
+        <a id="newTaskButton" class="flex content-center text-center rounded-full mr-4 px-2 py-2 bg-neutral-600 hover:bg-gray-500 ">
+          <button>
+            {% include "components/svg/plus.svg" %}
+          </button>
+        </a>
+      </div>
+
+      <div class="my-auto">
+        <a href="/project/{{projectID}}/" class="flex content-center text-center rounded-full mr-4 px-2 py-2 bg-neutral-600 hover:bg-gray-500 ">
+          <button id="editProjectButton">
+            {% include "components/svg/edit.svg" %}
+          </button>
+        </a>
+      </div>
+
+      <div class="my-auto">
+        <button id="deleteProjectButton" class="text-center rounded-full px-2 py-2 bg-neutral-600 hover:bg-red-500">
+          {% include "components/svg/delete.svg" %}
         </button>
-      </a>
-      <a href="/project/{{projectID}}/" class="flex content-center text-center rounded-full mr-4 px-2 py-2 bg-neutral-600 hover:bg-gray-500 ">
-        <button id="editProjectButton">
-          {% include "components/svg/edit.svg" %}
-        </button>
-      </a>
-
-      <button id="deleteProjectButton" class="text-center rounded-full px-2 py-2 bg-neutral-600 hover:bg-red-500">
-        {% include "components/svg/delete.svg" %}
-      </button>
+      </div>
     </div>
 
   </div>
@@ -88,9 +102,23 @@
 * Confirms delete and deletes project when button is clicked.
 */
 
+window.onload = function() {
+  var pathSegments = document.URL.split('/');
+
+    document.getElementById('formatButton').href = '/project/{{projectID}}/kanban';
+    document.getElementById('formatText').textContent = 'Kanban';
+    document.getElementById('newTaskButton').href = href="/project/{{projectID}}/graph/create-task/"
+
+    if (pathSegments.includes('kanban')) {
+      document.getElementById('formatButton').href = '/project/{{projectID}}/graph';
+      document.getElementById('formatText').textContent = 'Graph';
+      document.getElementById('newTaskButton').href = href="/project/{{projectID}}/kanban/create-task/"
+    } 
+
+}
 document.getElementById('deleteProjectButton').addEventListener('click', async function () {
   document.getElementById('confirmDeleteModal').classList.toggle('hidden')
-  document.getElementById('deleteProjectButton').disabled = true;
+  document.getElementById('deleteProjectButton').disabled = true
   document.getElementById('deleteProjectButton').classList.toggle('hover:bg-red-500')
 })
 
@@ -100,11 +128,23 @@ document.getElementById('cancelDeleteButton').addEventListener('click', async fu
   document.getElementById('deleteProjectButton').classList.toggle('hover:bg-red-500')
 })
 
+
 document.getElementById('confirmDeleteButton').addEventListener('click', async function () {
-  const response = await fetch('{{apiUrl}}/projects/?id={{projectID}}', { method: 'DELETE' })
-  if (!response.ok) throw new Error('Network response was not ok')
-  // Navigate Home after deleting
-  window.location.href = '/'
+  try {
+    const response = await fetch('{{apiUrl}}/projects/?id={{projectID}}', { method: 'DELETE' })
+
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(errorData.message || 'Network response was not ok')
+    } else {
+      // Navigate Home after deleting
+      window.location.href = '/'
+    }
+  } catch (error) {
+    // Handle network errors
+    console.error('There was a problem with the fetch operation:', error.message)
+    alert('There was a problem with your deletion.') // TODO DO SOMETHING ELSE INSTEAD OF THIS
+  }
 })
 </script>
 

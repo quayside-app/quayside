@@ -17,21 +17,21 @@
 
     </head>
 
-    <body class>
-        <div class="w-full h-screen bg-black overflow-hidden">
+    <body class >
+        <div class="w-full h-screen overflow-hidden" style="background-image: url('{% static 'app/images/background-dark.png' %}'); background-position:center center; background-size:cover;">
 
             <div class="fixed w-full h-14 z-40">
                 {% include "navbar.html" %}
             </div>
             {%if userID %}
             <div class="flex h-screen">
-                <div class="pt-14">
+                <div class="pt-14 z-40">
                     {% include 'sidebar.html' %}
                 </div>
             {%endif%}
 
                 <div class="w-full pt-14">
-                    <div class="" style="background-image: url('{% static 'app/images/background.png' %}'); background-position:center center; background-size:cover;">
+                    <div class="" >
                         {% block content %}
                         {% endblock content %}
                     </div>

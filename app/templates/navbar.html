@@ -10,6 +10,7 @@
             {%if username %}
             <!-- <a href='/logout' class="hover:text-neutral-500" >Welcome {{ username }}!</a> -->
             <button id="logoutButton" class="hover:text-neutral-500">{{ username }}</button>
+            <div class="w-6 h-6 my-auto  ml-2" id="settingsDropdown"><a href="/settings/" class="hover:text-neutral-500">{% include "components/svg/settings.svg" %}</a></div>
             {%else%}
             <button id="loginButton" class="hover:text-neutral-500">Sign up/Login</button>
             <!-- <a href='/login' class="hover:text-neutral-500"></a> -->
@@ -62,11 +63,13 @@
 <script src="{% static 'app/js/toggleModal.js' %}"></script>
 {%if username %}
 <script>
-        setModal("logoutModal", 'logoutModal', ['logoutButton'], ["closeLogoutModal"])
+        // eslint-disable-next-line no-undef
+        setModal('logoutModal', 'logoutModal', ['logoutButton'], ['closeLogoutModal'])
     </script>
 
 {%else%}
 <script>
-        setModal("loginModal", 'loginModal', ['loginButton'], ["closeLoginModal"])
+    // eslint-disable-next-line no-undef
+    setModal('loginModal', 'loginModal', ['loginButton'], ['closeLoginModal'])
     </script>
 {%endif%}
