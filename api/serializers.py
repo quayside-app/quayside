@@ -1,6 +1,6 @@
 from rest_framework_mongoengine.serializers import DocumentSerializer
 from rest_framework import serializers
-from api.models import User, Project, Task
+from api.models import User, Project, Task, Feedback
 
 
 class UserSerializer(DocumentSerializer):
@@ -19,6 +19,10 @@ class TaskSerializer(DocumentSerializer):
     class Meta:
         model = Task
         # Default to all fields
+
+class FeedbackSerializer(DocumentSerializer):
+    class Meta:
+        model = Feedback
 
 
 class GeneratedTaskSerializer(serializers.Serializer):

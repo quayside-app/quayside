@@ -1,3 +1,4 @@
+# generic imports
 import os
 import re
 import urllib.parse
@@ -5,11 +6,12 @@ import requests
 from oauthlib.oauth2 import WebApplicationClient as WAC
 from rest_framework import status
 
-
+# django imports
 from django.shortcuts import render, redirect
 from django.http import HttpResponseRedirect, HttpResponseServerError
 from django.views.generic.base import TemplateView
 
+# api imports
 from api.decorators import apiKeyRequired
 from api.utils import (
     decryptApiKey,
@@ -18,25 +20,34 @@ from api.utils import (
     getAuthorizationToken,
     decodeApiKey,
 )
+from api.views.v1.feedback import FeedbackAPIView
 from api.views.v1.tasks import TasksAPIView
 from api.views.v1.generatedTasks import GeneratedTasksAPIView
 from api.views.v1.projects import ProjectsAPIView
 from api.views.v1.users import UsersAPIView
 
 from app.context_processors import global_context
-from app.forms import NewProjectForm, TaskForm, ProjectForm
+from app.forms import NewProjectForm, TaskForm, ProjectForm, TaskFeedbackForm
 
 
-def redirectOffSite(_request):
+def redirectOffSite(request):
     return redirect("https://github.com/quayside-app/quayside")
 
 
-def logout(_request):
+def logout(request):
     response = redirect("/")
     response.delete_cookie("apiToken")
     response.delete_cookie("csrftoken")
     response.delete_cookie("sessionid")
     return response
+
+
+def viewRouter(request, **kwargs):
+    """
+    reroutes 
+    """
+    pass
+
 
 
 @apiKeyRequired
@@ -50,12 +61,12 @@ def projectGraphView(request, projectID):
     @returns {HttpResponse} - An HttpResponse object that renders the
         graph.html template with the project ID context.
     """
+
     # Check if project exists
     data, httpsCode = ProjectsAPIView.getProjects(
         {"id": projectID}, getAuthorizationToken(request)
     )
     
-    print(data)
 
     if httpsCode != status.HTTP_200_OK:
         print(f"Project GET failed: {data.get('message')}")
@@ -64,8 +75,51 @@ def projectGraphView(request, projectID):
         )
 
     return render(
-        request, "graph.html", {"projectID": projectID, "projectData": data[0]}
+        request, "graph.html", {"projectID": projectID, 
+                                "projectData": data[0], **generate_TaskFeedbackForm(request)}
     )
+
+def generate_TaskFeedbackForm(request):
+    payload = {
+        "userID": global_context(request).get("userID"),
+        "TaskFeedbackForm": TaskFeedbackForm
+    }
+    return payload
+
+@apiKeyRequired
+def createTaskFeedback(request, projectID):
+
+    data, httpsCode = ProjectsAPIView.getProjects(
+        {"id": projectID}, getAuthorizationToken(request)
+    )
+
+    if request.method == "POST":
+
+        form = TaskFeedbackForm(request.POST)
+
+        if form.is_valid():
+            newData = form.cleaned_data
+            newData["projectID"] = projectID
+            currentUserID = decodeApiKey(getAuthorizationToken(request)).get("userID")
+            newData['userID'] = currentUserID
+
+            message, httpsCode = FeedbackAPIView.createFeedback(
+                newData, getAuthorizationToken(request)
+            )
+
+            if httpsCode != status.HTTP_200_OK:
+                print(f"Task update failed: {message}")
+                return HttpResponseServerError(f"An error occurred: {message}")
+        else:
+            return HttpResponseServerError(f"An error occurred: form not valid")
+
+    # now go back to the graph
+    return render(
+        request, "graph.html", {"projectID": projectID, 
+                                "projectData": data[0], 
+                                **generate_TaskFeedbackForm(request)}
+    )
+
 
 
 @apiKeyRequired
@@ -213,16 +267,16 @@ def taskView(request, projectID, taskID):
         template with the project ID, task ID, and task form context.
     """
 
+    baseTemplate = "graph.html"
+    submitLink = f"/project/{projectID}/graph/task/{taskID}/"
+    exitLink = f"/project/{projectID}/graph"
+    deleteLink = f"/project/{projectID}/graph"
     if "kanban" in request.path:
         baseTemplate = "kanban.html"
-        submitLink = f"/project/{projectID}/kanban/task/{taskID}"
+        submitLink = f"/project/{projectID}/kanban/task/{taskID}/"
         exitLink = f"/project/{projectID}/kanban"
         deleteLink = f"/project/{projectID}/kanban"
-    else:
-        baseTemplate = "graph.html"
-        submitLink = f"/project/{projectID}/graph/task/{taskID}/"
-        exitLink = f"/project/{projectID}/graph"
-        deleteLink = f"/project/{projectID}/graph"
+        
     if request.method == "POST":
 
         form = TaskForm(request.POST)
@@ -232,41 +286,44 @@ def taskView(request, projectID, taskID):
             newData = form.cleaned_data
 
             durationMinutes = 0
-            durationList = re.findall(r"(\d+)(d|h|m|w)", newData["duration"].lower())
+            # Allow week, day, hour, minute BUT converts to hour/minute
+            durationList = re.findall(r"(\d*\.\d+|\d+)(d|h|m|w)", newData["duration"].lower()) # Matches floats and ints
 
             for duration in durationList:
                 quantity = duration[1]
-
-                if quantity.find("w") != -1:
-                    durationMinutes += int(duration[0]) * 5 * 8 * 60
-                if quantity.find("d") != -1:
-                    durationMinutes += int(duration[0]) * 8 * 60
-                elif quantity.find("h") != -1:
-                    durationMinutes += int(duration[0]) * 60
-                elif quantity.find("m") != -1:
-                    durationMinutes += int(duration[0])
-
-            # if quantity type was not found and only a digit was typed, assume it's minute value
-            if newData["duration"].isdigit(): durationMinutes = int(newData["duration"])
                 
-            if (durationMinutes > 0):
-                newData["id"] = taskID
-                newData["durationMinutes"] = durationMinutes
-                message, status_code = TasksAPIView.updateTask(
-                  newData, getAuthorizationToken(request)
-                )
+                if quantity.find("w") != -1:
+                    durationMinutes += round(float(duration[0]) * 7 * 24 * 60)
+                elif quantity.find("d") != -1:
+                    durationMinutes += round(float(duration[0]) * 24 * 60)
+                elif quantity.find("h") != -1:
+                    
+                    durationMinutes += round(float(duration[0]) * 60)
+                elif quantity.find("m") != -1:
+                    durationMinutes += round(float(duration[0]))
 
-                if status_code != status.HTTP_200_OK:
-                    print(f"Task update failed: {message}")
-                    return HttpResponseServerError(f"An error occurred: {message}")
-                return redirect(f"/project/{projectID}/graph")
+
+            # if quantity type was not found and only a int/float was typed, assume it's minute value
+            if newData["duration"] and re.match(r'^\d*(?:\.\d+)?$', newData["duration"]):
+                durationMinutes = round(float(newData["duration"]))
+
+                
+            newData["durationMinutes"] = durationMinutes
+            newData["id"] = taskID
+            message, status_code = TasksAPIView.updateTask(
+                newData, getAuthorizationToken(request)
+            )
+
+            if status_code != status.HTTP_200_OK:
+                print(f"Task update failed: {message}")
+                return HttpResponseServerError(f"An error occurred: {message}")
+            return redirect(exitLink)
 
     # If a GET (or any other method) we'll create a blank form
     else:
         data, status_code = TasksAPIView.getTasks(
             {"id": taskID}, getAuthorizationToken(request)
         )
-        print(data)
         if status_code != status.HTTP_200_OK:
             print(f"Task fetch failed: {data.get('message')}")
             return HttpResponseServerError(f"An error occurred: {data.get('message')}")
@@ -276,13 +333,11 @@ def taskView(request, projectID, taskID):
         durationString = ""
         durationMinutes = taskData.get("durationMinutes") or 0
         
-        workWeeks = int(durationMinutes / 60 / 8 / 5)
-        workDays = int(durationMinutes / 60 / 8) % 5
-        workHours = int(durationMinutes / 60) % 8
+        
+
+        workHours = int(durationMinutes / 60)
         minutes = durationMinutes % 60
         
-        if workWeeks != 0: durationString += str(workWeeks) + "w "
-        if workDays != 0: durationString += str(workDays) + "d "
         if workHours != 0: durationString += str(workHours) + "h "
         if (minutes != 0) or (durationMinutes == 0): durationString += str(minutes) + "m"
         durationString = durationString.strip()
@@ -311,6 +366,7 @@ def taskView(request, projectID, taskID):
             "submitLink": submitLink,
             "exitLink": exitLink,
             "deleteLink": deleteLink,
+            **generate_TaskFeedbackForm(request)
         },
     )
 
@@ -392,7 +448,7 @@ def createTaskView(request, projectID, parentTaskID=""):
             "projectID": projectID,
             "baseTemplate": baseTemplate,
             "submitLink": submitLink,
-            "exitLink": exitLink,
+            "exitLink": exitLink, **generate_TaskFeedbackForm(request),
         },
     )
 

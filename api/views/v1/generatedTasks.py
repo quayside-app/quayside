@@ -99,6 +99,7 @@ class GeneratedTasksAPIView(APIView):
 
         generatedString = completion.choices[0].message.content
 
+
         # Parse response into tasks with durations
         newTasks = []
         lines = generatedString.split("\n")

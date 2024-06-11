@@ -1,0 +1,61 @@
+
+{% load static %}
+
+<div id="taskFeedBackFormDiv" class="absolute bottom-52 right-36  z-50 p-4 rounded-t-[64px] rounded-bl-[64px] text-center text-white  bg-neutral-800  shadow-lg shadow-black w-72 md:w-72">
+<!--absolute bottom-40 right-5-->
+    <form action="/project/{{ projectID }}/graph/give-feedback" method="post" id="taskFeedbackForm">
+        {% csrf_token %} <!-- Required by Django to prevent Cross Site Scripting -->
+
+        <h3 id="formDescriptor"></h3>
+        <!-- Project Input(s) -->
+        <div class="pt-4 ">
+            {{ TaskFeedbackForm.mood.label }}
+            {{ TaskFeedbackForm.mood }} <!-- Comes from the context processor (since in the base class)-->
+            
+            <div class="mt-2">
+                {{ TaskFeedbackForm.explanation }}
+            </div>
+
+        
+        </div>
+
+        <!-- Hidden Forms that get passed as appropriate to the form
+        userID = forms.CharField(widget=forms.HiddenInput())  # Assuming the user ID is handled in the background
+    projectID = forms.CharField(widget=forms.HiddenInput())  # Assuming the project ID is handled in the background
+    taskID = forms.CharField(required=False, widget=forms.HiddenInput())  # Optional, can be null
+    dateCreated = forms.DateTimeField(widget=forms.HiddenInput())  # Default to current time
+        -->
+        <input id='userID' type="hidden" name="userID" value="{{ userID }}">
+        <input id='projectID' type="hidden" name="projectID" value="{{ projectID }}">
+        <input id="taskID" type="hidden" name="taskID" value="{% if taskID %}{{ taskID }}{% else %}N/A{% endif %}">
+        <input type="hidden" name="dateCreated" id="dateCreatedInput" value="">
+
+        <!-- Submit Button -->
+        <div id="submitButton">
+            <div class="flex justify-end">
+                <button id="feedBackSubmitter" type='submit' class="  px-2 py-1 rounded-md  text-white bg-neutral-600 hover:bg-gray-500 text-center">
+                    Submit!
+                </button>
+            </div>
+        </div>
+    </form>
+
+</div>
+
+<script>
+    let taskID = "{{ taskID }}";
+
+    let formDescriptor = document.getElementById("formDescriptor");
+    if (taskID != ""){
+        formDescriptor.innerHTML = "For task: {{ taskID }}"
+    } else {
+        formDescriptor.innerHTML = "For project: {{ projectID }}"
+
+    let submitButton = document.getElementById('feedBackSubmitter');
+    submitButton.onclick = function() {
+        document.getElementById('dateCreatedInput').value = new Date().toISOString();
+    };
+
+    }
+</script>
+

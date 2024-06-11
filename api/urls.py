@@ -37,6 +37,11 @@ urlpatterns = [
         f"{API_VERSION}/kanban/",
         views.kanban.KanbanAPIView.as_view(),
         name=f"{API_VERSION}-kanban-board"
+    ),
+    path(
+        f"{API_VERSION}/feedback/",
+        views.feedback.FeedbackAPIView.as_view(),
+        name=f"{API_VERSION}-feedback"
     )
 ]
 
