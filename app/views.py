@@ -100,14 +100,21 @@ def createTaskFeedback(request, projectID):
         if form.is_valid():
             newData = form.cleaned_data
             newData["projectID"] = projectID
+            print("PROJ ID:", projectID)
             currentUserID = decodeApiKey(getAuthorizationToken(request)).get("userID")
             newData['userID'] = currentUserID
+
+            # Remove blank task IDs (bc not required)
+            if not newData["taskID"]:
+                del newData["taskID"]
+
+            print("PROJ ID:", currentUserID)
 
             message, httpsCode = FeedbackAPIView.createFeedback(
                 newData, getAuthorizationToken(request)
             )
 
-            if httpsCode != status.HTTP_200_OK:
+            if httpsCode != status.HTTP_201_CREATED:
                 print(f"Task update failed: {message}")
                 return HttpResponseServerError(f"An error occurred: {message}")
         else:
@@ -578,9 +585,6 @@ def marketplaceView(request):
     return render(request, "marketplace.html", {})
 
 
-@apiKeyRequired
-def feedbackView(request):
-    return render(request, "feedback.html", {})
 
 
 def requestAuth(_request, provider):

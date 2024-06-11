@@ -149,13 +149,14 @@ class FeedbackAPIView(APIView):
         """
         userID = decodeApiKey(authorizationToken).get("userID")
         if "userID" in feedbackData and feedbackData["userID"] != userID:
-            return { "message": "Not authorized to delete feedback." }, status.HTTP_401_UNAUTHORIZED
+            return { "message": "Not authorized to create feedback." }, status.HTTP_401_UNAUTHORIZED
         
         if isinstance(feedbackData, list):
             serializer = FeedbackSerializer(data=feedbackData, many=True)
         else:
             serializer = FeedbackSerializer(data=feedbackData)
 
+        print("----FEEDBACK DATA", feedbackData)
         if serializer.is_valid():
             serializer.save()  # Save the feedback(s) to the database
             # Returns data including new primary key

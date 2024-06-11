@@ -1,7 +1,7 @@
 
 {% load static %}
 
-<div id="taskFeedBackFormDiv" class="absolute bottom-52 right-36  z-50 p-4 rounded-t-[64px] rounded-bl-[64px] text-center text-white  bg-neutral-800  shadow-lg shadow-black w-72 md:w-72">
+<div id="taskFeedBackFormDiv" class="absolute bottom-52 right-36  z-50 p-4 rounded-t-[40px] rounded-bl-[40px] text-center text-white  bg-neutral-800  shadow-lg shadow-black w-80">
 <!--absolute bottom-40 right-5-->
     <form action="/project/{{ projectID }}/graph/give-feedback" method="post" id="taskFeedbackForm">
         {% csrf_token %} <!-- Required by Django to prevent Cross Site Scripting -->
@@ -9,7 +9,7 @@
         <h3 id="formDescriptor"></h3>
         <!-- Project Input(s) -->
         <div class="pt-4 ">
-            {{ TaskFeedbackForm.mood.label }}
+            How are you feeling about this {% if taskID %}task{% else %}project{% endif %}?
             {{ TaskFeedbackForm.mood }} <!-- Comes from the context processor (since in the base class)-->
             
             <div class="mt-2">
@@ -27,7 +27,7 @@
         -->
         <input id='userID' type="hidden" name="userID" value="{{ userID }}">
         <input id='projectID' type="hidden" name="projectID" value="{{ projectID }}">
-        <input id="taskID" type="hidden" name="taskID" value="{% if taskID %}{{ taskID }}{% else %}N/A{% endif %}">
+        <input id="taskID" type="hidden" name="taskID" value="{% if taskID %}{{ taskID }}{% endif %}">
         <input type="hidden" name="dateCreated" id="dateCreatedInput" value="">
 
         <!-- Submit Button -->
@@ -42,20 +42,4 @@
 
 </div>
 
-<script>
-    let taskID = "{{ taskID }}";
-
-    let formDescriptor = document.getElementById("formDescriptor");
-    if (taskID != ""){
-        formDescriptor.innerHTML = "For task: {{ taskID }}"
-    } else {
-        formDescriptor.innerHTML = "For project: {{ projectID }}"
-
-    let submitButton = document.getElementById('feedBackSubmitter');
-    submitButton.onclick = function() {
-        document.getElementById('dateCreatedInput').value = new Date().toISOString();
-    };
-
-    }
-</script>
 
