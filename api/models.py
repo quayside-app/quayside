@@ -49,15 +49,14 @@ class Project(mongo.Document):
         "strict": False,  # If true, throws weird error for __v
     }
     
-    class taskStatuses(mongo.EmbeddedDocument):
+    class Status(mongo.EmbeddedDocument):
         id = mongo.ObjectIdField(required=True, unique=True, default=ObjectId),
         name =  mongo.StringField(),
         color = mongo.StringField(), # html color code
         order = mongo.IntField(null=False) # task order on kanban
 
     # TODO: include a status id instead of using order to back-reference from task?
-    taskStatuses = mongo.ListField(
-        mongo.EmbeddedDocumentField(taskStatuses),
+    taskStatuses = mongo.EmbeddedDocumentListField(Status, 
         default=[
             {
                 "name": "Todo",

@@ -12,6 +12,7 @@ class UserSerializer(DocumentSerializer):
 class ProjectSerializer(DocumentSerializer):
     class Meta:
         model = Project
+        fields = '__all__'
         # Default to all fields
 
 

@@ -268,6 +268,8 @@ class ProjectsAPIView(APIView):
             serializer = ProjectSerializer(data=projectData)
 
         if serializer.is_valid():
+            print(serializer)
+            print(projectData)
             serializer.save()  # Save the project(s) to the database
             # Returns data including new primary key
             return serializer.data, status.HTTP_201_CREATED

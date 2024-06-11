@@ -15,7 +15,7 @@
  */
 
 
-function createTaskTrees(tasks) {
+function createTaskTrees(tasks, statuses) {
     const taskMap = {};
     const roots = [];
 
@@ -26,6 +26,12 @@ function createTaskTrees(tasks) {
 
     // Step 2: Build the trees by assigning children to their parents
     tasks.forEach(task => {
+        for (const status in statuses) {
+          if (task.statusId == status.id);
+            task.color = status.color
+            delete task.statusId
+        }
+
         if (task.parentTaskID === null) {
             // If there is no parentTaskID, this is a root node
             roots.push(taskMap[task.id]);
@@ -39,7 +45,7 @@ function createTaskTrees(tasks) {
 
     // Step 3: Convert each tree to the desired format (name instead of id)
     const convertToNameFormat = (node) => {
-        const newNode = { name: node.name, id: node.id, statusId: node.statusId, children: [] };
+        const newNode = { name: node.name, id: node.id, color: node.color, children: [] };
         if (node.children.length) {
             newNode.children = node.children.map(convertToNameFormat);
         }
