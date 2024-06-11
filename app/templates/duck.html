@@ -1,39 +1,16 @@
 
 {% load static %}
 
-<!-- <style>
-    @keyframes bounce {
-        0%, 100% {
-            transform: translateY(0) rotateY(30deg);
-        }
-        50% {
-            transform: translateY(-40px) rotate(45deg);
-        }
-}
 
-.bounce {
-    animation: bounce 2s infinite;
-}
-</style> -->
 
 <div id='duckDiv' class="absolute bottom-40 right-5 duckTriggerAble bounce z-50">
-    
-
-    <!-- <div>
-        <a id="clickMeDuck" class="button hidden">Click to Show!</a>
-    </div>
-
-    <div>
-        <a id="hideMeDuck" class="button">Click to Hide!</a>
-    </div> -->
-
     <img id="duckImage" class="w-24 cursor-pointer" src="{% static 'app/images/duck.png' %}">
 </div>
 
 
 <script>
     // wait until the whole doc is loaded... all of it
-    let duckSpeed = 2000;
+    let duckSpeed = 1000;
     document.addEventListener('DOMContentLoaded', function() {
         const images = [
             "{% static 'app/images/duck.png' %}",
@@ -48,7 +25,7 @@
             imgElement.src = images[currentIndex];
         }
 
-        setInterval(toggleImage, duckSpeed);
+        var intervalId = setInterval(toggleImage, duckSpeed);
 
         let duckTriggerables = document.getElementsByClassName('duckTriggerAble')
         
@@ -58,11 +35,12 @@
                 let feedbackDiv = document.getElementById('taskFeedBackFormDiv');
                 feedbackDiv.classList.toggle('hidden');
                 
-                // toggle the animation changes
-                document.getElementById('clickMeDuck').classList.toggle('hidden');
-                document.getElementById('hideMeDuck').classList.toggle('hidden');
-                document.getElementById('duckDiv').classList.toggle('bounce');
-
+                // Stop duck bounce when modal hidden
+                if (feedbackDiv.classList.contains("hidden")) {
+                    clearInterval(intervalId);
+                } else {
+                    intervalId = setInterval(toggleImage, duckSpeed);
+                }
             });
         }
     });
