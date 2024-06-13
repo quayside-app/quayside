@@ -124,7 +124,7 @@ class StatusesAPIView(APIView):
         return Response(responseData, status=httpStatus)
 
     @staticmethod
-    def getStatuses(projectData, authorizationToken):
+    def getStatuses(statusData, authorizationToken):
         """
         Service API function that can be called internally as well as through the API to get
         project data based on input data.
@@ -137,7 +137,7 @@ class StatusesAPIView(APIView):
         try:
             # Only get project where user is a contributor
             data, httpsCode = ProjectsAPIView.getProjects(
-                {"id": projectData["id"]}, authorizationToken
+                {"id": statusData["projectID"] }, authorizationToken
             )
 
             if httpsCode != status.HTTP_200_OK and httpsCode != status.HTTP_404_NOT_FOUND:

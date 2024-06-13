@@ -48,33 +48,33 @@ class Project(mongo.Document):
         "collection": "Project",  # Need to specify UPPER Case
         "strict": False,  # If true, throws weird error for __v
     }
+
+    def create_default_task_statuses():
+            return [
+                {
+                    "name": "Todo",
+                    "color": "afc2ca", # html color code
+                    "order": 1 # task order on kanban
+                },
+                {
+                    "name": "In-Progress",
+                    "color": "eefb4b",
+                    "order": 2 # task order on kanban
+                },
+                {
+                    "name": "Done",
+                    "color": "5ff43d", # html color code
+                    "order": 3 # task order on kanban
+                }
+            ]
     
     class Status(mongo.EmbeddedDocument):
-        id = mongo.ObjectIdField(required=True, unique=True, default=ObjectId),
-        name =  mongo.StringField(),
-        color = mongo.StringField(), # html color code
-        order = mongo.IntField(null=False) # task order on kanban
-
-    # TODO: include a status id instead of using order to back-reference from task?
-    taskStatuses = mongo.EmbeddedDocumentListField(Status, 
-        default=[
-            {
-                "name": "Todo",
-                "color": "afc2ca", # html color code
-                "order": 1 # task order on kanban
-	        },
-            {
-                "name": "In-Progress",
-                "color": "eefb4b",
-                "order": 2 # task order on kanban
-	        },
-            {
-                "name": "Done",
-                "color": "5ff43d", # html color code
-                "order": 3 # task order on kanban
-	        }
-        ]
-    )
+        id = mongo.ObjectIdField(default=ObjectId())
+        name =  mongo.StringField(null=False, required=True)
+        color = mongo.StringField(null=False, required=True) # html color code
+        order = mongo.IntField(null=False, required=True) # task order on kanban
+        
+    taskStatuses = mongo.EmbeddedDocumentListField(Status, default=create_default_task_statuses())
 
 
 class Task(mongo.Document):

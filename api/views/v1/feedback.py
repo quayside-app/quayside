@@ -135,6 +135,7 @@ class FeedbackAPIView(APIView):
             return serializer.data, status.HTTP_200_OK
         except Exception as e:
             print("Error:", e)
+            print("fail")
             return {"message": e}, status.HTTP_500_INTERNAL_SERVER_ERROR
 
     @staticmethod

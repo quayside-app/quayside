@@ -44,9 +44,7 @@
       link: (d, n) => `task/${d.id}`,
       createTaskLink: (d, n) => `create-task/${d.id}`,
       fill: (d, n) => {
-        if (d.status === 'In-Progress') return '#EFA610' // Yellow
-        else if (d.status === 'Done') return '#01796E' // Teal
-        else return '#323232'
+        return '#' + d.color
       },
       width: graphElement.offsetWidth,
       height: window.innerHeight - 180 // Full height minus padding
