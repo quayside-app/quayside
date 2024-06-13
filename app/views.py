@@ -109,8 +109,6 @@ def createTaskFeedback(request, projectID):
             if not newData["taskID"]:
                 del newData["taskID"]
 
-            print("PROJ ID:", currentUserID)
-
             message, httpsCode = FeedbackAPIView.createFeedback(
                 newData, getAuthorizationToken(request)
             )
@@ -119,6 +117,7 @@ def createTaskFeedback(request, projectID):
                 print(f"Task update failed: {message}")
                 return HttpResponseServerError(f"An error occurred: {message}")
         else:
+            print(form.errors)
             return HttpResponseServerError(f"An error occurred: form not valid")
 
     # now go back to the graph
