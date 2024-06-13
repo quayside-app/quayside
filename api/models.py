@@ -74,7 +74,7 @@ class Project(mongo.Document):
         color = mongo.StringField(null=False, required=True) # html color code
         order = mongo.IntField(null=False, required=True) # task order on kanban
         
-    taskStatuses = mongo.EmbeddedDocumentListField(Status, default=create_default_task_statuses())
+    taskStatuses = mongo.EmbeddedDocumentListField(Status, default=create_default_task_statuses(), blank=True)
 
 
 class Task(mongo.Document):

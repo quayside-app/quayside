@@ -139,13 +139,14 @@ class StatusesAPIView(APIView):
             data, httpsCode = ProjectsAPIView.getProjects(
                 {"id": statusData["projectID"] }, authorizationToken
             )
+            data = data[0]
 
             if httpsCode != status.HTTP_200_OK and httpsCode != status.HTTP_404_NOT_FOUND:
                 return data["message"], httpsCode
-
+            
             if "taskStatuses" not in data or not data["taskStatuses"]:
                 return { "message": "No status associated with project" }, status.HTTP_404_NOT_FOUND
-
+            
             return data["taskStatuses"], status.HTTP_200_OK
         except Exception as e:
             print("Error:", e)
@@ -167,6 +168,7 @@ class StatusesAPIView(APIView):
             data, httpsCode = ProjectsAPIView.getProjects(
                 {"id": statusData["projectID"]}, authorizationToken
             )
+            data=data[0]
 
             if httpsCode != status.HTTP_200_OK and httpsCode != status.HTTP_404_NOT_FOUND:
                 return data["message"], httpsCode
@@ -208,6 +210,7 @@ class StatusesAPIView(APIView):
             data, httpsCode = ProjectsAPIView.getProjects(
                 {"id": statusData["projectID"]}, authorizationToken
             )
+            data=data[0]
 
             if httpsCode != status.HTTP_200_OK and httpsCode != status.HTTP_404_NOT_FOUND:
                 return data["message"], httpsCode
@@ -251,6 +254,7 @@ class StatusesAPIView(APIView):
             data, httpsCode = ProjectsAPIView.getProjects(
                 {"id": statusData["projectID"]}, authorizationToken
             )
+            data=data[0]
 
             if httpsCode != status.HTTP_200_OK and httpsCode != status.HTTP_404_NOT_FOUND:
                 return data["message"], httpsCode
