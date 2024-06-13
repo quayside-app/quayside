@@ -1,13 +1,40 @@
 
 {% load static %}
-
-
-
 <div id='duckDiv' class="hidden absolute bottom-40 right-5  bounce z-50">
     <img id="duckImage" class="w-24 cursor-pointer" src="{% static 'app/images/duck.png' %}">
 </div>
+<div id="taskFeedBackFormDiv" class="hidden absolute bottom-52 right-36  z-50 p-4 rounded-t-[40px] rounded-bl-[40px] text-center text-white  bg-neutral-800  shadow-lg shadow-black w-80">
+<!--absolute bottom-40 right-5-->
+    <form action="/project/{{ projectID }}/graph/give-feedback" method="post" id="taskFeedbackForm">
+        {% csrf_token %} <!-- Required by Django to prevent Cross Site Scripting -->
 
+        <h3 id="formDescriptor"></h3>
+        <!-- Project Input(s) -->
+        <div class="pt-4 ">
+            How are you feeling about this {% if taskID %}task{% else %}project{% endif %}?
+            {{ TaskFeedbackForm.mood }} <!-- Comes from the context processor (since in the base class)-->
+            
+            <div class="mt-2">
+                {{ TaskFeedbackForm.explanation }}
+            </div>
+        </div>
 
+        <!-- Hidden Forms that get passed as appropriate to the form-->
+        <input id='userID' type="hidden" name="userID" value="{{ userID }}">
+        <input id='projectID' type="hidden" name="projectID" value="{{ projectID }}">
+        <input id="taskID" type="hidden" name="taskID" value="{% if taskID %}{{ taskID }}{% endif %}">
+        <input type="hidden" name="dateCreated" id="dateCreatedInput" value="">
+
+        <!-- Submit Button -->
+        <div id="submitButton">
+            <div class="flex justify-end">
+                <button id="feedBackSubmitter" type='submit' class="  px-2 py-1 rounded-md  text-white bg-neutral-600 hover:bg-gray-500 text-center">
+                    Submit!
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
 <script>
     // wait until the whole doc is loaded... all of it
     let duckSpeed = 1000;
@@ -18,7 +45,7 @@
         // Generates random between 0 and 100
         randomValue = Math.floor(Math.random() * (MAX - MIN + 1)) + MIN; 
         console.log("RANDOM", randomValue)
-        if (randomValue > 10) return // Don't continue to show duck
+        //if (randomValue > 10) return // Don't continue to show duck
 
         // Show duck + Modal
         let feedbackDiv = document.getElementById('taskFeedBackFormDiv');
@@ -51,3 +78,5 @@
     });
 
 </script>
+
+

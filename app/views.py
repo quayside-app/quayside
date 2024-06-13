@@ -76,10 +76,11 @@ def projectGraphView(request, projectID):
 
     return render(
         request, "graph.html", {"projectID": projectID, 
-                                "projectData": data[0], **generate_TaskFeedbackForm(request)}
+                                "projectData": data[0], **generateTaskFeedbackForm(request)}
     )
 
-def generate_TaskFeedbackForm(request):
+@apiKeyRequired
+def generateTaskFeedbackForm(request):
     payload = {
         "userID": global_context(request).get("userID"),
         "TaskFeedbackForm": TaskFeedbackForm
@@ -124,11 +125,10 @@ def createTaskFeedback(request, projectID):
     return render(
         request, "graph.html", {"projectID": projectID, 
                                 "projectData": data[0], 
-                                **generate_TaskFeedbackForm(request)}
+                                **generateTaskFeedbackForm(request)}
     )
 
 
-
 @apiKeyRequired
 def projectKanbanView(request, projectID):
     """
@@ -140,20 +140,9 @@ def projectKanbanView(request, projectID):
     @returns {HttpResponse} - An HttpResponse object that renders the
         graph.html template with the project ID context.
     """
-    return render(request, "kanban.html", {"projectID": projectID})
-
-@apiKeyRequired
-def projectKanbanView(request, projectID):
-    """
-    Renders the graph view for a specific project. This view requires an API key in the cookies.
+    return render(request, "kanban.html", {"projectID": projectID, **generateTaskFeedbackForm(request)})
 
 
-    @param {HttpRequest} request - The request object.
-    @param {str} projectID - The ID for the project whose graph is to be rendered.
-    @returns {HttpResponse} - An HttpResponse object that renders the
-        graph.html template with the project ID context.
-    """
-    return render(request, "kanban.html", {"projectID": projectID})
 
 
 @apiKeyRequired
@@ -386,7 +375,7 @@ def taskView(request, projectID, taskID):
             "submitLink": submitLink,
             "exitLink": exitLink,
             "deleteLink": deleteLink,
-            **generate_TaskFeedbackForm(request)
+            **generateTaskFeedbackForm(request)
         },
     )
 
@@ -468,7 +457,7 @@ def createTaskView(request, projectID, parentTaskID=""):
             "projectID": projectID,
             "baseTemplate": baseTemplate,
             "submitLink": submitLink,
-            "exitLink": exitLink, **generate_TaskFeedbackForm(request),
+            "exitLink": exitLink, **generateTaskFeedbackForm(request),
         },
     )
 
