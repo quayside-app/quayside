@@ -49,10 +49,12 @@
         taskDropZone.className = "overflow-y-auto  h-[75dvh]"
         taskDropZone.setAttribute('ondrop', 'drop(event, this)')
         taskDropZone.setAttribute('ondragover', 'allowDrop(event, this)')
+        taskDropZone.setAttribute('statusId', stat["id"])
 
         kanbanTasks["taskLists"][orderNumber].forEach(function (task) {
           const listLink = document.createElement('a')
           listLink.id = task.id
+          listLink.statusId = task.statusId
           listLink.textContent = task.name
           listLink.draggable = 'true'
           listLink.setAttribute('ondragstart', 'drag(event)')
@@ -93,7 +95,7 @@
     const response = await fetch('{{ apiUrl }}/kanban/', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({id: task.id, status: element.id, priority: task.getAttribute('priority')})
+      body: JSON.stringify({id: task.id, statusId: element.getAttribute('statusId'), priority: task.getAttribute('priority')})
     });
   }catch(error)
   {

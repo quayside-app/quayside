@@ -9,6 +9,7 @@ from api.decorators import apiKeyRequired
 from api.views.v1.tasks import TasksAPIView
 from api.views.v1.statuses import StatusesAPIView
 from api.utils import getAuthorizationToken
+from bson.objectid import ObjectId
 
 
 @method_decorator(apiKeyRequired, name="dispatch")
@@ -76,7 +77,7 @@ class KanbanAPIView(APIView):
             return "Error: paramter 'projectID' required.", status.HTTP_400_BAD_REQUEST
         
         try:
-            tasks = Task.objects.filter(projectID=taskData.get("projectID"))
+            tasks = list(Task.objects.filter(projectID=taskData.get("projectID")))
         except Task.DoesNotExist:
             return "Tasks not found for the specified projectID.", status.HTTP_404_NOT_FOUND
         
@@ -91,8 +92,9 @@ class KanbanAPIView(APIView):
             tasks_by_status["statuses"] = sorted(data, key=lambda status: status.get("order"))
             tasks_by_status["statuses"].insert(0, {'id': None})
 
-            status_id_order_dict = { stat['id']: index for index, stat in enumerate(tasks_by_status["statuses"]) }
-            # if a status associated with a task no longer exists, put it on the left most column as well
+            status_id_order_dict = { ObjectId(stat['id']): index for index, stat in enumerate(tasks_by_status["statuses"]) }
+
+            # if a status associated with a task doesn't exists or is None, put it on the left most column
             sorted_tasks = sorted(tasks, key=lambda task: status_id_order_dict[None if 'statusId' not in task or task.statusId not in status_id_order_dict.keys() else task['statusId']])
 
             tasks_by_status["taskLists"] = []
@@ -103,6 +105,7 @@ class KanbanAPIView(APIView):
 
             currentStatusId = list(status_id_order_dict.keys())[-1]
             statusIndex = len(status_id_order_dict) - 1
+
             for i, task in reversed(list(enumerate(sorted_tasks))):
 
                 while currentStatusId != task.statusId and statusIndex >= 1:
@@ -112,16 +115,18 @@ class KanbanAPIView(APIView):
                 # if task does not have a statusId it's put in the first set of tasks or the
                 # left most size of the kanban board
                 if (statusIndex < 1):
-                    tasks_by_status["taskLists"][statusIndex] = sorted_tasks
+                    tasks_by_status["taskLists"][statusIndex-1] = sorted_tasks
                     break
             
-                tasks_by_status["taskLists"][statusIndex].append(tasks.pop(i))
+                tasks_by_status["taskLists"][statusIndex-1].append(tasks.pop(i))
+
+            print(tasks_by_status["taskLists"])
 
             # removing none from statuses
             del tasks_by_status["statuses"][0]
 
             for i, taskList in enumerate(tasks_by_status["taskLists"]):
-                KanbanAPIView.normalizeTaskPriorityAndStatus(taskList, tasks_by_status["statuses"][i]["id"])
+                KanbanAPIView.normalizeTaskPriorityAndStatus(taskList, ObjectId(tasks_by_status["statuses"][i]["id"]))
                 serialized_data = TaskSerializer(taskList, many=True)
                 
                 tasks_by_status["taskLists"][i] = serialized_data.data
@@ -145,7 +150,7 @@ class KanbanAPIView(APIView):
         @param:
             taskData (dict): Dict of parameters. Contains id, status, and priority.
                 id (string): Id of the task to update.
-                status (string): The status to update task to.
+                statusId (string): Reference to a status.
                 priority (int): The priority to update task to.
                 
         @return:
@@ -158,7 +163,7 @@ class KanbanAPIView(APIView):
         if 'priority' not in taskData:
             return "Error: parameter 'priority' required.", status.HTTP_400_BAD_REQUEST
         
-        if 'status' not in taskData:
+        if 'statusId' not in taskData:
             return "Error: parameter 'status' required.", status.HTTP_400_BAD_REQUEST
         
 
@@ -229,11 +234,8 @@ class KanbanAPIView(APIView):
         
         # Space priority evenly.
         for index, task in enumerate(taskList):
-            print(task.to_mongo())
-            if (task['priority'] != index) or ('statusId' not in task) or (task.statusId != status_id):
-                task['priority'] = index
-                # TODO: figure out how to give a status id to a task object if it doesn't have one
+            if (task.priority != index) or ('statusId' not in task) or (task.statusId != status_id):
+                print("obj saved")
+                task.priority = index
                 task.statusId = status_id
-                print("\n\n")
-                print(task.to_mongo())
                 task.save()
