@@ -35,7 +35,7 @@ class KanbanAPIView(APIView):
         @example Javascript:
             fetch('quayside.app/api/v1/kanban?projectID=1234');
         """
-        responseData, httpStatus = self.getKanban(request.query_params)
+        responseData, httpStatus = self.getKanban(request.query_params, getAuthorizationToken(request))
         return Response(responseData, status=httpStatus)
     
     def put(self, request):
@@ -64,7 +64,7 @@ class KanbanAPIView(APIView):
         return Response(responseData, status=httpStatus)
     
     @staticmethod
-    def getKanban(taskData):
+    def getKanban(taskData, authorizationToken):
         """
         Service API function that can be called internally as well as through the API to get a kanban.
         Gets kanban based on projectID within taskData.
@@ -80,40 +80,61 @@ class KanbanAPIView(APIView):
         except Task.DoesNotExist:
             return "Tasks not found for the specified projectID.", status.HTTP_404_NOT_FOUND
         
-        data, httpsCode = StatusesAPIView.getStatuses({"id": tasks[0]["projectID"]})
-        taskStatuses = data
+        try:
+            data, httpsCode = StatusesAPIView.getStatuses({"projectID": tasks[0]["projectID"]}, authorizationToken)
 
-        if httpsCode != status.HTTP_200_OK:
-            print(f"Project GET failed: {data.get('message')}")
-            return data, httpsCode
-        
-        tasks_by_status = {}
-        tasks_by_status["statuses"] = sorted(taskStatuses.items(), key=lambda status: status.get("order"))
+            if httpsCode != status.HTTP_200_OK:
+                print(f"Project GET failed: {data.get('message')}")
+                return data, httpsCode
+            
+            tasks_by_status = {}
+            tasks_by_status["statuses"] = sorted(data, key=lambda status: status.get("order"))
+            tasks_by_status["statuses"].insert(0, {'id': None})
 
-        tasks_by_status["taskLists"] = []
+            status_id_order_dict = { stat['id']: index for index, stat in enumerate(tasks_by_status["statuses"]) }
+            # if a status associated with a task no longer exists, put it on the left most column as well
+            sorted_tasks = sorted(tasks, key=lambda task: status_id_order_dict[None if 'statusId' not in task or task.statusId not in status_id_order_dict.keys() else task['statusId']])
 
-        # creates empty task lists for each kanban type
-        for stat in tasks_by_status["statuses"]:
-            tasks_by_status["taskLists"][stat.append([])]
+            tasks_by_status["taskLists"] = []
 
-        for i, task in reversed(list(enumerate(tasks))):
-            # if task does not have a statusId it's put in the first set of tasks or the
-            # left most size of the kanban board
-            if not task.statusId or tasks_by_status["statuses"][i].id == task.statusId:
-                tasks_by_status["taskLists"].append(tasks.pop(i))
+            # creates empty task lists for each kanban type
+            for stat in data:
+                tasks_by_status["taskLists"].append([])
 
-        # if a status associated with a task no longer exists, put it on the left most column as well
-        for tasks in reversed(list(enumerate(tasks))):
-            tasks_by_status["taskLists"].append(tasks.pop(i))
+            currentStatusId = list(status_id_order_dict.keys())[-1]
+            statusIndex = len(status_id_order_dict) - 1
+            for i, task in reversed(list(enumerate(sorted_tasks))):
 
-        for taskList in tasks_by_status["taskLists"]:
-            KanbanAPIView.normalizePriority(taskList)
-            TaskSerializer(tasks_by_status["taskLists"], many=True).data
+                while currentStatusId != task.statusId and statusIndex >= 1:
+                    statusIndex -= 1
+                    currentStatusId = list(status_id_order_dict.keys())[statusIndex]
 
-        if tasks_by_status["taskLists"]:
+                # if task does not have a statusId it's put in the first set of tasks or the
+                # left most size of the kanban board
+                if (statusIndex < 1):
+                    tasks_by_status["taskLists"][statusIndex] = sorted_tasks
+                    break
+            
+                tasks_by_status["taskLists"][statusIndex].append(tasks.pop(i))
+
+            # removing none from statuses
+            del tasks_by_status["statuses"][0]
+
+            for i, taskList in enumerate(tasks_by_status["taskLists"]):
+                KanbanAPIView.normalizeTaskPriorityAndStatus(taskList, tasks_by_status["statuses"][i]["id"])
+                serialized_data = TaskSerializer(taskList, many=True)
+                
+                tasks_by_status["taskLists"][i] = serialized_data.data
+
+            if not tasks_by_status["taskLists"]:
+                return "No tasks found for the specified projectID.", status.HTTP_404_NOT_FOUND
+
             return tasks_by_status, status.HTTP_200_OK
-        else:
-            return "No tasks found for the specified projectID.", status.HTTP_404_NOT_FOUND
+            
+        except Exception as e:
+            print("Error:", e)
+            return {"message": e}, status.HTTP_500_INTERNAL_SERVER_ERROR
+
         
     @staticmethod
     def updateKanban(taskData):
@@ -130,6 +151,7 @@ class KanbanAPIView(APIView):
         @return:
             A tuple of (response_data, http_status).
         """
+        print(taskData)
         if 'id' not in taskData:
             return "Error: paramter 'id' required.", status.HTTP_400_BAD_REQUEST
         
@@ -146,25 +168,29 @@ class KanbanAPIView(APIView):
         except Task.DoesNotExist:
             return "Task not found with the provided ID.", status.HTTP_404_NOT_FOUND
 
-
         project = updating_task.projectID
         old_statusId = updating_task.statusId
         old_priority = updating_task.priority
         new_status_id = taskData.get('statusId')
         new_priority = taskData.get('priority')
 
-
         old_status_tasks = Task.objects.filter(
             projectID=project, 
-            status=old_statusId, 
+            statusId=old_statusId, 
             priority__gt=old_priority
         ) # .update(priority = F['priority'] - 1)
 
         new_status_tasks = Task.objects.filter(
             projectID=project,
-            status=new_status_id,
+            statusId=new_status_id,
             priority__gte=new_priority
         ) # .update(priority = F['priority'] + 1)
+
+        print("old status id: ")
+        print(old_statusId)
+
+        print("new status id: ")
+        print(new_status_id)
 
         # TODO: find a better way to save a list of objects at once.
         # Everything I tried didn't work with mongoengine.
@@ -176,7 +202,6 @@ class KanbanAPIView(APIView):
             task.priority += 1
             task.save()
 
-
         updating_task.statusId = new_status_id 
         updating_task.priority = new_priority
         updating_task.save()
@@ -184,7 +209,7 @@ class KanbanAPIView(APIView):
         return "Kanban successfully updated.", status.HTTP_200_OK
         
     @staticmethod
-    def normalizePriority(taskList):
+    def normalizeTaskPriorityAndStatus(taskList, status_id):
         """
         Normalize the priority of tasks within each status group.
         Ensures all tasks have an integer priority value.
@@ -200,10 +225,15 @@ class KanbanAPIView(APIView):
             dict: Updated tasks grouped by status with normalized priorities.
         """
 
-        taskList = sorted(taskList, key = lambda x: x["priority"])
+        taskList = sorted(taskList, key = lambda x: x["priority"] if x.priority != None else 0)
         
         # Space priority evenly.
         for index, task in enumerate(taskList):
-            if task['priority'] != index:
+            print(task.to_mongo())
+            if (task['priority'] != index) or ('statusId' not in task) or (task.statusId != status_id):
                 task['priority'] = index
+                # TODO: figure out how to give a status id to a task object if it doesn't have one
+                task.statusId = status_id
+                print("\n\n")
+                print(task.to_mongo())
                 task.save()

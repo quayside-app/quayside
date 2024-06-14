@@ -91,7 +91,7 @@ class Task(mongo.Document):
     startDate = mongo.DateField(null=True)
     endDate = mongo.DateField(null=True)
     # status = mongo.StringField(default='Todo', choices=('In-Progress', 'Todo', 'Done'))
-    statusId = mongo.ObjectIdField(null=True),
+    statusId = mongo.ObjectIdField(null=True, default=None)
     priority = mongo.IntField(null=True)
     durationMinutes = mongo.IntField(null=False)
 

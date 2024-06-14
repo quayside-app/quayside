@@ -34,22 +34,23 @@
       columns = document.getElementById('columns')
 
       var orderNumber = 0
-      for (var stat in kanbanTasks["statuses"]) {
+      
+      kanbanTasks["statuses"].forEach(function (stat) {
         const columnElement = document.createElement('div')
         const bgColor = 'bg-[#' + stat["color"] + ']'
         columnElement.className = "w-1/3 m-2 p-2 rounded-xl " + bgColor
 
         const titleElement = document.createElement('div')
         titleElement.className = "font-bold text-md sm:text-2xl my-2"
-        titleElement.innerText = key
+        titleElement.innerText = stat["name"]
 
         const taskDropZone = document.createElement('div')
-        taskDropZone.id = key
+        taskDropZone.id = stat["name"]
         taskDropZone.className = "overflow-y-auto  h-[75dvh]"
         taskDropZone.setAttribute('ondrop', 'drop(event, this)')
         taskDropZone.setAttribute('ondragover', 'allowDrop(event, this)')
 
-        kanbanTasks["taskList"][orderNumber].forEach(function (task) {
+        kanbanTasks["taskLists"][orderNumber].forEach(function (task) {
           const listLink = document.createElement('a')
           listLink.id = task.id
           listLink.textContent = task.name
@@ -60,12 +61,12 @@
           taskDropZone.appendChild(listLink)
 
         })
-        titleElement.appendChild(taskDropZone)
         columnElement.appendChild(titleElement)
+        columnElement.appendChild(taskDropZone)
         columns.appendChild(columnElement)
 
         orderNumber++
-      }
+      })
 
     } catch (error) {
       console.error('There has been a problem with fetching projects:', error)
@@ -86,6 +87,7 @@
     dropevent.preventDefault();
 
     const task = document.getElementById(dropevent.dataTransfer.getData("id"));
+    console.log(task)
     try{
     element.appendChild(task);
     const response = await fetch('{{ apiUrl }}/kanban/', {

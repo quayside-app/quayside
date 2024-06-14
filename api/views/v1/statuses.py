@@ -64,7 +64,7 @@ class StatusesAPIView(APIView):
             fetch('quayside.app/api/v1/statuses', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ "name":  "backlog", "color": "A4279", "order":  2 }),
+                body: JSON.stringify({ "projectID": "5AC9942376", "name":  "backlog", "color": "A4279", "order":  2 }),
             });
 
         """
@@ -92,7 +92,7 @@ class StatusesAPIView(APIView):
             await fetch(`/api/v1/statuses?id=1234`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json'},
-                body: JSON.stringify({ "name":  "backlog", "color": "A4279", "order":  2 }),
+                body: JSON.stringify({ "projectID": "5AC9942376", "name":  "backlog", "color": "A4279", "order":  2 }),
             });
 
         """
@@ -180,7 +180,8 @@ class StatusesAPIView(APIView):
             
             for stat in data["taskStatuses"]:
                 if stat["id"] == statusData["id"]:
-                    stat = statusData.pop("projectID")
+                    statusData.pop("projectID")
+                    stat = statusData
                     serializer = ProjectSerializer(data=data)
 
                     if serializer.is_valid():
@@ -225,8 +226,10 @@ class StatusesAPIView(APIView):
                     return {
                         "message": "Status with name already exists"
                     }, status.HTTP_403_FORBIDDEN
+                
+                statusData.pop("projectID")
+                data["taskStatuses"].append(statusData)
 
-            data["taskStatuses"].append(statusData.pop("projectID"))
             serializer = ProjectSerializer(data=data)
 
             if serializer.is_valid():
