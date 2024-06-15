@@ -254,6 +254,7 @@ def editProjectView(request, projectID):
             "projectID": projectID,
             "submitLink": f"/project/{projectID}/",
             "exitLink": f"/project/{projectID}/graph",
+            **generateTaskFeedbackForm(request)
         },
     )
 
