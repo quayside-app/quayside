@@ -136,7 +136,7 @@ function Trees(dataList, {
 
         let yMin = Infinity; // Initialize to the largest possible value
         let yMax = -Infinity; // Initialize to the smallest possible value
-        console.log(index)
+        
         root.each(d => {
             if (d.x < yMin) yMin = d.x; // Find the minimum vertical coordinate
             if (d.x > yMax) yMax = d.x; // Find the maximum vertical coordinate

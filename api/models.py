@@ -107,3 +107,6 @@ class Feedback(mongo.Document):
     dateCreated = mongo.DateTimeField(default=datetime.now(timezone.utc))
     mood = mongo.IntField(null=0)
     explanation = mongo.StringField(null=True)
+    meta = {
+        "collection": "Feedback",  # Need to specify for it to be UPPER Case
+    }

@@ -886,6 +886,10 @@ video {
   width: 18rem;
 }
 
+.w-80 {
+  width: 20rem;
+}
+
 .w-full {
   width: 100%;
 }
@@ -910,10 +914,6 @@ video {
 
 .rotate-180 {
   --tw-rotate: 180deg;
-  transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
-}
-
-.transform {
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
 }
 
@@ -1013,13 +1013,13 @@ video {
   border-radius: 0.75rem;
 }
 
-.rounded-t-\[64px\] {
-  border-top-left-radius: 64px;
-  border-top-right-radius: 64px;
+.rounded-t-\[40px\] {
+  border-top-left-radius: 40px;
+  border-top-right-radius: 40px;
 }
 
-.rounded-bl-\[64px\] {
-  border-bottom-left-radius: 64px;
+.rounded-bl-\[40px\] {
+  border-bottom-left-radius: 40px;
 }
 
 .border {
@@ -1521,10 +1521,6 @@ video {
 }
 
 @media (min-width: 768px) {
-  .md\:w-72 {
-    width: 18rem;
-  }
-
   .md\:w-96 {
     width: 24rem;
   }

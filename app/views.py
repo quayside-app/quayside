@@ -76,10 +76,11 @@ def projectGraphView(request, projectID):
 
     return render(
         request, "graph.html", {"projectID": projectID, 
-                                "projectData": data[0], **generate_TaskFeedbackForm(request)}
+                                "projectData": data[0], **generateTaskFeedbackForm(request)}
     )
 
-def generate_TaskFeedbackForm(request):
+@apiKeyRequired
+def generateTaskFeedbackForm(request):
     payload = {
         "userID": global_context(request).get("userID"),
         "TaskFeedbackForm": TaskFeedbackForm
@@ -100,26 +101,31 @@ def createTaskFeedback(request, projectID):
         if form.is_valid():
             newData = form.cleaned_data
             newData["projectID"] = projectID
+            print("PROJ ID:", projectID)
             currentUserID = decodeApiKey(getAuthorizationToken(request)).get("userID")
             newData['userID'] = currentUserID
+
+            # Remove blank task IDs (bc not required)
+            if not newData["taskID"]:
+                del newData["taskID"]
 
             message, httpsCode = FeedbackAPIView.createFeedback(
                 newData, getAuthorizationToken(request)
             )
 
-            if httpsCode != status.HTTP_200_OK:
+            if httpsCode != status.HTTP_201_CREATED:
                 print(f"Task update failed: {message}")
                 return HttpResponseServerError(f"An error occurred: {message}")
         else:
+            print(form.errors)
             return HttpResponseServerError(f"An error occurred: form not valid")
 
     # now go back to the graph
     return render(
         request, "graph.html", {"projectID": projectID, 
                                 "projectData": data[0], 
-                                **generate_TaskFeedbackForm(request)}
+                                **generateTaskFeedbackForm(request)}
     )
-
 
 
 @apiKeyRequired
@@ -133,8 +139,7 @@ def projectKanbanView(request, projectID):
     @returns {HttpResponse} - An HttpResponse object that renders the
         graph.html template with the project ID context.
     """
-    return render(request, "kanban.html", {"projectID": projectID})
-
+    return render(request, "kanban.html", {"projectID": projectID, **generateTaskFeedbackForm(request)})
 
 @apiKeyRequired
 def editProjectView(request, projectID):
@@ -366,7 +371,7 @@ def taskView(request, projectID, taskID):
             "submitLink": submitLink,
             "exitLink": exitLink,
             "deleteLink": deleteLink,
-            **generate_TaskFeedbackForm(request)
+            **generateTaskFeedbackForm(request)
         },
     )
 
@@ -448,7 +453,7 @@ def createTaskView(request, projectID, parentTaskID=""):
             "projectID": projectID,
             "baseTemplate": baseTemplate,
             "submitLink": submitLink,
-            "exitLink": exitLink, **generate_TaskFeedbackForm(request),
+            "exitLink": exitLink, **generateTaskFeedbackForm(request),
         },
     )
 
@@ -565,9 +570,6 @@ def marketplaceView(request):
     return render(request, "marketplace.html", {})
 
 
-@apiKeyRequired
-def feedbackView(request):
-    return render(request, "feedback.html", {})
 
 
 def requestAuth(_request, provider):
