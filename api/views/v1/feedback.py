@@ -120,12 +120,12 @@ class FeedbackAPIView(APIView):
             
             feedback_objs = []
 
-            if "id" in feedbackData:
-                feedback_objs = Feedback.objects.get(id=feedbackData["id"])
-            elif "taskID" in feedbackData:
-                feedback_objs = Feedback.objects.filter(taskID__all=feedbackData["taskID"], **feedbackData)
-            elif "projectID" in feedbackData:
-                feedback_objs = Feedback.objects.filter(projectID__all=feedbackData["projectID"], **feedbackData)
+            if "id" in feedbackData:  
+                feedback_objs = Feedback.objects.get(id=feedbackData["id"])  
+            elif "taskID" in feedbackData:  
+                feedback_objs = Feedback.objects.filter(taskID=feedbackData["taskID"])  
+            elif "projectID" in feedbackData:  
+                feedback_objs = Feedback.objects.filter(projectID=feedbackData["projectID"])  
 
             if not feedback_objs:
                 return {
@@ -180,14 +180,14 @@ class FeedbackAPIView(APIView):
         
         numberObjectsDeleted:int = 0
 
-        if "id" in feedbackData:
-            numberObjectsDeleted = Feedback.objects.get(id=feedbackData["id"]).delete()
-        elif "taskID" in feedbackData:
-            numberObjectsDeleted = Feedback.objects.filter(taskID__all=feedbackData["taskID"], **feedbackData).delete()
-        elif "projectID" in feedbackData:
-            numberObjectsDeleted = Feedback.objects.filter(projectID__all=feedbackData["projectID"], **feedbackData).delete()
-        elif "userID" in feedbackData:
-            numberObjectsDeleted = Feedback.objects.filter(userID__all=feedbackData["userID"], **feedbackData).delete()
+        if "id" in feedbackData:  
+            numberObjectsDeleted = Feedback.objects.get(id=feedbackData["id"]).delete()  
+        elif "taskID" in feedbackData:  
+            numberObjectsDeleted = Feedback.objects.filter(taskID=feedbackData["taskID"]).delete()  
+        elif "projectID" in feedbackData:  
+            numberObjectsDeleted = Feedback.objects.filter(projectID__all=feedbackData["projectID"], **feedbackData).delete()  
+        elif "userID" in feedbackData:  
+            numberObjectsDeleted = Feedback.objects.filter(userID=feedbackData["userID"]).delete()  
 
         if numberObjectsDeleted == 0:
             return { "message": "No associated feedback found." }, status.HTTP_404_NOT_FOUND
