@@ -97,7 +97,7 @@ class KanbanAPIView(APIView):
             tasks_by_status["statuses"].insert(0, {'id': None})
 
             # Create a dictionary that maps each statusId from the sorted status dictionaries with an index
-            status_id_order_dict = { ObjectId(stat['id']): index for index, stat in enumerate(tasks_by_status["statuses"]) }
+            status_id_order_dict = { ObjectId(stat['id']) if stat['id'] != None else None: index for index, stat in enumerate(tasks_by_status["statuses"]) }
 
             # removing None from status ids since it's only added for creating a statusId mapping
             del tasks_by_status["statuses"][0]
@@ -105,6 +105,7 @@ class KanbanAPIView(APIView):
             # Creates a sorted list of tasks using the custom statusId mapping. If a statusId associated with
             # a task doesn't existing in the mapping, is None, or non-existent it's at the start of the list
             # and it will appear on the leftmost column
+
             sorted_tasks = sorted(tasks, key=lambda task: status_id_order_dict[None if 'statusId' not in task or task.statusId not in status_id_order_dict.keys() else task['statusId']])
 
             tasks_by_status["taskLists"] = []
@@ -162,7 +163,6 @@ class KanbanAPIView(APIView):
         @return:
             A tuple of (response_data, http_status).
         """
-        print(taskData)
         if 'id' not in taskData:
             return "Error: paramter 'id' required.", status.HTTP_400_BAD_REQUEST
         
