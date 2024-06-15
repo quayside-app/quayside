@@ -89,41 +89,47 @@ class KanbanAPIView(APIView):
                 return data, httpsCode
             
             tasks_by_status = {}
+
+            # Sort each status by the 'order' number which is used to define the order of kanban columns from left to right
             tasks_by_status["statuses"] = sorted(data, key=lambda status: status.get("order"))
+            # include a status with an id of Noneto the front of the status array to account for the case where
+            # a task does not have a status id associated with it or it is set to the default value None
             tasks_by_status["statuses"].insert(0, {'id': None})
 
+            # Create a dictionary that maps each statusId from the sorted status dictionaries with an index
             status_id_order_dict = { ObjectId(stat['id']): index for index, stat in enumerate(tasks_by_status["statuses"]) }
 
-            # if a status associated with a task doesn't exists or is None, put it on the left most column
+            # removing None from status ids since it's only added for creating a statusId mapping
+            del tasks_by_status["statuses"][0]
+
+            # Creates a sorted list of tasks using the custom statusId mapping. If a statusId associated with
+            # a task doesn't existing in the mapping, is None, or non-existent it's at the start of the list
+            # and it will appear on the leftmost column
             sorted_tasks = sorted(tasks, key=lambda task: status_id_order_dict[None if 'statusId' not in task or task.statusId not in status_id_order_dict.keys() else task['statusId']])
 
             tasks_by_status["taskLists"] = []
 
-            # creates empty task lists for each kanban type
+            # creates an empty task lists for each status type
             for stat in data:
                 tasks_by_status["taskLists"].append([])
 
             currentStatusId = list(status_id_order_dict.keys())[-1]
-            statusIndex = len(status_id_order_dict) - 1
+            statusIndex = len(tasks_by_status["taskLists"]) - 1
 
+            # putting the sorted task objects into columns lists from right to left 
             for i, task in reversed(list(enumerate(sorted_tasks))):
 
+                # while a task doesn't go into the current selected column
                 while currentStatusId != task.statusId and statusIndex >= 1:
                     statusIndex -= 1
-                    currentStatusId = list(status_id_order_dict.keys())[statusIndex]
+                    currentStatusId = list(status_id_order_dict.keys())[statusIndex+1]
 
-                # if task does not have a statusId it's put in the first set of tasks or the
-                # left most size of the kanban board
+                # instead of adding all remaining tasks indiviually into the leftmost column, dump them all at the same time
                 if (statusIndex < 1):
-                    tasks_by_status["taskLists"][statusIndex-1] = sorted_tasks
+                    tasks_by_status["taskLists"][statusIndex] = sorted_tasks
                     break
             
-                tasks_by_status["taskLists"][statusIndex-1].append(tasks.pop(i))
-
-            print(tasks_by_status["taskLists"])
-
-            # removing none from statuses
-            del tasks_by_status["statuses"][0]
+                tasks_by_status["taskLists"][statusIndex].append(sorted_tasks.pop(i))
 
             for i, taskList in enumerate(tasks_by_status["taskLists"]):
                 KanbanAPIView.normalizeTaskPriorityAndStatus(taskList, ObjectId(tasks_by_status["statuses"][i]["id"]))
@@ -191,12 +197,6 @@ class KanbanAPIView(APIView):
             priority__gte=new_priority
         ) # .update(priority = F['priority'] + 1)
 
-        print("old status id: ")
-        print(old_statusId)
-
-        print("new status id: ")
-        print(new_status_id)
-
         # TODO: find a better way to save a list of objects at once.
         # Everything I tried didn't work with mongoengine.
         for task in old_status_tasks:
@@ -235,7 +235,6 @@ class KanbanAPIView(APIView):
         # Space priority evenly.
         for index, task in enumerate(taskList):
             if (task.priority != index) or ('statusId' not in task) or (task.statusId != status_id):
-                print("obj saved")
                 task.priority = index
                 task.statusId = status_id
                 task.save()

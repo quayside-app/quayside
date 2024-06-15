@@ -19,19 +19,27 @@ function createTaskTrees(tasks, statuses) {
     const taskMap = {};
     const roots = [];
 
-    // Step 1: Create a map of all tasks by their ID
-    tasks.forEach(task => {
-        taskMap[task.id] = { ...task, children: [] };
+    // Step 1: Assign a corresponding color to each task based off it's status id
+    tasks.forEach((task, i, theTasks) => {
+
+        statuses.every(status => {
+          if (theTasks[i].statusId == status.id) {
+            theTasks[i].color = status.color;
+            // delete theTasks[i].statusId;
+            return false;
+          }
+          return true;
+        });
+
     });
 
-    // Step 2: Build the trees by assigning children to their parents
+    // Step 2: Create a map of all tasks by their ID
     tasks.forEach(task => {
-        for (const status in statuses) {
-          if (task.statusId == status.id);
-            task.color = status.color
-            delete task.statusId
-        }
+      taskMap[task.id] = { ...task, children: [] };
+    });
 
+    // Step 3: Build the trees by assigning children to their parents
+    tasks.forEach(task => {
         if (task.parentTaskID === null) {
             // If there is no parentTaskID, this is a root node
             roots.push(taskMap[task.id]);
@@ -43,7 +51,7 @@ function createTaskTrees(tasks, statuses) {
         }
     });
 
-    // Step 3: Convert each tree to the desired format (name instead of id)
+    // Step 4: Convert each tree to the desired format (name instead of id)
     const convertToNameFormat = (node) => {
         const newNode = { name: node.name, id: node.id, color: node.color, children: [] };
         if (node.children.length) {
@@ -132,13 +140,11 @@ function Trees(dataList, {
         root.each(d => {
             if (d.x < yMin) yMin = d.x; // Find the minimum vertical coordinate
             if (d.x > yMax) yMax = d.x; // Find the maximum vertical coordinate
-            console.log("   d.x", d.x, )
         });
 
         const treeHeight = (yMax - yMin) +  dx  // This gives you the vertical span of the tree plus buffer.
         const topTreeHeight = yMin < 0 ? -yMin : treeHeight/2  // Tree height above parent node.
         verticalOffset += topTreeHeight
-        console.log("   treeHeight", treeHeight )
 
         const svg = zoomableGroup.append("g")
             .attr("font-family", "sans-serif")
