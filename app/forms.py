@@ -44,6 +44,7 @@ class TaskFeedbackForm(forms.Form):
             (5, "Very Happy")
         ),
         label="How are you feeling about things?",
+        initial=3,  # Setting the default choice 
         widget=forms.Select(attrs={
             "class": "block w-full mt-2 p-2 rounded-md bg-neutral-600 outline-none"
         })
