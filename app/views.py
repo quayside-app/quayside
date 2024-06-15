@@ -94,6 +94,7 @@ def createTaskFeedback(request, projectID):
         {"id": projectID}, getAuthorizationToken(request)
     )
 
+
     if request.method == "POST":
 
         form = TaskFeedbackForm(request.POST)
@@ -116,16 +117,15 @@ def createTaskFeedback(request, projectID):
             if httpsCode != status.HTTP_201_CREATED:
                 print(f"Task update failed: {message}")
                 return HttpResponseServerError(f"An error occurred: {message}")
+            
+            # Redirect to url that triggered form
+            referrer = request.META.get('HTTP_REFERER', '/')
+            return redirect(referrer)
         else:
             print(form.errors)
             return HttpResponseServerError(f"An error occurred: form not valid")
 
-    # now go back to the graph
-    return render(
-        request, "graph.html", {"projectID": projectID, 
-                                "projectData": data[0], 
-                                **generateTaskFeedbackForm(request)}
-    )
+
 
 
 @apiKeyRequired
