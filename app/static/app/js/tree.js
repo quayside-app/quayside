@@ -23,13 +23,12 @@ function createTaskTrees(tasks, statuses) {
     tasks.forEach((task, i, theTasks) => {
 
         statuses.every(status => {
-          if (theTasks[i].statusId == status.id) {
+          // if statusId is null, sets the default color to the first status color
+          if ((theTasks[i].statusId == status.id) || (theTasks[i].statusId == null)) {
             theTasks[i].color = status.color;
-            // delete theTasks[i].statusId;
-            return false;
-          } else if(theTasks[i].statusId == null) {
-            theTasks[i].color = statuses[0].color
+            return false; // exit loop
           }
+
           return true;
         });
 
