@@ -27,6 +27,8 @@ function createTaskTrees(tasks, statuses) {
             theTasks[i].color = status.color;
             // delete theTasks[i].statusId;
             return false;
+          } else if(theTasks[i].statusId == null) {
+            theTasks[i].color = statuses[0].color
           }
           return true;
         });
