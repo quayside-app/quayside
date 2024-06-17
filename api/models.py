@@ -1,4 +1,5 @@
 import mongoengine as mongo
+from datetime import datetime, timezone
 
 
 class User(mongo.Document):
@@ -68,4 +69,15 @@ class Task(mongo.Document):
     meta = {
         "collection": "Task",  # Need to specify UPPER Case
         "strict": False,  # If true, throws weird error for __v
+    }
+
+class Feedback(mongo.Document):
+    userID = mongo.ObjectIdField(required=True)
+    projectID = mongo.ObjectIdField(required=True)
+    taskID = mongo.ObjectIdField(null=True)  # for now
+    dateCreated = mongo.DateTimeField(default=datetime.now(timezone.utc))
+    mood = mongo.IntField(null=0)
+    explanation = mongo.StringField(null=True)
+    meta = {
+        "collection": "Feedback",  # Need to specify for it to be UPPER Case
     }

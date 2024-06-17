@@ -1,3 +1,4 @@
+# generic imports
 import os
 import re
 import urllib.parse
@@ -5,11 +6,12 @@ import requests
 from oauthlib.oauth2 import WebApplicationClient as WAC
 from rest_framework import status
 
-
+# django imports
 from django.shortcuts import render, redirect
 from django.http import HttpResponseRedirect, HttpResponseServerError
 from django.views.generic.base import TemplateView
 
+# api imports
 from api.decorators import apiKeyRequired
 from api.utils import (
     decryptApiKey,
@@ -18,25 +20,34 @@ from api.utils import (
     getAuthorizationToken,
     decodeApiKey,
 )
+from api.views.v1.feedback import FeedbackAPIView
 from api.views.v1.tasks import TasksAPIView
 from api.views.v1.generatedTasks import GeneratedTasksAPIView
 from api.views.v1.projects import ProjectsAPIView
 from api.views.v1.users import UsersAPIView
 
 from app.context_processors import global_context
-from app.forms import NewProjectForm, TaskForm, ProjectForm
+from app.forms import NewProjectForm, TaskForm, ProjectForm, TaskFeedbackForm
 
 
-def redirectOffSite(_request):
+def redirectOffSite(request):
     return redirect("https://github.com/quayside-app/quayside")
 
 
-def logout(_request):
+def logout(request):
     response = redirect("/")
     response.delete_cookie("apiToken")
     response.delete_cookie("csrftoken")
     response.delete_cookie("sessionid")
     return response
+
+
+def viewRouter(request, **kwargs):
+    """
+    reroutes 
+    """
+    pass
+
 
 
 @apiKeyRequired
@@ -50,12 +61,12 @@ def projectGraphView(request, projectID):
     @returns {HttpResponse} - An HttpResponse object that renders the
         graph.html template with the project ID context.
     """
+
     # Check if project exists
     data, httpsCode = ProjectsAPIView.getProjects(
         {"id": projectID}, getAuthorizationToken(request)
     )
     
-    print(data)
 
     if httpsCode != status.HTTP_200_OK:
         print(f"Project GET failed: {data.get('message')}")
@@ -64,10 +75,59 @@ def projectGraphView(request, projectID):
         )
 
     return render(
-        request, "graph.html", {"projectID": projectID, "projectData": data[0]}
+        request, "graph.html", {"projectID": projectID, 
+                                "projectData": data[0], **generateTaskFeedbackForm(request)}
+    )
+
+@apiKeyRequired
+def generateTaskFeedbackForm(request):
+    payload = {
+        "userID": global_context(request).get("userID"),
+        "TaskFeedbackForm": TaskFeedbackForm
+    }
+    return payload
+
+@apiKeyRequired
+def createTaskFeedback(request, projectID):
+
+    data, httpsCode = ProjectsAPIView.getProjects(
+        {"id": projectID}, getAuthorizationToken(request)
     )
 
 
+    if request.method == "POST":
+
+        form = TaskFeedbackForm(request.POST)
+
+        if form.is_valid():
+            newData = form.cleaned_data
+            newData["projectID"] = projectID
+            print("PROJ ID:", projectID)
+            currentUserID = decodeApiKey(getAuthorizationToken(request)).get("userID")
+            newData['userID'] = currentUserID
+
+            # Remove blank task IDs (bc not required)
+            if not newData["taskID"]:
+                del newData["taskID"]
+
+            message, httpsCode = FeedbackAPIView.createFeedback(
+                newData, getAuthorizationToken(request)
+            )
+
+            if httpsCode != status.HTTP_201_CREATED:
+                print(f"Task update failed: {message}")
+                return HttpResponseServerError(f"An error occurred: {message}")
+            
+            # Redirect to url that triggered form
+            referrer = request.META.get('HTTP_REFERER', '/')
+            return redirect(referrer)
+        else:
+            print(form.errors)
+            return HttpResponseServerError(f"An error occurred: form not valid")
+
+
+
+
 @apiKeyRequired
 def projectKanbanView(request, projectID):
     """
@@ -79,20 +139,9 @@ def projectKanbanView(request, projectID):
     @returns {HttpResponse} - An HttpResponse object that renders the
         graph.html template with the project ID context.
     """
-    return render(request, "kanban.html", {"projectID": projectID})
-
-@apiKeyRequired
-def projectKanbanView(request, projectID):
-    """
-    Renders the graph view for a specific project. This view requires an API key in the cookies.
+    return render(request, "kanban.html", {"projectID": projectID, **generateTaskFeedbackForm(request)})
 
 
-    @param {HttpRequest} request - The request object.
-    @param {str} projectID - The ID for the project whose graph is to be rendered.
-    @returns {HttpResponse} - An HttpResponse object that renders the
-        graph.html template with the project ID context.
-    """
-    return render(request, "kanban.html", {"projectID": projectID})
 
 
 @apiKeyRequired
@@ -205,6 +254,7 @@ def editProjectView(request, projectID):
             "projectID": projectID,
             "submitLink": f"/project/{projectID}/",
             "exitLink": f"/project/{projectID}/graph",
+            **generateTaskFeedbackForm(request)
         },
     )
 
@@ -325,6 +375,7 @@ def taskView(request, projectID, taskID):
             "submitLink": submitLink,
             "exitLink": exitLink,
             "deleteLink": deleteLink,
+            **generateTaskFeedbackForm(request)
         },
     )
 
@@ -406,7 +457,7 @@ def createTaskView(request, projectID, parentTaskID=""):
             "projectID": projectID,
             "baseTemplate": baseTemplate,
             "submitLink": submitLink,
-            "exitLink": exitLink,
+            "exitLink": exitLink, **generateTaskFeedbackForm(request),
         },
     )
 
@@ -523,9 +574,6 @@ def marketplaceView(request):
     return render(request, "marketplace.html", {})
 
 
-@apiKeyRequired
-def feedbackView(request):
-    return render(request, "feedback.html", {})
 
 
 def requestAuth(_request, provider):

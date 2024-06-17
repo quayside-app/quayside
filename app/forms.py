@@ -1,5 +1,5 @@
 from django import forms
-
+from datetime import datetime, timezone
 
 class NewProjectForm(forms.Form):
     """
@@ -28,6 +28,41 @@ class NewProjectForm(forms.Form):
             }
         ),
     )
+
+
+class TaskFeedbackForm(forms.Form):
+    userID = forms.CharField(widget=forms.HiddenInput())  # Assuming the user ID is handled in the background
+    projectID = forms.CharField(widget=forms.HiddenInput())  # Assuming the project ID is handled in the background
+    taskID = forms.CharField(required=False, widget=forms.HiddenInput())  # Optional, can be null
+    dateCreated = forms.DateTimeField(widget=forms.HiddenInput())  # Default to current time
+    mood = forms.ChoiceField(
+        choices=(
+            (1, "Very Unhappy"),
+            (2, "Unhappy"),
+            (3, "Neutral"),
+            (4, "Happy"),
+            (5, "Very Happy")
+        ),
+        label="How are you feeling about things?",
+        initial=3,  # Setting the default choice 
+        widget=forms.Select(attrs={
+            "class": "block w-full mt-2 p-2 rounded-md bg-neutral-600 outline-none"
+        })
+    )
+    explanation = forms.CharField(
+        label="Can you explain why you feel this way?",
+        required=False,
+        widget=forms.Textarea(attrs={
+            "placeholder": "I feel this way because...",
+            "class": "w-full block mt-2 mb-4 p-2 text-sm rounded-md bg-neutral-600 outline-none placeholder-gray-400",
+            "rows": 3,
+        })
+    )
+
+
+
+
+
 
 
 class TaskForm(forms.Form):

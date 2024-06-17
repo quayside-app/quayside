@@ -1,1 +1,1 @@
-from .v1 import users, projects, tasks, generatedTasks, kanban
+from .v1 import users, projects, tasks, generatedTasks, kanban, feedback
