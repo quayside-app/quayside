@@ -265,12 +265,12 @@ class ProjectsAPIView(APIView):
             }, status.HTTP_400_BAD_REQUEST
 
         if isinstance(projectData, list):
-            # for project in projectData:
-            #     project["taskStatuses"] = Project.create_default_task_statuses()
+            for project in projectData:
+                project["taskStatuses"] = Project.create_default_task_statuses()
 
             serializer = ProjectSerializer(data=projectData, many=True)
         else:
-            # projectData["taskStatuses"] = Project.create_default_task_statuses()
+            projectData["taskStatuses"] = Project.create_default_task_statuses()
             serializer = ProjectSerializer(data=projectData)
 
         if serializer.is_valid():

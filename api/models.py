@@ -69,7 +69,7 @@ class Project(mongo.Document):
             ]
     
     class Status(mongo.EmbeddedDocument):
-        id = mongo.ObjectIdField(default=ObjectId())
+        id = mongo.ObjectIdField(default=ObjectId, unique=True)
         name =  mongo.StringField(null=False, required=True)
         color = mongo.StringField(null=False, required=True) # html color code
         order = mongo.IntField(null=False, required=True) # task order on kanban

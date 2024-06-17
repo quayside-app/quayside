@@ -23,6 +23,7 @@ class ProjectSerializer(DocumentSerializer):
     def create(self, validated_data):
         status_data_list = validated_data.pop('taskStatuses', [])
         project = Project(**validated_data)
+        project.taskStatuses = []
 
         for status_data in status_data_list:
             project.taskStatuses.append(Project.Status(**status_data))
