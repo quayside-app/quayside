@@ -53,17 +53,17 @@ class Project(mongo.Document):
             return [
                 {
                     "name": "Todo",
-                    "color": "afc2ca", # html color code
+                    "color": "323232", # html color code
                     "order": 1 # task order on kanban
                 },
                 {
                     "name": "In-Progress",
-                    "color": "eefb4b",
+                    "color": "efa610",
                     "order": 2 # task order on kanban
                 },
                 {
                     "name": "Done",
-                    "color": "5ff43d", # html color code
+                    "color": "01796e", # html color code
                     "order": 3 # task order on kanban
                 }
             ]
