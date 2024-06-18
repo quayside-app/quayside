@@ -82,6 +82,7 @@ class TaskForm(forms.Form):
         ),
     )
 
+    # TODO: make the chocies dynamically update based on the statuses currently saved for a project
     status = forms.ChoiceField(
         label="",
         required=False,

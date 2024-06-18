@@ -352,7 +352,7 @@ def taskView(request, projectID, taskID):
             initialData = {
                 "name": taskData.get("name", ""),
                 "description": taskData.get("description", ""),
-                "status": taskData.get("status", ""),
+                "statusId": taskData.get("statusId", ""),
                 "startDate": taskData.get("startDate", ""),
                 "endDate": taskData.get("endDate", ""),
                 "duration": durationString
