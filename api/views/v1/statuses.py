@@ -29,12 +29,9 @@ class StatusesAPIView(APIView):
 
         @param {HttpRequest} request - The request object.
             The query parameters can be:
-                - id (objectID str)
-                - name (str)
-                - color (str)
-                - order (str)
+                - projectId (objectID str)
 
-        @return A Response object containing a JSON array of serialized Project objects that
+        @return A Response object containing a JSON array of serialized Status objects that
         match the query parameters.
 
         @example Javascript:
@@ -57,7 +54,7 @@ class StatusesAPIView(APIView):
                 - order (str)
         @param {str} authorizationToken - JWT authorization token.
 
-        @return A Response object containing a JSON array of the created project.
+        @return A response telling you if the status was created.
 
         @example javascript:
 

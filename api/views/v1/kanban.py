@@ -23,7 +23,10 @@ class KanbanAPIView(APIView):
 
     def get(self, request):
         """
-        Retrieves tasks of the specified project grouped by status.
+        Retrieves and array of tasks for the number of statuses associated with the project
+        that are ordered by status.order and an array of status objects that are also ordered
+        using the `order` property.
+
         Requires 'apiToken' passed in auth header or cookies
 
         @param {HttpRequest} request - The request object.
@@ -32,9 +35,29 @@ class KanbanAPIView(APIView):
 
 
         @return: A Response object containing projects tasks grouped by status.
+
+        @response example:
+            {
+                "statuses": [
+                    {
+                        "id": ObjectId(123), "name": "Backlog", "order": 1, "color": "A13D23"
+                        "id": ObjectId(423), "name": "Todo", "order": 2, "color": "A13D42"
+                        "id": ObjectId(444), "name": "Done", "order": 3, "color": "A13D99"
+                    },
+                ],
+                "taskLists": [
+                    [taskObject, taskObject, taskObject, taskObject], # tasks that have a statusId of 123
+                    [taskObject, taskObject, taskObject, taskObject], # tasks that have a statusId of 423
+                    [taskObject, taskObject, taskObject, taskObject] # tasks that have a statusId of 444
+                ]
+            }
         
         @example Javascript:
-            fetch('quayside.app/api/v1/kanban?projectID=1234');
+
+            fetch('quayside.app/api/v1/kanban?projectID=1234') {
+
+
+            }
         """
         responseData, httpStatus = self.getKanban(request.query_params, getAuthorizationToken(request))
         return Response(responseData, status=httpStatus)
@@ -47,8 +70,9 @@ class KanbanAPIView(APIView):
         @param {HttpRequest} request - The request object.
             The request body can contain:
                 - id (objectId str) [REQUIRED]
-                - status (str)
-                - priority (int) [REQUIRED]
+                - name (str)
+                - order (int)
+                - color (str)
 
         @return: A response object with the changes made or an error message
         
@@ -57,7 +81,7 @@ class KanbanAPIView(APIView):
             fetch('quayside.app/api/v1/kanban', {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({id: '1234', status: 'Todo', priority: 4})
+                body: JSON.stringify({id: '1234', status: 'Todo', order: 4})
             })
 
         """
