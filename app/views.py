@@ -292,7 +292,7 @@ def taskView(request, projectID, taskID):
         deleteLink = f"/project/{projectID}/kanban"
         
     if request.method == "POST":
-        form = TaskForm(request.POST, status_choices=[(str(stat["id"]), stat["name"]) for stat in taskView.statusData])
+        form = TaskForm(request.POST, status_choices=[(stat["id"], stat["name"]) for stat in taskView.statusData])
 
         if form.is_valid():
             newData = form.cleaned_data
@@ -368,9 +368,9 @@ def taskView(request, projectID, taskID):
         status_choices = []
 
         for stat in taskView.statusData:
-            status_choices.append((str(stat["id"]), stat["name"]))
-            if str(taskData.get("statusId")) == str(stat["id"]):
-                initialStatus = str(stat["id"])
+            status_choices.append((stat["id"], stat["name"]))
+            if taskData.get("statusId") == stat["id"]:
+                initialStatus = stat["id"]
         
         # Populate initial form data
         if taskData is not None:

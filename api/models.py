@@ -69,12 +69,18 @@ class Project(mongo.Document):
             ]
     
     class Status(mongo.EmbeddedDocument):
-        id = mongo.ObjectIdField(default=ObjectId, unique=True)
+        id = mongo.ObjectIdField(default=ObjectId)
         name =  mongo.StringField(null=False, required=True)
         color = mongo.StringField(null=False, required=True) # html color code
         order = mongo.IntField(null=False, required=True) # task order on kanban
         
     taskStatuses = mongo.EmbeddedDocumentListField(Status, default=create_default_task_statuses(), blank=True)
+
+    def clean(self):
+        # Ensures all status within a project have unique ids
+        ids = [status.id for status in self.taskStatuses]
+        if len(ids) != len(set(ids)):
+            raise mongo.ValidationError("Duplicate taskStatus IDs found in project.")
 
 
 class Task(mongo.Document):
