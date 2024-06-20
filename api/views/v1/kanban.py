@@ -40,24 +40,24 @@ class KanbanAPIView(APIView):
             {
                 "statuses": [
                     {
-                        "id": ObjectId(123), "name": "Backlog", "order": 1, "color": "A13D23"
-                        "id": ObjectId(423), "name": "Todo", "order": 2, "color": "A13D42"
-                        "id": ObjectId(444), "name": "Done", "order": 3, "color": "A13D99"
+                        "id": 123, "name": "Backlog", "order": 1, "color": "A13D23"
+                        "id": 423, "name": "Todo", "order": 2, "color": "A13D42"
+                        "id": 444, "name": "Done", "order": 3, "color": "A13D99"
                     },
                 ],
                 "taskLists": [
-                    [taskObject, taskObject, taskObject, taskObject], # tasks that have a statusId of 123
-                    [taskObject, taskObject, taskObject, taskObject], # tasks that have a statusId of 423
-                    [taskObject, taskObject, taskObject, taskObject] # tasks that have a statusId of 444
+                    # tasks that have a statusId of 123, no statusId, a statusId of None, or statusId not in `statuses`
+                    [taskObject, taskObject, taskObject, taskObject],
+                    # tasks that have a statusId of 423
+                    [taskObject, taskObject, taskObject, taskObject],
+                    # tasks that have a statusId of 444
+                    [taskObject, taskObject, taskObject, taskObject]
                 ]
             }
         
         @example Javascript:
 
-            fetch('quayside.app/api/v1/kanban?projectID=1234') {
-
-
-            }
+            fetch('quayside.app/api/v1/kanban?projectID=1234');
         """
         responseData, httpStatus = self.getKanban(request.query_params, getAuthorizationToken(request))
         return Response(responseData, status=httpStatus)
