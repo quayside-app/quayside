@@ -86,7 +86,7 @@ class TaskForm(forms.Form):
     status = forms.ChoiceField(
         label="",
         required=False,
-        choices=(("Todo", "Todo"), ("In-Progress", "In-Progress"), ("Done", "Done")),
+        choices=[],
         widget=forms.Select(
             attrs={
                 "class": "text-base inline-block p-1 mt-4 rounded-md  bg-neutral-600 outline-none placeholder-gray-400",
@@ -140,6 +140,11 @@ class TaskForm(forms.Form):
             }
         ),
     )
+
+    def __init__(self, *args, **kwargs):
+        status_choices = kwargs.pop('status_choices', [])
+        super(TaskForm, self).__init__(*args, **kwargs)
+        self.fields['status'].choices = status_choices
 
 
 class ProjectForm(forms.Form):

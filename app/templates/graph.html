@@ -24,23 +24,27 @@
 (async function () {
   try {
     const response = await fetch('{{ apiUrl }}/tasks/?projectID={{projectID}}')
+    const status_response = await fetch('{{ apiUrl }}/statuses/?projectID={{projectID}}')
     const tasks = await response.json()
+
+    // TODO: make use of the status information to color code each task node
+    const statuses = await status_response.json()
     if (!response.ok) throw new Error(tasks.message || 'Network response was not ok')
 
     const graphElement = document.getElementById('graph')
 
     // eslint-disable-next-line no-undef
-    const trees = createTaskTrees(tasks)
+    const trees = createTaskTrees(tasks, statuses)
 
     // eslint-disable-next-line no-undef
+
+
     const treeSVG = Trees(trees, {
       label: (d, n) => d.name,
       link: (d, n) => `task/${d.id}`,
       createTaskLink: (d, n) => `create-task/${d.id}`,
       fill: (d, n) => {
-        if (d.status === 'In-Progress') return '#EFA610' // Yellow
-        else if (d.status === 'Done') return '#01796E' // Teal
-        else return '#323232'
+        return '#' + d.color
       },
       width: graphElement.offsetWidth,
       height: window.innerHeight - 180 // Full height minus padding

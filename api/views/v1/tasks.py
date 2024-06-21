@@ -167,11 +167,12 @@ class TasksAPIView(APIView):
         @return      A tuple of (response_data, http_status).
         """
         userID = decodeApiKey(authorizationToken).get("userID")
-
+        
         # Only get tasks for projects that contain the user
         projectIDs = [
             str(project.id) for project in Project.objects.filter(userIDs=userID)
         ]
+
         tasks = Task.objects.filter(**taskData, projectID__in=projectIDs)
 
         if not tasks:
@@ -180,7 +181,6 @@ class TasksAPIView(APIView):
             }, status.HTTP_400_BAD_REQUEST
 
         serializer = TaskSerializer(tasks, many=True)
-
         return serializer.data, status.HTTP_200_OK
 
     @staticmethod

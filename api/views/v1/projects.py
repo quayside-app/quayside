@@ -222,6 +222,8 @@ class ProjectsAPIView(APIView):
         @param authorizationToken      JWT authorization token.
         @return      A tuple of (response_data, http_status).
         """
+        if "_id" in projectData:
+            projectData["id"] = projectData.pop("_id")
         if "id" not in projectData:
             return "Error: Parameter 'id' required", status.HTTP_400_BAD_REQUEST
 
@@ -243,6 +245,7 @@ class ProjectsAPIView(APIView):
             serializer.save()  # Updates projects
             return serializer.data, status.HTTP_200_OK
 
+        print(serializer.errors)
         return serializer.errors, status.HTTP_400_BAD_REQUEST
 
     @staticmethod
@@ -262,9 +265,12 @@ class ProjectsAPIView(APIView):
             }, status.HTTP_400_BAD_REQUEST
 
         if isinstance(projectData, list):
-            serializer = ProjectSerializer(data=projectData, many=True)
+            for project in projectData:
+                project["taskStatuses"] = Project.create_default_task_statuses()
 
+            serializer = ProjectSerializer(data=projectData, many=True)
         else:
+            projectData["taskStatuses"] = Project.create_default_task_statuses()
             serializer = ProjectSerializer(data=projectData)
 
         if serializer.is_valid():

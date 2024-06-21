@@ -15,16 +15,31 @@
  */
 
 
-function createTaskTrees(tasks) {
+function createTaskTrees(tasks, statuses) {
     const taskMap = {};
     const roots = [];
 
-    // Step 1: Create a map of all tasks by their ID
-    tasks.forEach(task => {
-        taskMap[task.id] = { ...task, children: [] };
+    // Step 1: Assign a corresponding color to each task based off it's status id
+    tasks.forEach((task, i, theTasks) => {
+
+        statuses.every(status => {
+          // if statusId is null, sets the default color to the first status color
+          if ((theTasks[i].statusId == status.id) || (theTasks[i].statusId == null)) {
+            theTasks[i].color = status.color;
+            return false; // exit loop
+          }
+
+          return true;
+        });
+
     });
 
-    // Step 2: Build the trees by assigning children to their parents
+    // Step 2: Create a map of all tasks by their ID
+    tasks.forEach(task => {
+      taskMap[task.id] = { ...task, children: [] };
+    });
+
+    // Step 3: Build the trees by assigning children to their parents
     tasks.forEach(task => {
         if (task.parentTaskID === null) {
             // If there is no parentTaskID, this is a root node
@@ -37,9 +52,9 @@ function createTaskTrees(tasks) {
         }
     });
 
-    // Step 3: Convert each tree to the desired format (name instead of id)
+    // Step 4: Convert each tree to the desired format (name instead of id)
     const convertToNameFormat = (node) => {
-        const newNode = { name: node.name, id: node.id, status: node.status, children: [] };
+        const newNode = { name: node.name, id: node.id, color: node.color, children: [] };
         if (node.children.length) {
             newNode.children = node.children.map(convertToNameFormat);
         }

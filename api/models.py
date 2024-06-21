@@ -1,4 +1,5 @@
 import mongoengine as mongo
+from bson.objectid import ObjectId
 from datetime import datetime, timezone
 
 
@@ -48,6 +49,39 @@ class Project(mongo.Document):
         "strict": False,  # If true, throws weird error for __v
     }
 
+    def create_default_task_statuses():
+            return [
+                {
+                    "name": "Todo",
+                    "color": "323232", # html color code
+                    "order": 1 # task order on kanban
+                },
+                {
+                    "name": "In-Progress",
+                    "color": "efa610",
+                    "order": 2 # task order on kanban
+                },
+                {
+                    "name": "Done",
+                    "color": "01796e", # html color code
+                    "order": 3 # task order on kanban
+                }
+            ]
+    
+    class Status(mongo.EmbeddedDocument):
+        id = mongo.ObjectIdField(default=ObjectId)
+        name =  mongo.StringField(null=False, required=True)
+        color = mongo.StringField(null=False, required=True) # html color code
+        order = mongo.IntField(null=False, required=True) # task order on kanban
+        
+    taskStatuses = mongo.EmbeddedDocumentListField(Status, default=create_default_task_statuses(), blank=True)
+
+    def clean(self):
+        # Ensures all status within a project have unique ids
+        ids = [status.id for status in self.taskStatuses]
+        if len(ids) != len(set(ids)):
+            raise mongo.ValidationError("Duplicate taskStatus IDs found in project.")
+
 
 class Task(mongo.Document):
     projectID = mongo.ObjectIdField()
@@ -62,7 +96,8 @@ class Task(mongo.Document):
     description = mongo.StringField(null=True)
     startDate = mongo.DateField(null=True)
     endDate = mongo.DateField(null=True)
-    status = mongo.StringField(default='Todo', choices=('In-Progress', 'Todo', 'Done'))
+    # status = mongo.StringField(default='Todo', choices=('In-Progress', 'Todo', 'Done'))
+    statusId = mongo.ObjectIdField(null=True, default=None)
     priority = mongo.IntField(null=True)
     durationMinutes = mongo.IntField(null=False)
 

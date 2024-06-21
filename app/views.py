@@ -25,9 +25,18 @@ from api.views.v1.tasks import TasksAPIView
 from api.views.v1.generatedTasks import GeneratedTasksAPIView
 from api.views.v1.projects import ProjectsAPIView
 from api.views.v1.users import UsersAPIView
+from api.views.v1.statuses import StatusesAPIView
 
 from app.context_processors import global_context
 from app.forms import NewProjectForm, TaskForm, ProjectForm, TaskFeedbackForm
+
+# allow the use of static variables in a function
+def static_vars(**kwargs):
+    def decorate(func):
+        for k in kwargs:
+            setattr(func, k, kwargs[k])
+        return func
+    return decorate
 
 
 def redirectOffSite(request):
@@ -140,9 +149,6 @@ def projectKanbanView(request, projectID):
         graph.html template with the project ID context.
     """
     return render(request, "kanban.html", {"projectID": projectID, **generateTaskFeedbackForm(request)})
-
-
-
 
 @apiKeyRequired
 def editProjectView(request, projectID):
@@ -260,6 +266,7 @@ def editProjectView(request, projectID):
 
 
 @apiKeyRequired
+@static_vars(statusData=[]) # creates a static function variable that can be used anytime we access the function
 def taskView(request, projectID, taskID):
     """
     Renders the view for a specific task within a project as a form.
@@ -275,7 +282,6 @@ def taskView(request, projectID, taskID):
     @returns {HttpResponse} - An HttpResponse object that renders the taskModal.html
         template with the project ID, task ID, and task form context.
     """
-
     baseTemplate = "graph.html"
     submitLink = f"/project/{projectID}/graph/task/{taskID}/"
     exitLink = f"/project/{projectID}/graph"
@@ -287,12 +293,11 @@ def taskView(request, projectID, taskID):
         deleteLink = f"/project/{projectID}/kanban"
         
     if request.method == "POST":
+        form = TaskForm(request.POST, status_choices=[(stat["id"], stat["name"]) for stat in taskView.statusData])
 
-        form = TaskForm(request.POST)
-        
         if form.is_valid():
-        
             newData = form.cleaned_data
+            newData['statusId'] = newData.pop('status')
 
             durationMinutes = 0
             # Allow week, day, hour, minute BUT converts to hour/minute
@@ -319,6 +324,7 @@ def taskView(request, projectID, taskID):
                 
             newData["durationMinutes"] = durationMinutes
             newData["id"] = taskID
+
             message, status_code = TasksAPIView.updateTask(
                 newData, getAuthorizationToken(request)
             )
@@ -327,6 +333,8 @@ def taskView(request, projectID, taskID):
                 print(f"Task update failed: {message}")
                 return HttpResponseServerError(f"An error occurred: {message}")
             return redirect(exitLink)
+        
+        print(form.errors)
 
     # If a GET (or any other method) we'll create a blank form
     else:
@@ -336,13 +344,19 @@ def taskView(request, projectID, taskID):
         if status_code != status.HTTP_200_OK:
             print(f"Task fetch failed: {data.get('message')}")
             return HttpResponseServerError(f"An error occurred: {data.get('message')}")
+        
+        taskView.statusData, status_code = StatusesAPIView.getStatuses(
+            {"projectID": projectID}, getAuthorizationToken(request)
+        )
+
+        if status_code != status.HTTP_200_OK:
+            print(f"Task fetch failed: {data.get('message')}")
+            return HttpResponseServerError(f"An error occurred: {data.get('message')}")
 
         taskData = data[0]
         
         durationString = ""
         durationMinutes = taskData.get("durationMinutes") or 0
-        
-        
 
         workHours = int(durationMinutes / 60)
         minutes = durationMinutes % 60
@@ -350,20 +364,31 @@ def taskView(request, projectID, taskID):
         if workHours != 0: durationString += str(workHours) + "h "
         if (minutes != 0) or (durationMinutes == 0): durationString += str(minutes) + "m"
         durationString = durationString.strip()
+
+        initialStatus = taskView.statusData[0]["name"]
+        status_choices = []
+
+        for stat in taskView.statusData:
+            status_choices.append((stat["id"], stat["name"]))
+            if taskData.get("statusId") == stat["id"]:
+                initialStatus = stat["id"]
         
         # Populate initial form data
         if taskData is not None:
             initialData = {
                 "name": taskData.get("name", ""),
                 "description": taskData.get("description", ""),
-                "status": taskData.get("status", ""),
+                "status": initialStatus,
                 "startDate": taskData.get("startDate", ""),
                 "endDate": taskData.get("endDate", ""),
                 "duration": durationString
             }
-            form = TaskForm(initial=initialData)
+            
+            form = TaskForm(initial=initialData, status_choices=status_choices)
+
         else:
             form = TaskForm()
+
     return render(
         request,
         "taskModal.html",

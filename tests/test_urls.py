@@ -37,6 +37,12 @@ class TestAPIUrls(SimpleTestCase):
         resolver = resolve(url)
         self.assertEqual(resolver.func.view_class, api_views.kanban.KanbanAPIView)
 
+    def test_statuses_url(self):
+        url = reverse("v1-status-list")
+        self.assertEqual(url, "/api/v1/statuses/")
+        resolver = resolve(url)
+        self.assertEqual(resolver.func.view_class, api_views.statuses.StatusesAPIView)
+
     # ADD API URL TESTS HERE...
 
 
