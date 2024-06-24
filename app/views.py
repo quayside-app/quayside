@@ -301,11 +301,18 @@ def taskView(request, projectID, taskID):
         {"id": projectID}, getAuthorizationToken(request)
     )
     if statusCode != status.HTTP_200_OK:
-        print(f"Task fetch failed: {data.get('message')}")
+        print(f"Project fetch failed: {data.get('message')}")
         return HttpResponseServerError(f"An error occurred: {data.get('message')}")
     projectData = data[0]
-    assigneeChoices = [(str(contributor), str(contributor)) for i, contributor in enumerate(projectData.get("userIDs", []))]
 
+    userData, statusCode = UsersAPIView.getUsers(
+        [{"id": id} for id in projectData.get("userIDs")], getAuthorizationToken(request))
+    if statusCode != status.HTTP_200_OK:
+        print(f"Users fetch failed: {data.get('message')}")
+        return HttpResponseServerError(f"An error occurred: {data.get('message')}")
+
+    
+    assigneeChoices = [(data.get('id'), data.get('username')) for data in userData]
 
     if request.method == "POST":
         form = TaskForm(request.POST, status_choices=[(stat["id"], stat["name"]) for stat in taskView.statusData])
