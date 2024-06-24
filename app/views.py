@@ -282,6 +282,10 @@ def taskView(request, projectID, taskID):
     @returns {HttpResponse} - An HttpResponse object that renders the taskModal.html
         template with the project ID, task ID, and task form context.
     """
+
+    if request.method != "POST" and request.method != "GET":
+        return
+
     baseTemplate = "graph.html"
     submitLink = f"/project/{projectID}/graph/task/{taskID}/"
     exitLink = f"/project/{projectID}/graph"
@@ -291,13 +295,26 @@ def taskView(request, projectID, taskID):
         submitLink = f"/project/{projectID}/kanban/task/{taskID}/"
         exitLink = f"/project/{projectID}/kanban"
         deleteLink = f"/project/{projectID}/kanban"
-        
+    
+    # Needed for both post + get
+    data, statusCode = ProjectsAPIView.getProjects(
+        {"id": projectID}, getAuthorizationToken(request)
+    )
+    if statusCode != status.HTTP_200_OK:
+        print(f"Task fetch failed: {data.get('message')}")
+        return HttpResponseServerError(f"An error occurred: {data.get('message')}")
+    projectData = data[0]
+    assigneeChoices = [(str(contributor), str(contributor)) for i, contributor in enumerate(projectData.get("userIDs", []))]
+
+
     if request.method == "POST":
         form = TaskForm(request.POST, status_choices=[(stat["id"], stat["name"]) for stat in taskView.statusData])
+        form.fields['assignees'].choices = assigneeChoices
 
         if form.is_valid():
             newData = form.cleaned_data
             newData['statusId'] = newData.pop('status')
+            newData["contributorIDs"] = newData.pop('assignees')
 
             durationMinutes = 0
             # Allow week, day, hour, minute BUT converts to hour/minute
@@ -324,6 +341,7 @@ def taskView(request, projectID, taskID):
                 
             newData["durationMinutes"] = durationMinutes
             newData["id"] = taskID
+            
 
             message, status_code = TasksAPIView.updateTask(
                 newData, getAuthorizationToken(request)
@@ -336,20 +354,20 @@ def taskView(request, projectID, taskID):
         
         print(form.errors)
 
-    # If a GET (or any other method) we'll create a blank form
+    # If a GET (or any other method) we'll create a form
     else:
-        data, status_code = TasksAPIView.getTasks(
+        data, statusCode = TasksAPIView.getTasks(
             {"id": taskID}, getAuthorizationToken(request)
         )
-        if status_code != status.HTTP_200_OK:
+        if statusCode != status.HTTP_200_OK:
             print(f"Task fetch failed: {data.get('message')}")
             return HttpResponseServerError(f"An error occurred: {data.get('message')}")
         
-        taskView.statusData, status_code = StatusesAPIView.getStatuses(
+        
+        taskView.statusData, statusCode = StatusesAPIView.getStatuses(
             {"projectID": projectID}, getAuthorizationToken(request)
         )
-
-        if status_code != status.HTTP_200_OK:
+        if statusCode != status.HTTP_200_OK:
             print(f"Task fetch failed: {data.get('message')}")
             return HttpResponseServerError(f"An error occurred: {data.get('message')}")
 
@@ -381,13 +399,15 @@ def taskView(request, projectID, taskID):
                 "status": initialStatus,
                 "startDate": taskData.get("startDate", ""),
                 "endDate": taskData.get("endDate", ""),
-                "duration": durationString
+                "duration": durationString,
+                "assignees": taskData.get("contributorIDs", "")
             }
             
             form = TaskForm(initial=initialData, status_choices=status_choices)
 
         else:
             form = TaskForm()
+        form.fields['assignees'].choices = assigneeChoices
 
     return render(
         request,
