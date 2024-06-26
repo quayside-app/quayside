@@ -624,14 +624,6 @@ video {
   top: 5rem;
 }
 
-.bottom-0 {
-  bottom: 0px;
-}
-
-.top-32 {
-  top: 8rem;
-}
-
 .z-0 {
   z-index: 0;
 }
@@ -821,8 +813,8 @@ video {
   height: 18rem;
 }
 
-.h-\[75dvh\] {
-  height: 75dvh;
+.h-\[70dvh\] {
+  height: 70dvh;
 }
 
 .h-\[93dvh\] {
@@ -842,49 +834,12 @@ video {
   height: 100vh;
 }
 
-.h-min {
-  height: -moz-min-content;
-  height: min-content;
-}
-
-.h-\[70dvh\] {
-  height: 70dvh;
-}
-
-.h-\[78dvh\] {
-  height: 78dvh;
-}
-
 .max-h-\[60dvh\] {
   max-height: 60dvh;
 }
 
-.max-h-\[calc\(100vh-23px\)\] {
-  max-height: calc(100vh - 23px);
-}
-
-.max-h-\[calc\(100vh-74px\)\] {
-  max-height: calc(100vh - 74px);
-}
-
-.max-h-\[calc\(100vh-90px\)\] {
-  max-height: calc(100vh - 90px);
-}
-
-.max-h-full {
-  max-height: 100%;
-}
-
 .min-h-screen {
   min-height: 100vh;
-}
-
-.min-h-\[calc\(100vh-63px\)\] {
-  min-height: calc(100vh - 63px);
-}
-
-.w-1\/3 {
-  width: 33.333333%;
 }
 
 .w-1\/6 {
@@ -931,6 +886,10 @@ video {
   width: 20rem;
 }
 
+.w-\[75dvw\] {
+  width: 75dvw;
+}
+
 .w-full {
   width: 100%;
 }
@@ -944,36 +903,56 @@ video {
   width: 100vw;
 }
 
-.w-4\/5 {
-  width: 80%;
+.w-48 {
+  width: 12rem;
 }
 
-.w-1\/2 {
-  width: 50%;
+.min-w-48 {
+  min-width: 12rem;
 }
 
-.w-2\/3 {
-  width: 66.666667%;
+.min-w-24 {
+  min-width: 6rem;
 }
 
-.w-\[65dvw\] {
-  width: 65dvw;
-}
-
-.w-\[70dvw\] {
-  width: 70dvw;
-}
-
-.w-\[75dvw\] {
-  width: 75dvw;
-}
-
-.w-\[80dvw\] {
-  width: 80dvw;
+.min-w-32 {
+  min-width: 8rem;
 }
 
 .max-w-sm {
   max-width: 24rem;
+}
+
+.max-w-72 {
+  max-width: 18rem;
+}
+
+.max-w-56 {
+  max-width: 14rem;
+}
+
+.max-w-64 {
+  max-width: 16rem;
+}
+
+.max-w-96 {
+  max-width: 24rem;
+}
+
+.max-w-8 {
+  max-width: 2rem;
+}
+
+.max-w-80 {
+  max-width: 20rem;
+}
+
+.flex-1 {
+  flex: 1 1 0%;
+}
+
+.flex-none {
+  flex: none;
 }
 
 .-rotate-90 {
@@ -1040,10 +1019,6 @@ video {
   overflow: hidden;
 }
 
-.overflow-visible {
-  overflow: visible;
-}
-
 .overflow-scroll {
   overflow: scroll;
 }
@@ -1054,14 +1029,6 @@ video {
 
 .overflow-y-auto {
   overflow-y: auto;
-}
-
-.overflow-x-visible {
-  overflow-x: visible;
-}
-
-.overflow-x-scroll {
-  overflow-x: scroll;
 }
 
 .overflow-y-scroll {
@@ -1076,6 +1043,10 @@ video {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.text-wrap {
+  text-wrap: wrap;
 }
 
 .rounded-2xl {
@@ -1313,10 +1284,6 @@ video {
 
 .pt-10 {
   padding-top: 2.5rem;
-}
-
-.pt-14 {
-  padding-top: 3.5rem;
 }
 
 .pt-2 {
