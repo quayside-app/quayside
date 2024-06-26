@@ -172,6 +172,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Get all the checked checkboxes sent (from view) w/ name assignee
     const checkbox_inputs = document.getElementById('assigneeModal').querySelectorAll('input[name="assignees"]'); 
+
+    // Update assignee list whenever checkboxes are changed
     checkbox_inputs.forEach(input => {
         input.addEventListener('change', updateAssignees);
     });
