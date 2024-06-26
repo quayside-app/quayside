@@ -2,10 +2,10 @@
 {% load static %}
 {% load tz %}
 
-<div id='duckDiv' class="hidden absolute bottom-40 right-5  bounce z-50">
+<div id='duckDiv' class="hidden fixed bottom-0 right-5  bounce z-50">
     <img id="duckImage" class="w-24 cursor-pointer" src="{% static 'app/images/duck.png' %}">
 </div>
-<div id="taskFeedBackFormDiv" class="hidden absolute bottom-52 right-36  z-50 p-4 rounded-t-[40px] rounded-bl-[40px] text-center text-white  bg-neutral-800  shadow-lg shadow-black w-80">
+<div id="taskFeedBackFormDiv" class="hidden fixed bottom-12 right-36  z-50 p-4 rounded-t-[40px] rounded-bl-[40px] text-center text-white  bg-neutral-800  shadow-lg shadow-black w-80">
 <!--absolute bottom-40 right-5-->
     <form action="/project/{{ projectID }}/graph/give-feedback" method="post" id="taskFeedbackForm">
         {% csrf_token %} <!-- Required by Django to prevent Cross Site Scripting -->
@@ -41,13 +41,13 @@
     // wait until the whole doc is loaded... all of it
     let duckSpeed = 1000;
     document.addEventListener('DOMContentLoaded', function() {
-        // ONLY SHOW DUCK 10% of the time
+        // ONLY SHOW DUCK 1% of the time
         const MIN = 1
         const MAX = 100
         // Generates random between 0 and 100
         randomValue = Math.floor(Math.random() * (MAX - MIN + 1)) + MIN; 
         console.log("RANDOM", randomValue)
-        if (randomValue > 10) return // Don't continue to show duck
+        if (randomValue > 1) return // Don't continue to show duck
 
         // Show duck + Modal
         let feedbackDiv = document.getElementById('taskFeedBackFormDiv');
