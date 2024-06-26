@@ -11,11 +11,11 @@
 {% block taskContent %}{% endblock %}
 {% block editProjectContent %}{% endblock %}
 
-<div class = 'text-white h-screen'>
+<div class = 'text-white'>
 
-  <div id="kanbanBoards" class='flex justify-center min-h-screen'>
+  <div id="kanbanBoards" class='justify-center'>
 
-    <div id="columns" class="flex  mx-4  w-full  h-full text-xs sm:text-xl"></div>
+    <div id="columns" class="flex overflow-x-auto  mx-4 w-[75dvw] text-xs sm:text-xl"></div>
 
   </div>
   
@@ -38,9 +38,7 @@
       kanbanTasks["statuses"].forEach(function (stat) {
         const columnElement = document.createElement('div');
 
-        // TODO: figure out why the background color doesn't properly apply to element
-        // when assigning it via a variable vs manually setting it
-        columnElement.className = "w-1/3 m-2 p-2 rounded-xl";
+        columnElement.className = "m-2 p-2 rounded-xl";
         // you can't directly edit a class element to dynamically change the background color
         columnElement.style.backgroundColor = '#'+stat["color"]
 
@@ -50,7 +48,7 @@
 
         const taskDropZone = document.createElement('div');
         taskDropZone.id = stat["name"];
-        taskDropZone.className = "overflow-y-auto  h-[75dvh]";
+        taskDropZone.className = "overflow-y-auto h-[70dvh]";
         taskDropZone.setAttribute('ondrop', 'drop(event, this)');
         taskDropZone.setAttribute('ondragover', 'allowDrop(event, this)');
         taskDropZone.setAttribute('statusId', stat["id"]);
@@ -61,6 +59,7 @@
           listLink.statusId = task.statusId;
           listLink.textContent = task.name;
           listLink.draggable = 'true';
+          listLink.href = `task/${listLink.id}`;
           listLink.setAttribute('ondragstart', 'drag(event)');
           listLink.className = 'block rounded-lg my-2 p-1 hover:bg-neutral-500 bg-neutral-600 ';
           listLink.setAttribute('priority', task.priority);

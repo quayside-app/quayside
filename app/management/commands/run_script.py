@@ -11,7 +11,7 @@ def run_script():
 
     connection_string = f"mongodb+srv://{username}:{password}@{hostname}/{database}?retryWrites=true&w=majority"
     client = MongoClient(connection_string)
-    db = client['quayside']
+    db = client[database]
 
     # update examples
     # tasks = db.Task.find({"status": {"$exists": False}})
