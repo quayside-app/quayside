@@ -116,6 +116,13 @@ class TaskForm(forms.Form):
         ),
     )
 
+    assignees = forms.MultipleChoiceField(
+        choices=[],
+        required=False,
+        label="Select Assignees",
+        widget=forms.CheckboxSelectMultiple()  
+    )
+
     description = forms.CharField(
         label="",
         required=False,

@@ -3,6 +3,13 @@
 
 {% block taskContent %}
 
+<style>
+    /* Format "+"" svg */
+    #assigneeButton svg {
+        width: 15px;
+        height: 15px;
+    }
+</style>
 <div class="absolute bg-black w-full h-full px-3 sm:px-0 bg-opacity-75  text-white svgSizing">
     <div class=" relative z-40 w-full  sm:mx-auto sm:w-96 md:[w-45rem] lg:w-[50rem] bg-neutral-800  px-2 sm:mt-8 sm:px-5 pt-10 sm:py-5 rounded-lg sm:text-xl">
 
@@ -25,6 +32,22 @@
                     <span class="mr-2">Estimated Duration: </span>
                     {{ form.duration }}
                 </div>
+                <div class="flex mt-2 relative" >
+                    <div class="mr-2">Assignees:</div>
+                    <div id="assigneeList" class="flex">
+                        <!-- Dynamically filled by JavaScript updateAssignees()-->
+                    </div>
+                    <div class="relative">
+                        <button id="assigneeButton" onclick="toggleAssigneeModal()" type="button" class=" relative  rounded-full p-1.5  bg-neutral-600 hover:bg-gray-500">
+                            {% include "components/svg/plus.svg"%} 
+                        </button>
+
+                    </div>
+                    <div id="assigneeModal" class="hidden absolute w-max top-10 left-0 p-2 text-left bg-neutral-800 shadow-lg shadow-black rounded-lg">
+                        {{form.assignees}}
+                    </div>
+                </div>
+
 
 
                 {{ form.description }}
@@ -72,6 +95,8 @@
     /*
     * Confirms delete and deletes task when button is clicked.
     */
+
+    
     
     document.getElementById('deleteTaskButton').addEventListener('click', async function () {
       document.getElementById('confirmDeleteTaskModal').classList.toggle('hidden')
@@ -124,7 +149,68 @@
         }
     })
 
-    </script>
+/*
+* Opens/Closes User Modal
+*/
+function toggleAssigneeModal() {
+    document.getElementById('assigneeModal').classList.toggle('hidden');
+}
+
+// Close modal when clicking outside of the modal content
+document.addEventListener('click', function (event) {
+    const modal = document.getElementById('assigneeModal');
+    const assigneeButton = document.getElementById('assigneeButton')
+    
+    if (!modal.classList.contains('hidden') && !modal.contains(event.target) && !assigneeButton.contains(event.target) ) {
+        toggleAssigneeModal();
+    }
+});
+
+
+
+document.addEventListener('DOMContentLoaded', function() {
+
+    // Get all the checked checkboxes sent (from view) w/ name assignee
+    const checkbox_inputs = document.getElementById('assigneeModal').querySelectorAll('input[name="assignees"]'); 
+
+    // Update assignee list whenever checkboxes are changed
+    checkbox_inputs.forEach(input => {
+        input.addEventListener('change', updateAssignees);
+    });
+
+    updateAssignees()
+})
+
+function updateAssignees() {
+    /*
+    Populates all assignees that are checked in modal.
+    Django sends checkbox html (form.assignees) in this format:
+        <label for="id_assignees_1"><input type="checkbox" name="assignees" value="6566645638c994031861ccac" id="id_assignees_1">kaiverson</label>
+    */
+    const container = document.getElementById('assigneeModal');
+
+    // Get all the checked checkboxes sent (from view) w/ name assignee
+    const checkbox_inputs = container.querySelectorAll('input[name="assignees"]:checked'); 
+
+    const assigneeList = document.getElementById('assigneeList');
+    assigneeList.innerHTML = '';
+    checkbox_inputs.forEach(function(input) {
+        const checkbox_label = input.parentNode; 
+        if (checkbox_label) {
+            const assignee = checkbox_label.innerText.trim()
+            const div = document.createElement('div');
+            div.className = 'px-2 py-1 rounded-full bg-neutral-600 text-sm mr-2';
+            div.textContent = assignee;
+            assigneeList.appendChild(div);
+            }
+    });
+    // if (assigneeList.children.length === 0) {
+    //     assigneeList.innerHTML = '<div class="px-2 py-1 rounded-full bg-neutral-600 text-sm mr-2">No assignees</div>';
+    // }
+
+}
+
+</script>
 {% endif %}
 
 {% endblock %}
