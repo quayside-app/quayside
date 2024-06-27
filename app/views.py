@@ -305,7 +305,7 @@ def taskView(request, projectID, taskID):
         return HttpResponseServerError(f"An error occurred: {data.get('message')}")
     projectData = data[0]
 
-    userData, statusCode = UsersAPIView.getUsers(
+    userDataList, statusCode = UsersAPIView.getUsers(
         [{"id": id} for id in projectData.get("userIDs")], getAuthorizationToken(request))
     if statusCode != status.HTTP_200_OK:
         print(f"Users fetch failed: {data.get('message')}")
