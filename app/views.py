@@ -312,7 +312,7 @@ def taskView(request, projectID, taskID):
         return HttpResponseServerError(f"An error occurred: {data.get('message')}")
 
     
-    assigneeChoices = [(data.get('id'), data.get('username')) for data in userData]
+    assigneeChoices = [(userData.get('id'), userData.get('username')) for userData in userDataList]
 
     if request.method == "POST":
         form = TaskForm(request.POST, status_choices=[(stat["id"], stat["name"]) for stat in taskView.statusData])
