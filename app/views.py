@@ -361,7 +361,7 @@ def taskView(request, projectID, taskID):
         
         print(form.errors)
 
-    # If a GET (or any other method) we'll create a form
+    # If request method is GET we'll create a form
     else:
         data, statusCode = TasksAPIView.getTasks(
             {"id": taskID}, getAuthorizationToken(request)
