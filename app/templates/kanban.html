@@ -24,6 +24,7 @@
 
 
 <script>
+
   (async function () {
     try {
       const response = await fetch('{{ apiUrl }}/kanban/?projectID={{projectID}}');
@@ -57,10 +58,16 @@
 
         const taskDropZone = document.createElement('div');
         taskDropZone.id = stat["name"];
-        taskDropZone.className = " overflow-y-auto h-[70dvh]";
         taskDropZone.setAttribute('ondrop', 'drop(event, this)');
         taskDropZone.setAttribute('ondragover', 'allowDrop(event, this)');
         taskDropZone.setAttribute('statusId', stat["id"]);
+
+        // Set height of dropzone
+        taskDropZone.className = " overflow-y-auto ";
+        remainingHeight = window.innerHeight - document.getElementById('navbar').offsetHeight 
+                          - document.getElementById('projectBar').offsetHeight 
+                          - 140;  // Extra subtracted for margins
+        taskDropZone.style.height = `${remainingHeight}px`;  
 
         kanbanTasks["taskLists"][orderNumber].forEach(function (task) {
           const listLink = document.createElement('a');
