@@ -37,9 +37,9 @@
       }
   }
 </style>
-<div class=" text-white relative">
+<div class=" text-white w-full ">
 
-  <div class="flex justify-between bg-neutral-800 rounded-lg py-2 px-4 m-3 sm:m-6">
+  <div id="projectBar" class=" flex justify-between bg-neutral-800 rounded-lg py-2 px-4 m-3 sm:m-6">
     <div class="flex justify-between">
       <div id="projectName" class="my-auto sm:text-2xl"></div>
       <a id ='formatButton' href= "#" class=" my-auto rounded-full ml-4 px-2 py-1 bg-neutral-600 hover:bg-gray-500 ">
@@ -74,11 +74,11 @@
 
   </div>
 
-  <div id="confirmDeleteModal" class="hidden absolute top-20 right-6 z-50 py-6 text-white text-center bg-neutral-800 rounded-lg w-64">
+  <div id="confirmDeleteModal" class="z-20 hidden absolute top-20 right-6  py-6 text-white text-center bg-neutral-800 rounded-lg w-64">
     <b>Are you sure?</b>
     <br>
     This cannot be undone.
-
+  
     <div class="flex justify-center pt-4">
       <button id="cancelDeleteButton" class="mr-2 px-2 py-1 inline-block rounded-md bg-neutral-600 hover:bg-gray-500">
         No, cancel.
@@ -91,10 +91,11 @@
 
   </div>
 
-  
+
   {% include "duckFeedBackModal.html" %}
 
-  <div>
+
+  <div class="w-full">
     {% block projectContent %}{% endblock %}
   </div>
 

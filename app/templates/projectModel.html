@@ -4,8 +4,8 @@
 {% block editProjectContent %}
 
 
-<div class="absolute bg-black w-full h-full px-3 sm:px-0 bg-opacity-75 text-white">
-    <div class="w-full sm:w-96 md:[w-45rem] lg:w-[50rem] bg-neutral-800 mx-auto sm:mt-8 px-5 py-5 rounded-lg sm:text-xl  z-40">
+<div class="absolute  bg-gradient-to-b from-transparent  to-10% to-black/50 w-full h-full px-3 sm:px-0 text-white">
+    <div class="w-full sm:w-96 md:[w-45rem] lg:w-[50rem] bg-neutral-800 mx-auto sm:mt-8 px-5 py-5 rounded-lg sm:text-xl  ">
 
         <form action="{{submitLink}}" method="post">
             {% csrf_token %}
