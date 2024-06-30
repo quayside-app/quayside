@@ -648,6 +648,10 @@ video {
   z-index: 50;
 }
 
+.z-20 {
+  z-index: 20;
+}
+
 .m-2 {
   margin: 0.5rem;
 }
@@ -1492,6 +1496,10 @@ video {
   .sm\:rotate-180 {
     --tw-rotate: 180deg;
     transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+  }
+
+  .sm\:p-5 {
+    padding: 1.25rem;
   }
 
   .sm\:px-0 {
