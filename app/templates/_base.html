@@ -20,7 +20,7 @@
     <body class >
         <div class="w-full h-screen overflow-hidden" style="background-image: url('{% static 'app/images/background-wave.png' %}'); background-position:center center; background-size:cover;">
         <!-- <div class="w-full h-screen overflow-hidden bg-gradient-to-r from-sky-900 to-slate-500" > -->
-            <div class="w-full h-14 z-40" id="navbar">
+            <div class="w-full h-14 " id="navbar">
                 {% include "navbar.html" %}
             </div>
             
@@ -32,7 +32,7 @@
                 {%endif%}
 
                 <div class="w-full">
-                    <div class="w-full" >
+                    <div class="w-full z-30" >
                         {% block content %}
                         {% endblock content %}
                     </div>
