@@ -13,10 +13,11 @@
 
 <div class = 'text-white'>
 
-  <div id="kanbanBoards" class='justify-center w-full'>
+  <div id="kanbanBoards" class='justify-center'>
 
-    <div id="columns" class="flex overflow-hidden overflow-x-auto  px-4 w-full text-xs sm:text-xl"></div>
-
+    <div id="columns" class=" m-6 text-xs sm:text-xl break-words">
+      <!-- Column styles + data added in js -->
+    </div> 
   </div>
   
 </div> 
@@ -32,23 +33,31 @@
 
       // create kanban category columns
       columns = document.getElementById('columns');
+      
+      // Set grid layout (Tailwind flex/grid is acting funky)
+      const numCols = kanbanTasks["statuses"].length;
+      columns.style.display = 'grid';
+      columns.style.gridTemplateColumns = `repeat(${numCols}, minmax(0, 1fr))`;
+      columns.style.columnGap = '1rem'; // Set the column gap in pixels
 
+      
+      // columns.className += `grid-cols-${numberCols}` // Add columns to grid
       var orderNumber = 0;
       
       kanbanTasks["statuses"].forEach(function (stat) {
         const columnElement = document.createElement('div');
 
-        columnElement.className = "m-2 p-2 rounded-xl  min-w-48 max-w-80 flex-none ";
+        columnElement.className = " p-2 rounded-xl ";
         // you can't directly edit a class element to dynamically change the background color
         columnElement.style.backgroundColor = '#'+stat["color"]
 
         const titleElement = document.createElement('div');
-        titleElement.className = "font-bold text-md sm:text-2xl py-2 text-wrap";
+        titleElement.className = "break-words font-bold text-md sm:text-2xl py-2 ";
         titleElement.innerText = stat["name"];
 
         const taskDropZone = document.createElement('div');
         taskDropZone.id = stat["name"];
-        taskDropZone.className = "overflow-y-auto h-[70dvh] ";
+        taskDropZone.className = " overflow-y-auto h-[70dvh]";
         taskDropZone.setAttribute('ondrop', 'drop(event, this)');
         taskDropZone.setAttribute('ondragover', 'allowDrop(event, this)');
         taskDropZone.setAttribute('statusId', stat["id"]);
@@ -57,12 +66,17 @@
           const listLink = document.createElement('a');
           listLink.id = task.id;
           listLink.statusId = task.statusId;
-          listLink.textContent = task.name;
+          
           listLink.draggable = 'true';
           listLink.href = `task/${listLink.id}`;
           listLink.setAttribute('ondragstart', 'drag(event)');
-          listLink.className = 'block rounded-lg my-2 p-1 hover:bg-neutral-500 bg-neutral-600 text-wrap';
-          listLink.setAttribute('priority', task.priority);
+          listLink.className = '';
+
+          const classContent = document.createElement('p');
+          classContent.className = 'break-words rounded-lg my-2 p-1 hover:bg-neutral-500 bg-neutral-600 ';
+          classContent.textContent = task.name;
+          
+          listLink.appendChild(classContent);
           taskDropZone.appendChild(listLink);
 
         });

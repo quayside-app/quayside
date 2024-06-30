@@ -23,15 +23,16 @@
             <div class="w-full h-14 z-40">
                 {% include "navbar.html" %}
             </div>
-            {%if userID %}
+            
             <div class="flex h-screen">
+                {%if userID %}
                 <div class="z-40">
                     {% include 'sidebar.html' %}
                 </div>
-            {%endif%}
+                {%endif%}
 
                 <div class="w-full">
-                    <div class="" >
+                    <div class="w-full" >
                         {% block content %}
                         {% endblock content %}
                     </div>
