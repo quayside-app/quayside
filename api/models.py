@@ -58,12 +58,12 @@ class Project(mongo.Document):
                 },
                 {
                     "name": "In-Progress",
-                    "color": "efa610",
+                    "color": "EFA610",
                     "order": 2 # task order on kanban
                 },
                 {
                     "name": "Done",
-                    "color": "01796e", # html color code
+                    "color": "01796E", # html color code
                     "order": 3 # task order on kanban
                 }
             ]
