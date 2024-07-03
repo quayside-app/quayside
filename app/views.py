@@ -267,7 +267,7 @@ def editProjectView(request, projectID):
 
 @apiKeyRequired
 @static_vars(statusData=[]) # creates a static function variable that can be used anytime we access the function
-def taskView(request, projectID, taskID=None, parentTaskID=None):
+def taskView(request, projectID:str, viewType:str, taskID:str=None, parentTaskID:str=None):
     """
     Renders the view for a specific task within a project as a form.
     If the request method is GET or any other method, a form populated with the task's existing
@@ -277,7 +277,9 @@ def taskView(request, projectID, taskID=None, parentTaskID=None):
 
     @param {HttpRequest} request - The request object, which can be GET or POST.
     @param {str} projectID - The ID for the project to which the task belongs.
-    @param {str} taskID - The ID for the task to be viewed or edited.
+    @param {str} viewType - 'graph' or 'kanban'
+    @param {str} taskID - The ID for the task to be viewed or edited. Optional if creating.
+    @param {str} taskID - The parent ID for the task if being created. Optional.
 
     @returns {HttpResponse} - An HttpResponse object that renders the taskModal.html
         template with the project ID, task ID, and task form context.
@@ -286,21 +288,10 @@ def taskView(request, projectID, taskID=None, parentTaskID=None):
     if request.method != "POST" and request.method != "GET":
         return
 
-    # TODO MAKE THIS MORE CLEAN
-    baseTemplate = "graph.html"
-    exitLink = f"/project/{projectID}/graph"
-    deleteLink = f"/project/{projectID}/graph"
-    if parentTaskID: submitLink = f"/project/{projectID}/graph/create-task/{parentTaskID}/"
-    elif taskID: submitLink = f"/project/{projectID}/graph/task/{taskID}/"
-    else: submitLink = f"/project/{projectID}/graph/create-task/"
-    if "kanban" in request.path:
-        baseTemplate = "kanban.html"
-        exitLink = f"/project/{projectID}/kanban"
-        deleteLink = f"/project/{projectID}/kanban"
+    baseTemplate = f"{viewType}.html"
+    exitLink = f"/project/{projectID}/{viewType}"
+    deleteLink = f"/project/{projectID}/{viewType}"
 
-        if parentTaskID: submitLink = f"/project/{projectID}/kanban/create-task/{parentTaskID}/"
-        elif taskID: submitLink = f"/project/{projectID}/kanban/task/{taskID}/"
-        else: submitLink = f"/project/{projectID}/kanban/create-task/"
 
     if not taskID:
         deleteLink = None
@@ -444,7 +435,6 @@ def taskView(request, projectID, taskID=None, parentTaskID=None):
             "projectID": projectID,
             "taskID": taskID,
             "baseTemplate": baseTemplate,
-            "submitLink": submitLink,
             "exitLink": exitLink,
             "deleteLink": deleteLink,
             **generateTaskFeedbackForm(request)
