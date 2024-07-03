@@ -130,7 +130,7 @@ class TaskForm(forms.Form):
             attrs={
                 "placeholder": "Description...",
                 "type": "text",
-                "class": "w-full block p-2 mt-4 rounded-md  bg-neutral-600 outline-none placeholder-gray-400",
+                # Styled in htm
             }
         ),
     )
