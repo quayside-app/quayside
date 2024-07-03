@@ -2,9 +2,106 @@
 {% load static %}
 
 {% block content %}
+<head>
+  <style>
+  .modal {
+    display: none;
+    position: fixed;
+    z-index: 10000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .modal-content {
+    background-color: #888;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 100%;
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+    position: relative;
+    color: yellow;
+    text-align: center;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  }
+  .close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+  }
+  .modal-content a {
+        text-decoration: underline;
+  }
+  .close:hover,
+  .close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  </style>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var isAuthenticated = {{ userID|yesno:"true,false" }};
+        console.log('Page has fully loaded.');
+
+        if (isAuthenticated) {
+            console.log('User is authenticated, checking T&C status...');
+            fetch('{% url "tc_acceptance_status" %}', { credentials: 'include' })
+                .then(response => {
+                    console.log('Received response status:', response.status);
+                    if (!response.ok) {
+                        console.error('Error fetching T&C status:', response.status);
+                        return { user_tc_accepted: false }; // Assume signed to prevent modal display
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (!data.user_tc_accepted) {
+                        console.log('User has not signed T&Cs. Showing T&C modal...');
+                        document.getElementById('tc-modal').style.display = 'block';
+                    } else {
+                        console.log('User has already signed T&Cs.');
+                    }
+                })
+                .catch(error => console.error('Error fetching T&C status:', error));
+        } else {
+            console.log('User is not authenticated.');
+        }
+    });
+
+    function closeModal() {
+        document.getElementById('tc-modal').style.display = 'none';
+    }
+    function handleCheckboxChange() {
+        if (document.getElementById('tc-checkbox').checked) {
+            closeModal();
+            console.log('User has agreed to T&Cs');
+        }
+    }
+  </script>
+</head>
+
+<body>
+     <!-- Terms and Conditions Modal -->
+     <div id="tc-modal" class="modal">
+      <div class="modal-content">
+          <p> Hi, Thank you for using quayside.app! Before continuing, please check the box below.</p>
+          <a href="https://docs.google.com/document/d/e/2PACX-1vS_AZ56Mz054knbd6RXln39T9A3Hgq1AyI8T_lGb96b_-pk9wLkL-Qcv5NUEO8zWuzGJl5hSNcKpROi/pub" target="_blank" class="btn">Link to Terms & Conditions</a> 
+      <div> 
+          <input type="checkbox" id="tc-checkbox" onclick="handleCheckboxChange()"> I agree to the Terms & Conditions
+      </div>
+  </div>
+</body>
 
 <div class='fixed left-0 pt-80  text-white  w-screen text-center z-0 '>
-
 
   <div class='  text-4xl md:text-7xl font-bold '>
     quayside.app
