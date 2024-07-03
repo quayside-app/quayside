@@ -90,14 +90,12 @@
 
 </div>
 {% if deleteLink %}
-
 <script>
     /*
     * Confirms delete and deletes task when button is clicked.
     */
 
-    
-    
+
     document.getElementById('deleteTaskButton').addEventListener('click', async function () {
       document.getElementById('confirmDeleteTaskModal').classList.toggle('hidden')
       document.getElementById('deleteTaskButton').disabled = true
@@ -129,7 +127,9 @@
             alert('There was a problem with your task deletion.') // TODO DO SOMETHING ELSE INSTEAD OF THIS
         }
     })
-
+</script>
+{% endif %}
+<script>
     document.getElementById('deleteTaskAndChildren').addEventListener('click', async function () {
         try {
             event.preventDefault()
@@ -209,8 +209,7 @@ function updateAssignees() {
     // }
 
 }
-
 </script>
-{% endif %}
+
 
 {% endblock %}
