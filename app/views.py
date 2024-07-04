@@ -287,6 +287,7 @@ def taskView(request, projectID:str, viewType:str, taskID:str=None, parentTaskID
 
     if request.method != "POST" and request.method != "GET":
         return
+        
 
     baseTemplate = f"{viewType}.html"
     exitLink = f"/project/{projectID}/{viewType}"
@@ -402,6 +403,7 @@ def taskView(request, projectID:str, viewType:str, taskID:str=None, parentTaskID
         if statusCode != status.HTTP_200_OK:
             print(f"Task fetch failed: {data.get('message')}")
             return HttpResponseServerError(f"An error occurred: {data.get('message')}")
+        
         initialStatus = taskView.statusData[0]["name"]
         status_choices = []
         for stat in taskView.statusData:
