@@ -267,7 +267,7 @@ def editProjectView(request, projectID):
 
 @apiKeyRequired
 @static_vars(statusData=[]) # creates a static function variable that can be used anytime we access the function
-def taskView(request, projectID, taskID):
+def taskView(request, projectID:str, viewType:str, taskID:str=None, parentTaskID:str=None):
     """
     Renders the view for a specific task within a project as a form.
     If the request method is GET or any other method, a form populated with the task's existing
@@ -277,7 +277,9 @@ def taskView(request, projectID, taskID):
 
     @param {HttpRequest} request - The request object, which can be GET or POST.
     @param {str} projectID - The ID for the project to which the task belongs.
-    @param {str} taskID - The ID for the task to be viewed or edited.
+    @param {str} viewType - 'graph' or 'kanban'
+    @param {str} taskID - The ID for the task to be viewed or edited. Optional if creating.
+    @param {str} taskID - The parent ID for the task if being created. Optional.
 
     @returns {HttpResponse} - An HttpResponse object that renders the taskModal.html
         template with the project ID, task ID, and task form context.
@@ -285,16 +287,15 @@ def taskView(request, projectID, taskID):
 
     if request.method != "POST" and request.method != "GET":
         return
+        
 
-    baseTemplate = "graph.html"
-    submitLink = f"/project/{projectID}/graph/task/{taskID}/"
-    exitLink = f"/project/{projectID}/graph"
-    deleteLink = f"/project/{projectID}/graph"
-    if "kanban" in request.path:
-        baseTemplate = "kanban.html"
-        submitLink = f"/project/{projectID}/kanban/task/{taskID}/"
-        exitLink = f"/project/{projectID}/kanban"
-        deleteLink = f"/project/{projectID}/kanban"
+    baseTemplate = f"{viewType}.html"
+    exitLink = f"/project/{projectID}/{viewType}"
+    deleteLink = f"/project/{projectID}/{viewType}"
+
+
+    if not taskID:
+        deleteLink = None
     
     # Needed for both post + get
     data, statusCode = ProjectsAPIView.getProjects(
@@ -308,10 +309,8 @@ def taskView(request, projectID, taskID):
     userDataList, statusCode = UsersAPIView.getUsers(
         [{"id": id} for id in projectData.get("userIDs")], getAuthorizationToken(request))
     if statusCode != status.HTTP_200_OK:
-        print(f"Users fetch failed: {data.get('message')}")
-        return HttpResponseServerError(f"An error occurred: {data.get('message')}")
-
-    
+        print(f"Users fetch failed: {userDataList.get('message')}")
+        return HttpResponseServerError(f"An error occurred: {userDataList.get('message')}")
     assigneeChoices = [(userData.get('id'), userData.get('username')) for userData in userDataList]
 
     if request.method == "POST":
@@ -321,6 +320,7 @@ def taskView(request, projectID, taskID):
         if form.is_valid():
             newData = form.cleaned_data
             newData['statusId'] = newData.pop('status')
+            newData["projectID"] = projectID
             newData["contributorIDs"] = newData.pop('assignees')
 
             durationMinutes = 0
@@ -347,59 +347,72 @@ def taskView(request, projectID, taskID):
 
                 
             newData["durationMinutes"] = durationMinutes
-            newData["id"] = taskID
+
+
+
+            if parentTaskID:
+                newData["parentTaskID"] = parentTaskID
             
-
-            message, status_code = TasksAPIView.updateTask(
-                newData, getAuthorizationToken(request)
-            )
-
-            if status_code != status.HTTP_200_OK:
-                print(f"Task update failed: {message}")
-                return HttpResponseServerError(f"An error occurred: {message}")
+            if taskID:
+                newData["id"] = taskID
+                message, status_code = TasksAPIView.updateTask(
+                    newData, getAuthorizationToken(request)
+                )
+                if status_code != status.HTTP_200_OK:
+                    print(f"Task update failed: {message}")
+                    return HttpResponseServerError(f"An error occurred: {message}")
+            else:
+                message, httpsCode = TasksAPIView.createTasks(
+                    newData, getAuthorizationToken(request)
+                )
+                if httpsCode != status.HTTP_201_CREATED:
+                    print(f"Task creation failed: {message}")
+                    return HttpResponseServerError(
+                        f"An error occurred: {message.get('message')}"
+                    )
             return redirect(exitLink)
         
         print(form.errors)
 
     # If request method is GET we'll create a form
     else:
-        data, statusCode = TasksAPIView.getTasks(
-            {"id": taskID}, getAuthorizationToken(request)
-        )
-        if statusCode != status.HTTP_200_OK:
-            print(f"Task fetch failed: {data.get('message')}")
-            return HttpResponseServerError(f"An error occurred: {data.get('message')}")
-        
-        
+
+        taskData = None
+        if taskID:
+            data, statusCode = TasksAPIView.getTasks(
+                {"id": taskID}, getAuthorizationToken(request)
+            )
+            if statusCode != status.HTTP_200_OK:
+                print(f"Task fetch failed: {data.get('message')}")
+                return HttpResponseServerError(f"An error occurred: {data.get('message')}")
+            taskData = data[0]
+
+            durationString = ""
+            durationMinutes = taskData.get("durationMinutes") or 0
+
+            workHours = int(durationMinutes / 60)
+            minutes = durationMinutes % 60
+            
+            if workHours != 0: durationString += str(workHours) + "h "
+            if (minutes != 0) or (durationMinutes == 0): durationString += str(minutes) + "m"
+            durationString = durationString.strip()
+
+            
         taskView.statusData, statusCode = StatusesAPIView.getStatuses(
-            {"projectID": projectID}, getAuthorizationToken(request)
-        )
+            {"projectID": projectID}, getAuthorizationToken(request))
         if statusCode != status.HTTP_200_OK:
             print(f"Task fetch failed: {data.get('message')}")
             return HttpResponseServerError(f"An error occurred: {data.get('message')}")
-
-        taskData = data[0]
         
-        durationString = ""
-        durationMinutes = taskData.get("durationMinutes") or 0
-
-        workHours = int(durationMinutes / 60)
-        minutes = durationMinutes % 60
-        
-        if workHours != 0: durationString += str(workHours) + "h "
-        if (minutes != 0) or (durationMinutes == 0): durationString += str(minutes) + "m"
-        durationString = durationString.strip()
-
         initialStatus = taskView.statusData[0]["name"]
         status_choices = []
-
         for stat in taskView.statusData:
             status_choices.append((stat["id"], stat["name"]))
-            if taskData.get("statusId") == stat["id"]:
+            if taskData and taskData.get("statusId") == stat["id"]:
                 initialStatus = stat["id"]
         
         # Populate initial form data
-        if taskData is not None:
+        if taskData:
             initialData = {
                 "name": taskData.get("name", ""),
                 "description": taskData.get("description", ""),
@@ -413,9 +426,9 @@ def taskView(request, projectID, taskID):
             form = TaskForm(initial=initialData, status_choices=status_choices)
 
         else:
-            form = TaskForm()
-        form.fields['assignees'].choices = assigneeChoices
+            form = TaskForm(status_choices=status_choices)
 
+        form.fields['assignees'].choices = assigneeChoices
     return render(
         request,
         "taskModal.html",
@@ -424,94 +437,12 @@ def taskView(request, projectID, taskID):
             "projectID": projectID,
             "taskID": taskID,
             "baseTemplate": baseTemplate,
-            "submitLink": submitLink,
             "exitLink": exitLink,
             "deleteLink": deleteLink,
             **generateTaskFeedbackForm(request)
         },
     )
 
-
-@apiKeyRequired
-def createTaskView(request, projectID, parentTaskID=""):
-    """
-    Renders the view for creating a task within a project as a form.
-    If the request method is GET or any other method, a blank form is provied.
-    If the request method is POST and the form is valid, the task is created with the provided data.
-    This view requires an API key in the cookies.
-
-    @param {HttpRequest} request - The request object, which can be GET or POST.
-    @param {str} projectID - The project ID of the task to create.
-    @param {str} parentTaskID [optional] - The parent ID of the task to create.
-
-    @returns {HttpResponse} - An HttpResponse object that renders the taskModal.html
-        template with the project ID, task ID, and task form context.
-    """
-    if "kanban" in request.path:
-        baseTemplate = "kanban.html"
-        if parentTaskID:
-            submitLink = f"/project/{projectID}/kanban/create-task/{parentTaskID}/"
-        else:
-            submitLink = f"/project/{projectID}/kanban/create-task/"
-        exitLink = f"/project/{projectID}/kanban"
-    else:
-        baseTemplate = "graph.html"
-        if parentTaskID:
-            submitLink = f"/project/{projectID}/graph/create-task/{parentTaskID}/"
-        else: 
-            submitLink = f"/project/{projectID}/graph/create-task/"
-        exitLink = f"/project/{projectID}/graph"
-
-    # Create new task on post
-    if request.method == "POST":
-
-        form = TaskForm(request.POST)
-
-        if form.is_valid():
-            newData = form.cleaned_data
-            newData["projectID"] = projectID
-            if parentTaskID and parentTaskID != "":
-                newData["parentTaskID"] = parentTaskID
-            message, httpsCode = TasksAPIView.createTasks(
-                newData, getAuthorizationToken(request)
-            )
-
-            if httpsCode != status.HTTP_201_CREATED:
-                print(f"Task creation failed: {message}")
-                return HttpResponseServerError(
-                    f"An error occurred: {message.get('message')}"
-                )
-        if "kanban" in request.path:
-            return redirect(f"/project/{projectID}/kanban")
-
-        return redirect(f"/project/{projectID}/graph")
-
-    # If a GET (or any other method) we"ll create a blank form for them to render
-    else:
-        # Check if user has access to project
-        projectData, httpsCode = ProjectsAPIView.getProjects(
-            {"id": projectID}, getAuthorizationToken(request)
-        )
-        print(projectData)
-        if httpsCode != status.HTTP_200_OK:
-            print(
-                f"For creating tasks, project GET failed: {projectData.get('message')}"
-            )
-            return HttpResponseServerError(
-                f"Could not access project to create task(s): {projectData.get('message')}"
-            )
-        form = TaskForm()
-    return render(
-        request,
-        "taskModal.html",
-        {
-            "form": form,
-            "projectID": projectID,
-            "baseTemplate": baseTemplate,
-            "submitLink": submitLink,
-            "exitLink": exitLink, **generateTaskFeedbackForm(request),
-        },
-    )
 
 
 @apiKeyRequired
