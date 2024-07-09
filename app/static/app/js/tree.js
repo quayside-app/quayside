@@ -22,15 +22,19 @@ function createTaskTrees(tasks, statuses) {
     // Step 1: Assign a corresponding color to each task based off it's status id
     tasks.forEach((task, i, theTasks) => {
 
-        statuses.every(status => {
-          // if statusId is null, sets the default color to the first status color
-          if ((theTasks[i].statusId == status.id) || (theTasks[i].statusId == null)) {
-            theTasks[i].color = status.color;
-            return false; // exit loop
-          }
+        if (statuses.length > 0) {
+            statuses.every(status => {
+            // if statusId is null, sets the default color to the first status color
+            if ((theTasks[i].statusId == status.id) || (theTasks[i].statusId == null)) {
+                theTasks[i].color = status.color;
+                return false; // exit loop
+            }
 
-          return true;
-        });
+            return true;
+            });
+        } else { // Default to grey
+            theTasks[i].color = '262626';
+        }
 
     });
 
