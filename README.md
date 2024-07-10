@@ -1,6 +1,6 @@
 # quayside.app
 
-Welcome to our quayside.app, the project management tool that helps your team answer the question "What's Next?" to succeed in your project goals. The stack is Django with Tailwind and MongoDB. It will hosted on Google Cloud Platform.
+Welcome to our quayside.app, the project management tool that helps your team answer the question "What's Next?" to succeed in your project goals. The stack is Django with Tailwind and PostgreSQL. It is hosted on Google Cloud Platform.
 
 ## Setup
 
@@ -33,20 +33,15 @@ pip install -r requirements.txt
 npm install
 ```
 
-For accessing the mongo database locally, you will need the following generated database Atlas, ChatGPT, and Github creds in an `.env` file (fyi, the Atlas creds are different than your creds to login to Mongo Atlas). You'll also need the following Github URLs. Here is the format:
+For accessing the mongo database locally, you will need the following generated database Atlas, ChatGPT, and Github creds in an `.env` file (fyi, the Atlas creds are different than your creds to login to Mongo Atlas). You'll also need the following Github URLs. Check the env\_check\_file for the required variables.
 
-```bash
-MONGO_USERNAME=<your username>
-MONGO_PASSWORD=<your password>
-CHATGPT_API_KEY=<your ChatGPT API key>
-GITHUB_CLIENT_ID=<your client ID>
-GITHUB_CLIENT_SECRET=<your client secret>
-GITHUB_API_URL_email=https://api.github.com/user/emails
-GITHUB_API_URL_user=https://api.github.com/user
-API_SECRET=<key you make up to encrypt your jwt tokens (must be 32 url-safe base64-encoded bytes)>
-```
+**PostgresSQL** <br>
+In order to access the Google Cloud postgress DB, you will need to add your IP to the allowed networks in Google Cloud.
 
-Check the env\_check\_file for more required variables.
+**On the production server**, remove GOOGLE_APPLICATION_CREDENTIALS, set the correct BASE_URL domain, set DEBUG=False, and set GOOGLE_POSTGRES_HOST to `/cloudsql/<PROJECT_ID>:<REGION>:<INSTANCE_ID>` (/cloudsql/elevare-data-website:us-west1:elevare-data-postgress). In the production server, you will need the STRIPE_WEBHOOK key from stripes website when you set up the webhook (https://docs.stripe.com/webhooks).
+
+
+
 ## Usage
 
 **Running** <br>
@@ -86,3 +81,11 @@ Note: If npx tells you `<someFunction> is not defined  no-undef` because someFun
 If you add any other npm dependencies, please do it by running `npm install --save <my-dependency>` so it is added to package.json for the next person to install. Otherwise, add the package manually to package.json. If you install python dependencies, please add them to the requirements.txt by running `pip freeze > requirements.txt`.
 
 Note: If you are having issues with "[SSL: CERTIFICATE_VERIFY_FAILED]" you may need to upgrade pip.
+
+**Changing Models** <br>
+If you change models, run
+
+```bash
+python manage.py makemigrations
+python manage.py migrate
+```
