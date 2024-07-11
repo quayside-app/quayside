@@ -82,16 +82,7 @@ WSGI_APPLICATION = "quayside.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'HOST': os.getenv('GOOGLE_POSTGRES_HOST'),
-        'NAME': 'quayside-db',
-        'USER': os.getenv('GOOGLE_POSTGRES_USER'),
-        'PASSWORD': os.getenv('GOOGLE_POSTGRES_PASSWORD'),
-        
-    }
-}
+DATABASES = {}
 
 
 # Password validation
