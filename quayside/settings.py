@@ -86,7 +86,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'HOST': os.getenv('GOOGLE_POSTGRES_HOST'),
-        'NAME': 'Elevare_Data_DB',
+        'NAME': 'quayside-db',
         'USER': os.getenv('GOOGLE_POSTGRES_USER'),
         'PASSWORD': os.getenv('GOOGLE_POSTGRES_PASSWORD'),
         

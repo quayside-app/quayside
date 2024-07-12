@@ -19,9 +19,6 @@ class Profile(models.Model):
     def __str__(self):
         return f"{self.user.username}'s profile"
 
-    class Meta:
-        ordering = ["created"]
-
 
 class Project(models.Model):
     name = models.CharField(max_length=255)  # TODO LIMIT ON FRONT END
@@ -45,7 +42,7 @@ class Task(models.Model):
     contributorIDs = models.ManyToManyField(Profile, related_name='tasks')  # TODO: Change to assigneeIDs  # Django handles as intermediary join table
     startDate = models.DateField()
     endDate = models.DateField()
-    status = models.ForeignKey(Status, on_delete=models.SET_NULL)
+    status = models.ForeignKey(Status, on_delete=models.SET_NULL, null=True)
     priority = models.IntegerField()  # TODO: Change to kanbanOrder and add graphOrder
     durationMinutes = models.IntegerField()
     dateCreated = models.DateField(auto_now_add=True)

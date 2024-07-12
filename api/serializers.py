@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from api.models import User, Project, Task, Feedback
+from api.models import User, Project, Task, Feedback, Status
 
 
 class UserSerializer(serializers.Serializer):
@@ -9,7 +9,7 @@ class UserSerializer(serializers.Serializer):
 
 class StatusSerializer(serializers.Serializer):
     class Meta:
-        model=Project.Status
+        model=Status
         fields = '__all__'
 
 class ProjectSerializer(serializers.Serializer):
