@@ -10,14 +10,7 @@ from datetime import datetime, timezone
 # TODO: Archive flag
 
 
-# "Extends" User field
-class Profile(models.Model):
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    apiKey = models.CharField()  # TODO: REMOVE
-    image = models.URLField()  # TODO: Check if this should be url
 
-    def __str__(self):
-        return f"{self.user.username}'s profile"
 
 
 class Project(models.Model):

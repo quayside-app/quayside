@@ -10,6 +10,14 @@ from api.serializers import UserSerializer
 from api.decorators import apiKeyRequired
 from api.utils import getAuthorizationToken, decodeApiKey
 
+from rest_framework import generics, permissions, serializers
+from oauth2_provider.contrib.rest_framework import TokenHasReadWriteScope, TokenHasScope
+
+class UserList(generics.ListCreateAPIView):
+    permission_classes = [permissions.IsAuthenticated, TokenHasReadWriteScope]
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
 
 # dispatch protects all HTTP requests coming in
 @method_decorator(apiKeyRequired, name="dispatch")

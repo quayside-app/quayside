@@ -1,5 +1,7 @@
 import importlib
-from django.urls import path
+from django.urls import path, include
+from oauth2_provider import urls as oauth2_urls
+
 
 
 API_VERSION = "v1"
@@ -42,7 +44,13 @@ urlpatterns = [
         f"{API_VERSION}/feedback/",
         views.feedback.FeedbackAPIView.as_view(),
         name=f"{API_VERSION}-feedback"
-    )
+    ),
+    # path('o/', include(oauth2_urls)),
+    path(
+        f"{API_VERSION}/users/",
+        views.users.UserList.as_view(),
+        name=f"{API_VERSION}-get-user",
+    ),
 ]
 
 # GET /api/v1/users/:username                   Get information about a user
