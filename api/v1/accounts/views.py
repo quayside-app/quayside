@@ -14,8 +14,8 @@ from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnl
 from oauthlib.oauth2 import WebApplicationClient as WAC
 
 
-from .models import User
-#from .serializers import UserSerializer, ProfileSerializer
+from .models import Profile
+from .serializers import ProfileSerializer
 
 
 class AccountLogin:
@@ -139,17 +139,25 @@ class OauthCallback(views.APIView):
         else:
             username = oauthUserInfo.get("email").split("@")[0]
 
-        if not User.objects.filter(email=oauthUserInfo.get("email")).exists():
+        if not Profile.objects.filter(email=oauthUserInfo.get("email")).exists():
             names = oauthUserInfo.get("name", "quayside user").split()
 
-            userInfo, httpsCode = UsersAPIView.createUser(
-                {
+            try:
+               
+                
+                serializer = ProfileSerializer(data= {
                     "email": oauthUserInfo.get("email"),
                     "username": username,
                     "firstName": names[0],
                     "lastName": names[-1],
-                }
-            )
+                })
+                serializer.is_valid(raise_exception=True)
+                serializer.save()  
+                return Response({"user": serializer.data}, status=status.HTTP_201_CREATED)
+            
+            except Exception as e:
+                return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
 
         # Redirect instead of rendering (to make it update)
         response = redirect("/")
