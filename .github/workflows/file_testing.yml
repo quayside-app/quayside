@@ -29,4 +29,4 @@ jobs:
           VALIDATE_JAVASCRIPT_ES: true
           # VALIDATE_JAVASCRIPT_STANDARD: false
           DEFAULT_BRANCH: main
-          GITHUB_TOKEN: ${{ secrets.ENV }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
