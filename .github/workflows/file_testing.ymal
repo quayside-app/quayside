@@ -1,3 +1,5 @@
+name: Super Linter
+
 on:
   push:
     branches-ignore: [master, main]
@@ -7,9 +9,7 @@ on:
     
 jobs:
   build:
-    # Name the Job
     name: Lint Code Base
-    # Set the agent to run on
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
