@@ -1,204 +1,282 @@
-import requests
-import urllib.parse
-
-from rest_framework.decorators import api_view, action
-from rest_framework.response import Response 
-from rest_framework import status, views, viewsets
-from django.http import HttpResponseRedirect
-from django.contrib.auth import authenticate
-
-
-from django.conf import settings
-
-from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
-from oauthlib.oauth2 import WebApplicationClient as WAC
-
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.utils.decorators import method_decorator
+from django.db.models import Q
+from django.db import IntegrityError
 
 from .models import Profile
 from .serializers import ProfileSerializer
+from api.decorators import apiKeyRequired
+from api.utils import getAuthorizationToken, decodeApiKey
 
 
-class AccountLogin:
+from rest_framework import generics, permissions, serializers
+from oauth2_provider.contrib.rest_framework import TokenHasReadWriteScope, TokenHasScope
 
-    def post(request):
-        """
-        Login with Oauth
-        
-        @param {HttpRequest} request - The request object.
-        The query parameters can be:
-            - provider (str): Either "Google" or "Github"
-            - email (str): Filter user by email.
-        """
-        try:
-            provider = request.data.get('provider')
-            
-            clientID = ""
-            authorizationUrl = ""
-            providerScope = []
-            if provider == "GitHub":
-                clientID = settings.GITHUB_CLIENT_ID
-                authorizationUrl = "https://github.com/login/oauth/authorize"
-                providerScope = ["user"]
-
-            elif provider == "Google":
-                clientID = settings.GOOGLE_CLIENT_ID
-                authorizationUrl = "https://accounts.google.com/o/oauth2/v2/auth"
-                providerScope = [
-                    "https://www.googleapis.com/auth/userinfo.profile",
-                    "https://www.googleapis.com/auth/userinfo.email",
-                ]
-            else:
-                return Response( {"message": "Unsupported oauth provider"}, 
-                                status=status.HTTP_400_BAD_REQUEST)
+class ProfileList(generics.ListCreateAPIView):
+    permission_classes = [permissions.IsAuthenticated, TokenHasReadWriteScope]
+    queryset = Profile.objects.all()
+    serializer_class = ProfileSerializer
 
 
-            client = WAC(clientID)
+# dispatch protects all HTTP requests coming in
+@method_decorator(apiKeyRequired, name="dispatch")
+class ProfilesAPIView(APIView):
+    """
+    Create, get, and update profiles.
+    """
 
-            url = client.prepare_request_uri(
-                authorizationUrl,
-                redirect_uri=settings.REDIRECT_URI,
-                scope=providerScope,
-                state="test",
-            )
-            return HttpResponseRedirect(url)  ## TODO: Is this correct?
-
-        except Exception:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-        
-
-
-
-class OauthCallback(views.APIView):
     def get(self, request):
         """
-        Handles the callback after GitHub authentication, creates the user in the db if they
-        don't exist, and retrieves the user's info and API key (generating it if it doesn't exist).
-        It then saves the API key to the user's cookies so it can be sent to the API routes in
-        future requests.
+        Retrieves profiles information. Only profiles can access all their own data if they pass their id.
+        Other profiles can access email, id, and username if they pass email or id.
+        Requires 'apiToken' passed in auth header or cookies.
 
-        @param request: The HTTP request object containing the callback data from GitHub or Google.
-        @returns: The rendered index.html page with the API token set in the cookies.
+        @param {HttpRequest} request - The request object.
+            The query parameters can be:
+                - id (str): Filter profile by ID.
+                - email (str): Filter profile by email.
+
+        @return A Response object containing a JSON array of serialized profile objects that match the query parameters.
+        If no profiles match the query, a 400 Bad Request response is returned.
+
+        @example Javascript:
+            // To fetch all profiles
+            fetch('/api/v1/profiles');
+
+            // To fetch a profile by ID
+            fetch('/api/v1/profiles?id=1234');
+
+            // To fetch a profile by email
+            fetch('/api/v1/profiles?email=profile@example.com');
         """
-        print(self.request)
-        data = self.request.GET
-        authcode = data["code"]
+
         try:
-            provider = self.request.session['provider']
-        except:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            queryParams = request.query_params.dict()
 
-        # state = data["state"]
-
-        # Get API token
-        if provider == "GitHub":
-            token_url = "https://github.com/login/oauth/access_token"
-            clientID = settings.GITHUB_CLIENT_ID
-            clientSecret = settings.GITHUB_CLIENT_SECRET
-            username = "login"
-            apiRequestURL = settings.GITHUB_API_URL_USER
-
-        elif provider == "Google":
-            token_url = "https://accounts.google.com/o/oauth2/token"
-            clientID = settings.GOOGLE_CLIENT_ID
-            clientSecret = settings.GOOGLE_CLIENT_SECRET
-            username = "name"
-            apiRequestURL = settings.GOOGLE_API_URL_USER_PROFILE
-        client = WAC(clientID)
-
-        data = client.prepare_request_body(
-            code=authcode,
-            redirect_uri=settings.REDIRECT_URI,
-            client_id=clientID,
-            client_secret=clientSecret,
-        )
-
-        if provider == "Google":  # caters request and header to google specifications
-            data = dict(urllib.parse.parse_qsl(data))
-            response = requests.post(token_url, json=data, timeout=10)
-            client.parse_request_body_response(response.text)
-            header = {"Authorization": f"Bearer {client.token['access_token']}"}
-        else:  # caters to GitHub specifications
-            response = requests.post(token_url, data=data, timeout=10)
-            client.parse_request_body_response(response.text)
-            header = {"Authorization": f"token {client.token['access_token']}"}
-
-        response = requests.get(apiRequestURL, headers=header, timeout=10)
-
-        oauthUserInfo = response.json()
-
-        # For Github, if user has no visible email, make second request for email
-        if not oauthUserInfo.get("email"):
-            response = requests.get(
-                settings.GITHUB_API_URL_EMAIL, headers=header, timeout=10
+            responseData, httpStatus = self.getProfiles(
+                queryParams, getAuthorizationToken(request)
             )
-            oauthUserInfo["email"] = response.json()[0]["email"]
 
-        # Create a user in our db if none exists
-        if oauthUserInfo.get("username"):
-            username = oauthUserInfo.get("username")
-        else:
-            username = oauthUserInfo.get("email").split("@")[0]
+            return Response(responseData, httpStatus)
 
-        if not Profile.objects.filter(email=oauthUserInfo.get("email")).exists():
-            names = oauthUserInfo.get("name", "quayside user").split()
+        except Exception as e:
+            return Response(
+                {"message": f"Error getting profile details: {e}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
-            try:
-               
-                
-                serializer = ProfileSerializer(data= {
-                    "email": oauthUserInfo.get("email"),
-                    "username": username,
-                    "firstName": names[0],
-                    "lastName": names[-1],
+    def post(self, request):
+        """
+        Handles the POST request to create a new profile based on the provided body parameters.
+        Requires 'apiToken' passed in auth header or cookies.
+
+        @param {HttpRequest} request - The request object.
+            Headers:
+                - Content-Type: 'application/json'
+            Body parameters:
+                - email (str) [REQUIRED]: The email address of the profile.
+                - firstName (str): The first name of the profile.
+                - lastName (str): The last name of the profile.
+                - username (str) [REQUIRED]: The username for the profile.
+                - teamIDs (list[str]): List of team IDs the profile is associated with.
+
+        @return {HttpResponse} - On success, returns a status of 200 and a JSON body containing the profile's details.
+
+
+        @example JavaScript:
+            fetch('quayside.app/api/v1/profiles/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: 'profile@example.com',
+                    firstName: 'John',
+                    lastName: 'Doe',
+                    username: 'johndoe',
+                    teamIDs: ['team1', 'team2']
                 })
-                serializer.is_valid(raise_exception=True)
-                serializer.save()  
-                return Response({"user": serializer.data}, status=status.HTTP_201_CREATED)
-            
-            except Exception as e:
-                return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-
-
-        # Redirect instead of rendering (to make it update)
-        response = redirect("/")
-
-        apiToken = userInfo.get("apiKey")  # Get API key
-
-        if apiToken:
-            apiToken = decryptApiKey(apiToken)
-        # Create an api key if it doesn't exist in the db yet
-        else:
-            # Create/encrypt API key
-            apiToken = createEncodedApiKey(userInfo["id"])
-            encryptedApiKey = encryptApiKey(apiToken)
-
-            message, httpsCode = UsersAPIView.updateUser(
-                {
-                    "id": userInfo["id"],
-                    "apiKey": encryptedApiKey,
-                },
-                apiToken,
+            });
+        """
+        if request.content_type != "application/json":
+            return Response(
+                {"error": "Invalid Content-Type. Use application/json."},
+                status=status.HTTP_400_BAD_REQUEST,
             )
-            if httpsCode != status.HTTP_200_OK:
-                print(f"User update failed: {message}")
-                return HttpResponseServerError(f"An error occurred: {message}")
 
-        # Save api key to cookies
-        # Setting httponly is safer and doesn't let the key be accessed by js (to prevent xxs).
-        # Instead the browser will always pass the cookie to the server.
-        response.set_cookie("apiToken", apiToken, httponly=True)
+        responseData, httpStatus = self.createProfile(request.data)
 
-        # Make sure to add email not created already (oath doesn't require username I think but does require email)
-        if "username" not in userInfo or not userInfo["username"]:
-            message, httpsCode = UsersAPIView.updateUser(
+        return Response(responseData, httpStatus)
+
+    def put(self, request):
+        """
+        Updates a single profile.
+        Requires 'apiToken' passed in auth header or cookies.
+
+
+        @param {HttpRequest} request - The request object.
+                @param {HttpRequest} request - The request object.
+            The request body can contain:
+                - id (str) [REQUIRED]
+                - email (str): The email address of the profile.
+                - firstName (str): The first name of the profile.
+                - lastName (str): The last name of the profile.
+                - username (str) : The username for the profile.
+                - teamIDs (list[str]): List of team IDs the profile is associated with.
+
+
+        @return: A Response object with the updated task data or an error message.
+
+        @example javascript
+            await fetch(`quayside.app/api/v1/profiles/`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json'},
+                body: JSON.stringify({id: '1234, name: 'Task2'},
+            });
+
+        """
+        responseData, httpStatus = self.updateProfile(
+            request.data, getAuthorizationToken(request)
+        )
+        return Response(responseData, status=httpStatus)
+
+    @staticmethod
+    def updateProfile(profileData, authorizationToken):
+        """
+        Service API function that can be called internally as well as through the API to update
+        a profile based on input data.
+
+        @param task_data      Dict for a single project dict or list of dicts for multiple tasks.
+        @return      A tuple of (response_data, http_status).
+        """
+        if "id" not in profileData:
+            return {
+                "message": "Error: Parameter 'id' required"
+            }, status.HTTP_400_BAD_REQUEST
+
+        profileID = decodeApiKey(authorizationToken).get("profileID")
+        if profileID != profileData["id"]:
+            return {
+                "message": "Unauthorized to update that profile."
+            }, status.HTTP_401_UNAUTHORIZED
+
+        try:
+            task = Profile.objects.get(id=profileData["id"])
+        except Profile.DoesNotExist:
+            return None, status.HTTP_404_NOT_FOUND
+
+        serializer = ProfileSerializer(data=profileData, instance=task, partial=True)
+
+        if serializer.is_valid():
+            serializer.save()  # Updates profiles
+            return serializer.data, status.HTTP_200_OK
+
+        return serializer.errors, status.HTTP_400_BAD_REQUEST
+
+    @staticmethod
+    def getProfiles(profileData, authorizationToken=None):
+        """
+        Service API function that can be called internally as well as through the API to get a profile.
+
+        @param profileData      Dict of data for a single profile.
+        @return      A tuple of (response_data, http_status).
+        """
+
+        if not isinstance(profileData, list):
+            # If authorized profile is getting information about their self, return all data
+            profileID = decodeApiKey(authorizationToken).get("profileID")
+            if "id" in profileData and profileID == profileData["id"]:
+                if not profileData.get("id") and not profileData.get("email"):
+                    return {
+                        "message": "ProfileID or email required."
+                    }, status.HTTP_400_BAD_REQUEST
+                profile = Profile.objects.filter(**profileData).first()
+                serializedProfile = ProfileSerializer(profile).data
+                return [serializedProfile], status.HTTP_200_OK
+
+            profileData = [profileData]
+
+        # Else return only id, email, and username
+        profileIDs = [profile.get("id") for profile in profileData if profile.get("id")]
+        emails = [profile.get("email") for profile in profileData if profile.get("email")]
+
+        if not profileIDs and not emails:
+            return {
+                "message": "No valid profile IDs or emails provided."
+            }, status.HTTP_400_BAD_REQUEST
+
+        profiles = Profile.objects.filter(Q(id__in=profileIDs) | Q(email__in=emails))
+
+        if not profiles:
+            return {"message": "No profiles found."}, status.HTTP_404_NOT_FOUND
+        serializedProfiles = []
+        for profile in profiles:
+            serializedProfile = ProfileSerializer(profile).data
+            serializedProfiles.append(
                 {
-                    "id": userInfo["id"],
-                    "username": username,
-                },
-                apiToken,
+                    "id": serializedProfile.get("id"),
+                    "email": serializedProfile.get("email"),
+                    "username": serializedProfile.get("username"),
+                }
             )
-            if httpsCode != status.HTTP_200_OK:
-                print(f"User update failed: {message}")
-                return HttpResponseServerError(f"An error occurred: {message}")
+        return serializedProfiles, status.HTTP_200_OK
 
-        return response
+    @staticmethod
+    def createProfile(profileData):
+        """
+        Service API function that can be called internally as well as through the API to create a profile
+
+        @param profileData      Dict of data for a single profile.
+        @return      A tuple of (response_data, http_status).
+        """
+
+        serializer = ProfileSerializer(data=profileData)
+
+        try:
+            serializer.is_valid(raise_exception=True)
+            profile = Profile.objects.create(**serializer.validated_data)
+            response_data = ProfileSerializer(profile).data
+            return response_data, status.HTTP_201_CREATED
+
+        except IntegrityError as e:
+            error_message = str(e)
+            if "email" in error_message:
+                return {
+                    "error": "Email address is already in use."
+                }, status.HTTP_400_BAD_REQUEST
+            #           elif 'username' in error_message:
+            #               return Response({'error': 'Profilename is already taken.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            return {
+                "error": "Duplicate key error.",
+                "details": error_message,
+            }, status.HTTP_400_BAD_REQUEST
+
+        except Exception as e:
+            return {
+                "error": "Internal server error.",
+                "details": str(e),
+            }, status.HTTP_500_INTERNAL_SERVER_ERROR
+
+    @staticmethod
+    def getAuthenticatedProfile(profileData):
+        """
+        THIS SHOULD ONLY BE USED FOR AUTHORIZATION WHEN LOGGING IN. DO NOT MAKE THIS A PUBLIC ROUTE.
+
+        @param profileData      Dict of data for a single profile. Must contain email
+        @return      A tuple of (response_data, http_status).
+        """
+
+        if "email" not in profileData:
+            return "Error: Parameter 'email' required", status.HTTP_400_BAD_REQUEST
+
+        profile = Profile.objects.filter(user__email=profileData["email"]).first()
+
+        if not profile:
+            return {"message": "Profile not found."}, status.HTTP_404_NOT_FOUND
+
+        serializedProfile = ProfileSerializer(profile).data
+        return {
+            "apiKey": serializedProfile.get("apiKey"),
+            "id": serializedProfile.get("id"),
+        }, status.HTTP_200_OK

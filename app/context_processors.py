@@ -4,7 +4,7 @@ from rest_framework import status
 from dotenv import load_dotenv
 from django.http import HttpResponseServerError
 
-from api.views.v1.users import UsersAPIView
+from api.v1.accounts.views import ProfilesAPIView
 from app.forms import NewProjectForm
 
 
@@ -29,7 +29,7 @@ def global_context(request):
         decoded = jwt.decode(token, secretKey, algorithms=["HS256"])
         userID = decoded.get("userID")
 
-        data, httpsCode = UsersAPIView.getUsers({"id": userID}, token)
+        data, httpsCode = ProfilesAPIView.getProfiles({"id": userID}, token)
         if httpsCode != status.HTTP_200_OK:
             print(f"User update failed: {data.get('message')}")
             return HttpResponseServerError(f"An error occurred: {data.get('message')}")

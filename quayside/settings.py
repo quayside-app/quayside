@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "app",
     "api",
-    # "oauth2_provider",
+    "api.v1.accounts",
     "compressor",  # For tailwind
     "django_browser_reload",  # For automatic reload
     "rest_framework",
@@ -150,33 +150,19 @@ STATICFILES_FINDERS = [
 ]
 
 
-# REST_FRAMEWORK = {
-#     'DEFAULT_AUTHENTICATION_CLASSES': (
-#         'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
-#     ),
-#     'DEFAULT_PERMISSION_CLASSES': (
-#         'rest_framework.permissions.IsAuthenticated',
-#     )
-# }
-
-
-# OAUTH2_PROVIDER = {
-#     # this is the list of available scopes
-#     'SCOPES': {'read': 'Read scope', 'write': 'Write scope'}
-# }
 
 
 # LOGIN_URL = '/admin/login/'
 
 
-GITHUB_CLIENT_ID = os.getenv("GITHUB_CLIENT_ID")
-GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
-REDIRECT_URI = os.getenv("REDIRECT_URI")
-GITHUB_CLIENT_SECRET = os.getenv("GITHUB_CLIENT_SECRET")
-GITHUB_API_URL_USER = os.getenv("GITHUB_API_URL_USER")
-GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
-GOOGLE_API_URL_USER_PROFILE = os.getenv("GOOGLE_API_URL_USER_PROFILE")
-REDIRECT_URI = os.getenv("REDIRECT_URI")
-GITHUB_API_URL_EMAIL = os.getenv("GITHUB_API_URL_EMAIL")
+# GITHUB_CLIENT_ID = os.getenv("GITHUB_CLIENT_ID")
+# GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
+# REDIRECT_URI = os.getenv("REDIRECT_URI")
+# GITHUB_CLIENT_SECRET = os.getenv("GITHUB_CLIENT_SECRET")
+# GITHUB_API_URL_USER = os.getenv("GITHUB_API_URL_USER")
+# GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
+# GOOGLE_API_URL_USER_PROFILE = os.getenv("GOOGLE_API_URL_USER_PROFILE")
+# REDIRECT_URI = os.getenv("REDIRECT_URI")
+# GITHUB_API_URL_EMAIL = os.getenv("GITHUB_API_URL_EMAIL")
 
 

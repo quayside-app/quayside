@@ -5,6 +5,8 @@ from django.conf import settings
 from bson.objectid import ObjectId
 from datetime import datetime, timezone
 
+from api.v1.accounts.models import Profile
+
 # TODO: Take out "ID" from all user names
 # TODO: Soft delete for user but not in db (tasks, projects) then fix cascades
 # TODO: Archive flag

@@ -24,7 +24,7 @@ from api.views.v1.feedback import FeedbackAPIView
 from api.views.v1.tasks import TasksAPIView
 from api.views.v1.generatedTasks import GeneratedTasksAPIView
 from api.views.v1.projects import ProjectsAPIView
-from api.views.v1.users import UsersAPIView
+from api.v1.accounts.views import ProfilesAPIView
 from api.views.v1.statuses import StatusesAPIView
 
 from app.context_processors import global_context
@@ -184,7 +184,7 @@ def editProjectView(request, projectID):
                 del newData["contributors"]
                 emails = [{"email": email} for email in emails if email]
 
-                contributorData, httpsCode = UsersAPIView.getUsers(emails)
+                contributorData, httpsCode = ProfilesAPIView.getProfiles(emails)
                 if httpsCode != status.HTTP_200_OK:
                     print(
                         f"Could not query contributor ids for project: {contributorData.get('message')}"
@@ -229,7 +229,7 @@ def editProjectView(request, projectID):
 
         contributorIDs = [{"id": ID} for ID in userIDs if ID != currentUserID]
         if contributorIDs:
-            contributorData, httpsCode = UsersAPIView.getUsers(contributorIDs)
+            contributorData, httpsCode = ProfilesAPIView.getProfiles(contributorIDs)
             if httpsCode != status.HTTP_200_OK:
                 print(
                     f"Could not query contributor emails for project: {contributorData.get('message')}"
@@ -306,7 +306,7 @@ def taskView(request, projectID:str, viewType:str, taskID:str=None, parentTaskID
         return HttpResponseServerError(f"An error occurred: {data.get('message')}")
     projectData = data[0]
 
-    userDataList, statusCode = UsersAPIView.getUsers(
+    userDataList, statusCode = ProfilesAPIView.getProfiles(
         [{"id": id} for id in projectData.get("userIDs")], getAuthorizationToken(request))
     if statusCode != status.HTTP_200_OK:
         print(f"Users fetch failed: {userDataList.get('message')}")
@@ -592,6 +592,7 @@ def requestAuth(_request, provider):
 
     client = WAC(clientID)
 
+    print("-----------------REDIRECT URI", os.getenv("REDIRECT_URI"))
     url = client.prepare_request_uri(
         authorization_url,
         redirect_uri=os.getenv("REDIRECT_URI"),
@@ -637,7 +638,7 @@ class Callback(TemplateView):
             username = "name"
             apiRequestURL = os.getenv("GOOGLE_API_URL_userprofile")
         client = WAC(clientID)
-
+        
         data = client.prepare_request_body(
             code=authcode,
             redirect_uri=os.getenv("REDIRECT_URI"),
@@ -672,7 +673,7 @@ class Callback(TemplateView):
         else:
             username = oauthUserInfo.get("email").split("@")[0]
 
-        userInfo, httpsCode = UsersAPIView.getAuthenticatedUser(
+        userInfo, httpsCode = ProfilesAPIView.getAuthenticatedProfile(
             {"email": oauthUserInfo.get("email")}
         )
         if httpsCode == status.HTTP_404_NOT_FOUND:
@@ -683,7 +684,7 @@ class Callback(TemplateView):
             if not names:
                 names = [""]
 
-            userInfo, httpsCode = UsersAPIView.createUser(
+            userInfo, httpsCode = ProfilesAPIView.createProfile(
                 {
                     "email": oauthUserInfo.get("email"),
                     "username": username,
@@ -708,7 +709,7 @@ class Callback(TemplateView):
             apiToken = createEncodedApiKey(userInfo["id"])
             encryptedApiKey = encryptApiKey(apiToken)
 
-            message, httpsCode = UsersAPIView.updateUser(
+            message, httpsCode = ProfilesAPIView.updateProfile(
                 {
                     "id": userInfo["id"],
                     "apiKey": encryptedApiKey,
@@ -726,7 +727,7 @@ class Callback(TemplateView):
 
         # Make sure to add email not created already (oath doesn't require username I think but does require email)
         if "username" not in userInfo or not userInfo["username"]:
-            message, httpsCode = UsersAPIView.updateUser(
+            message, httpsCode = ProfilesAPIView.updateUser(
                 {
                     "id": userInfo["id"],
                     "username": username,
