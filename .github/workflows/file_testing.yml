@@ -17,6 +17,9 @@ jobs:
         with:
           # Full git history is needed to get a proper list of changed files within `super-linter`
           fetch-depth: 0
+      - name: Get directories
+        run: |
+          ls
       - name: Lint Code Base
         uses: super-linter/super-linter@v6.7.0
         env:
@@ -29,5 +32,5 @@ jobs:
           # VALIDATE_PYTHON_MYPY: false
           VALIDATE_JAVASCRIPT_ES: true
           # VALIDATE_JAVASCRIPT_STANDARD: false
-          DEFAULT_BRANCH: main
+          DEFAULT_BRANCH: origin/main
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
