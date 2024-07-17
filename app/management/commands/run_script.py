@@ -32,6 +32,8 @@ def run_script():
     #         {"$set": {"taskStatuses": project["taskStatuses"]}}
     #     )
 
+    print("test")
+
     client.close()
 
 if __name__ == "__main__":
