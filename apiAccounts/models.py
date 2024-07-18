@@ -9,5 +9,6 @@ class Profile(AbstractUser):
     apiKey = models.CharField(blank=True) 
     image = models.URLField(blank=True)  # TODO: Check if this should be url
 
+
     def __str__(self):
         return f"{self.user.username}'s profile"
