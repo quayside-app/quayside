@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "app",
     "api",
-    "api.v1.accounts",
+    "apiAccounts",
     "compressor",  # For tailwind
     "django_browser_reload",  # For automatic reload
     "rest_framework",
@@ -97,6 +97,8 @@ DATABASES = {
         
     }
 }
+
+AUTH_USER_MODEL = "apiAccounts.Profile"
 
 
 # Password validation

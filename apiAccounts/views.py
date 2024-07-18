@@ -270,7 +270,7 @@ class ProfilesAPIView(APIView):
         if "email" not in profileData:
             return "Error: Parameter 'email' required", status.HTTP_400_BAD_REQUEST
 
-        profile = Profile.objects.filter(user__email=profileData["email"]).first()
+        profile = Profile.objects.filter(email=profileData["email"]).first()
 
         if not profile:
             return {"message": "Profile not found."}, status.HTTP_404_NOT_FOUND

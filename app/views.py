@@ -24,7 +24,7 @@ from api.views.v1.feedback import FeedbackAPIView
 from api.views.v1.tasks import TasksAPIView
 from api.views.v1.generatedTasks import GeneratedTasksAPIView
 from api.views.v1.projects import ProjectsAPIView
-from api.v1.accounts.views import ProfilesAPIView
+from apiAccounts.views import ProfilesAPIView
 from api.views.v1.statuses import StatusesAPIView
 
 from app.context_processors import global_context

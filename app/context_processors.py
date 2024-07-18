@@ -4,7 +4,7 @@ from rest_framework import status
 from dotenv import load_dotenv
 from django.http import HttpResponseServerError
 
-from api.v1.accounts.views import ProfilesAPIView
+from apiAccounts.views import ProfilesAPIView
 from app.forms import NewProjectForm
 
 

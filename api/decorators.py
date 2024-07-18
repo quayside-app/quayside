@@ -1,6 +1,6 @@
 from django.http import JsonResponse
 import jwt
-from api.models import User
+from apiAccounts.models import Profile
 from api.utils import decodeApiKey, decryptApiKey, getAuthorizationToken
 
 
@@ -32,7 +32,7 @@ def apiKeyRequired(function):
         userID = decodedKey.get("userID")
         try:
 
-            user = User.objects.filter(id=userID).first()
+            user = Profile.objects.filter(id=userID).first()
 
             if not user:
                 return JsonResponse(

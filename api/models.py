@@ -1,11 +1,10 @@
 from django.db import models
-from django.contrib.auth.models import User
 from django.conf import settings
 
 from bson.objectid import ObjectId
 from datetime import datetime, timezone
 
-from api.v1.accounts.models import Profile
+from apiAccounts.models import Profile
 
 # TODO: Take out "ID" from all user names
 # TODO: Soft delete for user but not in db (tasks, projects) then fix cascades
@@ -20,7 +19,7 @@ class Project(models.Model):
     description = models.TextField()
     startDate = models.DateField(null=True)  
     endDate = models.DateField(null=True) 
-    userIDs = models.ManyToManyField(User, related_name='projects')  # TODO: split into owner, editor, and viewer # Django handles as intermediary join table
+    userIDs = models.ManyToManyField(Profile, related_name='projects')  # TODO: split into owner, editor, and viewer # Django handles as intermediary join table
 
 class Status(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE)

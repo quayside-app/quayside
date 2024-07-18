@@ -1,11 +1,11 @@
 from rest_framework import serializers
-from api.models import User, Project, Task, Feedback, Status
+from api.models import  Project, Task, Feedback, Status
 
 
-class UserSerializer(serializers.Serializer):
-    class Meta:
-        model = User
-        # Default to all fields
+# class UserSerializer(serializers.Serializer):
+#     class Meta:
+#         model = User
+#         # Default to all fields
 
 class StatusSerializer(serializers.Serializer):
     class Meta:

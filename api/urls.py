@@ -1,19 +1,19 @@
 import importlib
 from django.urls import path, include
-
+import apiAccounts
 
 
 API_VERSION = "v1"
-versionedModule = importlib.import_module(name=f".{API_VERSION}", package="api")
+#versionedModule = importlib.import_module(name=f".{API_VERSION}", package="api")
 
 
 # Remember to add class to views/{version}/__init__.py
 urlpatterns = [
-    path(
-        f"{API_VERSION}/users/",
-        versionedModule.accounts.views.ProfilesAPIView.as_view(),
-        name=f"{API_VERSION}-get-user",
-    ),
+    # path(
+    #     f"{API_VERSION}/users/",
+    #     apiAccounts.ProfilesAPIView.as_view(),
+    #     name=f"{API_VERSION}-get-user",
+    # ),
     # path(
     #     f"{API_VERSION}/projects/",
     #     versionedModule.projects.ProjectsAPIView.as_view(),
