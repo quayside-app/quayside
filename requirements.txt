@@ -1,5 +1,6 @@
 annotated-types==0.6.0
 anyio==4.2.0
+asarPy==1.0.1
 asgiref==3.7.2
 astroid==3.0.3
 black==24.1.1
@@ -39,6 +40,7 @@ pandas==2.2.1
 pathspec==0.12.1
 platformdirs==4.2.0
 psycopg==3.2.1
+psycopg2-binary==2.9.9
 pycparser==2.21
 pydantic==2.6.1
 pydantic_core==2.16.2

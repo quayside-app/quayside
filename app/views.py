@@ -706,6 +706,8 @@ class Callback(TemplateView):
         # Create an api key if it doesn't exist in the db yet
         else:
             # Create/encrypt API key
+            print("-----------------")
+            print(userInfo)
             apiToken = createEncodedApiKey(userInfo["id"])
             encryptedApiKey = encryptApiKey(apiToken)
 

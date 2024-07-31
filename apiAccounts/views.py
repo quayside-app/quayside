@@ -155,6 +155,7 @@ class ProfilesAPIView(APIView):
             }, status.HTTP_400_BAD_REQUEST
 
         profileID = decodeApiKey(authorizationToken).get("profileID")
+        print(f"profileID from APIKEY: {profileID}")
         if profileID != profileData["id"]:
             return {
                 "message": "Unauthorized to update that profile."
