@@ -28,7 +28,7 @@ jobs:
           # VALIDATE_PYTHON_FLAKE8: false
           # VALIDATE_PYTHON_ISORT: false
           VALIDATE_PYTHON_PYLINT: true
-          PYTHON_PYLINT_CONFIG_FILE: /__w/quayside-app/.pylintrc
+          PYTHON_PYLINT_CONFIG_FILE: .pylintrc
           # VALIDATE_PYTHON_MYPY: false
           VALIDATE_JAVASCRIPT_ES: true
           # VALIDATE_JAVASCRIPT_STANDARD: false

@@ -30,4 +30,3 @@ class ApiConfig(AppConfig):
 
         connection_string = f"mongodb+srv://{username}:{password}@{hostname}/{database}?retryWrites=true&w=majority"
         mongo.connect(db=database, host=connection_string)
-
