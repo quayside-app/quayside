@@ -7,3 +7,4 @@ variable-naming-style=any
 argument-naming-style=any
 method-naming-style=camelCase
 module-naming-style=any
+fail-under=7
