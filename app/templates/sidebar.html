@@ -116,16 +116,15 @@
 * Shows/hides projects with the dropdown.
 */
 function toggleDropdown(type) {
-    const dropdown = document.getElementById(`${type}DropdownButton`);
-    const dropdownIcon = document.getElementById(`${type}Dropdown`);
-    const dropdownListDiv = document.getElementById(`${type}ListDiv`);
+    // const dropdown = document.getElementById(`${type}DropdownButton`)
+    const dropdownIcon = document.getElementById(`${type}Dropdown`)
+    const dropdownListDiv = document.getElementById(`${type}ListDiv`)
 
-    dropdownIcon.classList.toggle('-rotate-90');
-    dropdownIcon.classList.toggle('rotate-180');
+    dropdownIcon.classList.toggle('-rotate-90')
+    dropdownIcon.classList.toggle('rotate-180')
 
-    dropdownListDiv.classList.toggle('hidden');
+    dropdownListDiv.classList.toggle('hidden')
 }
-
 
 // Hides dropdowns by default
 // ['starred', 'projects', 'team', 'objectives'].forEach(type => {
