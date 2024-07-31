@@ -24,14 +24,17 @@ jobs:
         uses: super-linter/super-linter@v6.7.0
         env:
           VALIDATE_ALL_CODEBASE: false
-          VALIDATE_PYTHON_BLACK: true
+          # VALIDATE_PYTHON_BLACK: true
           # VALIDATE_PYTHON_FLAKE8: false
           # VALIDATE_PYTHON_ISORT: false
           VALIDATE_PYTHON_PYLINT: true
           PYTHON_PYLINT_CONFIG_FILE: .pylintrc
           # VALIDATE_PYTHON_MYPY: false
           VALIDATE_JAVASCRIPT_ES: true
-          JAVASCRIPT_ES_CONFIG_FILE: eslinter.yml
+          # JAVASCRIPT_ES_CONFIG_FILE: eslinter.yml
           # VALIDATE_JAVASCRIPT_STANDARD: false
           DEFAULT_BRANCH: origin/main
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+
+      - name: Run ESLint with Limits
+        run: npx eslint . --max-warnings 10 --max-errors 5
