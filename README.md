@@ -7,7 +7,7 @@ Welcome to our quayside.app, the project management tool that helps your team an
 You need to install python3, pip, and npm (you can do this by installing [Node.js](https://nodejs.org/en/download)). Once that is done, set up your virtual environment (venv):
 
 ```bash
-python -m venv venv
+python3 -m venv venv
 ```
 
 Now activate your venv:

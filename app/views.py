@@ -696,20 +696,21 @@ class Callback(TemplateView):
                 print(f"User creation failed: {userInfo}")
                 return HttpResponseServerError(f"An error occurred: {userInfo}")
 
-        # Redirect instead of rendering (to make it update)
         response = redirect("/")
 
         apiToken = userInfo.get("apiKey")  # Get API key
 
         if apiToken:
+
             apiToken = decryptApiKey(apiToken)
         # Create an api key if it doesn't exist in the db yet
         else:
-            # Create/encrypt API key
+            # Create/encrypt API key using ID
             print("-----------------")
             print(userInfo)
             apiToken = createEncodedApiKey(userInfo["id"])
             encryptedApiKey = encryptApiKey(apiToken)
+            print(encryptedApiKey)
 
             message, httpsCode = ProfilesAPIView.updateProfile(
                 {
@@ -728,8 +729,9 @@ class Callback(TemplateView):
         response.set_cookie("apiToken", apiToken, httponly=True)
 
         # Make sure to add email not created already (oath doesn't require username I think but does require email)
+        # TODO: Combine this logic with logic above
         if "username" not in userInfo or not userInfo["username"]:
-            message, httpsCode = ProfilesAPIView.updateUser(
+            message, httpsCode = ProfilesAPIView.updateProfile(
                 {
                     "id": userInfo["id"],
                     "username": username,

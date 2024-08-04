@@ -5,6 +5,7 @@ from django.utils.decorators import method_decorator
 from django.db.models import Q
 from django.db import IntegrityError
 
+
 from .models import Profile
 from .serializers import ProfileSerializer
 from api.decorators import apiKeyRequired
@@ -111,7 +112,7 @@ class ProfilesAPIView(APIView):
     def put(self, request):
         """
         Updates a single profile.
-        Requires 'apiToken' passed in auth header or cookies.
+        Requires 'apiToken' passed in auth header or cookies. 
 
 
         @param {HttpRequest} request - The request object.
@@ -156,17 +157,18 @@ class ProfilesAPIView(APIView):
 
         profileID = decodeApiKey(authorizationToken).get("profileID")
         print(f"profileID from APIKEY: {profileID}")
-        if profileID != profileData["id"]:
+        if profileID != profileData["id"] and authorizationToken:
             return {
                 "message": "Unauthorized to update that profile."
             }, status.HTTP_401_UNAUTHORIZED
 
         try:
-            task = Profile.objects.get(id=profileData["id"])
+            profile = Profile.objects.get(id=profileData["id"])
         except Profile.DoesNotExist:
             return None, status.HTTP_404_NOT_FOUND
 
-        serializer = ProfileSerializer(data=profileData, instance=task, partial=True)
+        
+        serializer = ProfileSerializer(data=profileData, instance=profile, partial=True)
 
         if serializer.is_valid():
             serializer.save()  # Updates profiles
@@ -281,3 +283,30 @@ class ProfilesAPIView(APIView):
             "apiKey": serializedProfile.get("apiKey"),
             "id": serializedProfile.get("id"),
         }, status.HTTP_200_OK
+
+
+    # @staticmethod
+    # def updateApiKey(profileID):
+    #     """
+    #     THIS SHOULD ONLY BE USED ON THE WEBSITE SIDE ONCE THE USER LOGS IN. DO NOT MAKE THIS A PUBLIC ROUTE.
+    #     Creates new API key for the user.
+
+    #     @param profileID      User's ID.
+    #     @return      A tuple of (response_data, http_status).
+    #     """
+
+    #     try:
+    #         profile = Profile.objects.get(id=profileID)
+    #     except Profile.DoesNotExist:
+    #         return None, status.HTTP_404_NOT_FOUND
+
+    #     apiToken = createEncodedApiKey(profileID)
+    #     encryptedApiKey = encryptApiKey(apiToken)
+        
+    #     serializer = ProfileSerializer(data={'apiKey':encryptedApiKey}, instance=profile, partial=True)
+
+    #     if serializer.is_valid():
+    #         serializer.save()  # Updates profiles
+    #         return serializer.data, status.HTTP_200_OK
+
+    #     return serializer.errors, status.HTTP_400_BAD_REQUEST
