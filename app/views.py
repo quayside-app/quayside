@@ -15,8 +15,6 @@ from django.views.generic.base import TemplateView
 from api.decorators import apiKeyRequired
 from api.utils import (
     decryptApiKey,
-    createEncodedApiKey,
-    encryptApiKey,
     getAuthorizationToken,
     decodeApiKey,
 )
@@ -703,22 +701,17 @@ class Callback(TemplateView):
         if apiToken:
 
             apiToken = decryptApiKey(apiToken)
+            print("HERE API TOKEN", apiToken)
         # Create an api key if it doesn't exist in the db yet
         else:
             # Create/encrypt API key using ID
-            print("-----------------")
-            print(userInfo)
-            apiToken = createEncodedApiKey(userInfo["id"])
-            encryptedApiKey = encryptApiKey(apiToken)
-            print(encryptedApiKey)
+            # print("-----------------")
+            # print(userInfo)
+            # apiToken = createEncodedApiKey(userInfo["id"])
+            # encryptedApiKey = encryptApiKey(apiToken)
+            # print(encryptedApiKey)
 
-            message, httpsCode = ProfilesAPIView.updateProfile(
-                {
-                    "id": userInfo["id"],
-                    "apiKey": encryptedApiKey,
-                },
-                apiToken,
-            )
+            apiToken, httpsCode = ProfilesAPIView.updateApiKey(userInfo["id"])
             if httpsCode != status.HTTP_200_OK:
                 print(f"User update failed: {message}")
                 return HttpResponseServerError(f"An error occurred: {message}")
@@ -730,6 +723,7 @@ class Callback(TemplateView):
 
         # Make sure to add email not created already (oath doesn't require username I think but does require email)
         # TODO: Combine this logic with logic above
+        print("MADE IT HERE!")
         if "username" not in userInfo or not userInfo["username"]:
             message, httpsCode = ProfilesAPIView.updateProfile(
                 {

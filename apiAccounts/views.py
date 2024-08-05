@@ -9,16 +9,9 @@ from django.db import IntegrityError
 from .models import Profile
 from .serializers import ProfileSerializer
 from api.decorators import apiKeyRequired
-from api.utils import getAuthorizationToken, decodeApiKey
+from api.utils import getAuthorizationToken, decodeApiKey, createEncodedApiKey, encryptApiKey
 
 
-from rest_framework import generics, permissions, serializers
-from oauth2_provider.contrib.rest_framework import TokenHasReadWriteScope, TokenHasScope
-
-class ProfileList(generics.ListCreateAPIView):
-    permission_classes = [permissions.IsAuthenticated, TokenHasReadWriteScope]
-    queryset = Profile.objects.all()
-    serializer_class = ProfileSerializer
 
 
 # dispatch protects all HTTP requests coming in
@@ -157,7 +150,7 @@ class ProfilesAPIView(APIView):
 
         profileID = decodeApiKey(authorizationToken).get("profileID")
         print(f"profileID from APIKEY: {profileID}")
-        if profileID != profileData["id"] and authorizationToken:
+        if profileID != profileData["id"]:
             return {
                 "message": "Unauthorized to update that profile."
             }, status.HTTP_401_UNAUTHORIZED
@@ -285,28 +278,28 @@ class ProfilesAPIView(APIView):
         }, status.HTTP_200_OK
 
 
-    # @staticmethod
-    # def updateApiKey(profileID):
-    #     """
-    #     THIS SHOULD ONLY BE USED ON THE WEBSITE SIDE ONCE THE USER LOGS IN. DO NOT MAKE THIS A PUBLIC ROUTE.
-    #     Creates new API key for the user.
+    @staticmethod
+    def updateApiKey(profileID):
+        """
+        THIS SHOULD ONLY BE USED ON THE WEBSITE SIDE ONCE THE USER LOGS IN. DO NOT MAKE THIS A PUBLIC ROUTE.
+        Creates new API key for the user.
 
-    #     @param profileID      User's ID.
-    #     @return      A tuple of (response_data, http_status).
-    #     """
+        @param profileID      User's ID.
+        @return      A tuple of (response_data, http_status).
+        """
 
-    #     try:
-    #         profile = Profile.objects.get(id=profileID)
-    #     except Profile.DoesNotExist:
-    #         return None, status.HTTP_404_NOT_FOUND
+        try:
+            profile = Profile.objects.get(id=profileID)
+        except Profile.DoesNotExist:
+            return None, status.HTTP_404_NOT_FOUND
 
-    #     apiToken = createEncodedApiKey(profileID)
-    #     encryptedApiKey = encryptApiKey(apiToken)
+        apiToken = createEncodedApiKey(profileID)
+        encryptedApiKey = encryptApiKey(apiToken)
         
-    #     serializer = ProfileSerializer(data={'apiKey':encryptedApiKey}, instance=profile, partial=True)
+        serializer = ProfileSerializer(data={'apiKey':encryptedApiKey}, instance=profile, partial=True)
 
-    #     if serializer.is_valid():
-    #         serializer.save()  # Updates profiles
-    #         return serializer.data, status.HTTP_200_OK
+        if serializer.is_valid():
+            serializer.save()  # Updates profiles
+            return apiToken, status.HTTP_200_OK
 
-    #     return serializer.errors, status.HTTP_400_BAD_REQUEST
+        return serializer.errors, status.HTTP_400_BAD_REQUEST

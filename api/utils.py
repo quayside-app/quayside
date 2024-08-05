@@ -31,7 +31,7 @@ def createEncodedApiKey(userID: str) -> str:
     load_dotenv()
     secretKey = os.getenv("API_SECRET")
     payload = {
-        "userID": userID,
+        "profileID": userID,
     }
 
     encodedApiKey = jwt.encode(payload, secretKey, algorithm="HS256")
@@ -47,7 +47,7 @@ def decodeApiKey(apiKey: str) -> str:
     @return: The decoded API key.
 
     @example:
-        userID = decodeApiKey("1234").get("userID")
+        userID = decodeApiKey("1234").get("profileID")
     """
     load_dotenv()
     secretKey = os.getenv("API_SECRET")
