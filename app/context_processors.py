@@ -27,11 +27,11 @@ def global_context(request):
     username = ""
     if token:
         decoded = jwt.decode(token, secretKey, algorithms=["HS256"])
-        userID = decoded.get("userID")
+        userID = decoded.get("profileID")
 
         data, httpsCode = ProfilesAPIView.getProfiles({"id": userID}, token)
         if httpsCode != status.HTTP_200_OK:
-            print(f"User update failed: {data.get('message')}")
+            print(f"User get failed: {data.get('message')}")
             return HttpResponseServerError(f"An error occurred: {data.get('message')}")
         username = data[0].get("username")
 
