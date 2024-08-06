@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     "app",
     "api",
     "apiAccounts",
+    'apiProjects',
     "compressor",  # For tailwind
     "django_browser_reload",  # For automatic reload
     "rest_framework",
