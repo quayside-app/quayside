@@ -75,8 +75,6 @@ Note: If npx tells you `<someFunction> is not defined  no-undef` because someFun
 // eslint-disable-next-line no-undef
 ```
 
-
-
 **Adding Dependencies** <br>
 If you add any other npm dependencies, please do it by running `npm install --save <my-dependency>` so it is added to package.json for the next person to install. Otherwise, add the package manually to package.json. If you install python dependencies, please add them to the requirements.txt by running `pip freeze > requirements.txt`.
 
