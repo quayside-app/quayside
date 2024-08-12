@@ -166,11 +166,11 @@ class TasksAPIView(APIView):
         @param authorizationToken      JWT authorization token.
         @return      A tuple of (response_data, http_status).
         """
-        userID = decodeApiKey(authorizationToken).get("userID")
+        profileID = decodeApiKey(authorizationToken).get("profileID")
         
         # Only get tasks for projects that contain the user
         projectIDs = [
-            str(project.id) for project in Project.objects.filter(userIDs=userID)
+            str(project.id) for project in Project.objects.filter(profileIDs=profileID)
         ]
 
         tasks = Task.objects.filter(**taskData, projectID__in=projectIDs)
@@ -198,7 +198,7 @@ class TasksAPIView(APIView):
         if not isinstance(taskData, list):
             taskData = [taskData]
 
-        userID = decodeApiKey(authorizationToken).get("userID")
+        profileID = decodeApiKey(authorizationToken).get("profileID")
         projectIDs = set()
 
         for task in taskData:
@@ -212,7 +212,7 @@ class TasksAPIView(APIView):
 
         # Only allow tasks for projects that contains the user
         authorizedProjectCount = Project.objects.filter(
-            id__in=projectIDs, userIDs=userID
+            id__in=projectIDs, profileIDs=profileID
         ).count()
         if authorizedProjectCount != len(projectIDs):
             return {
@@ -242,10 +242,10 @@ class TasksAPIView(APIView):
         except Task.DoesNotExist:
             return None, status.HTTP_404_NOT_FOUND
 
-        # Check if userID is in the project the task belongs to
-        userID = decodeApiKey(authorizationToken).get("userID")
+        # Check if profileID is in the project the task belongs to
+        profileID = decodeApiKey(authorizationToken).get("profileID")
         project = Project.objects.get(id=task["projectID"])
-        if ObjectId(userID) not in project["userIDs"]:
+        if ObjectId(profileID) not in project["profileIDs"]:
             return {
                 "message": "User not authorized to edit this task"
             }, status.HTTP_403_FORBIDDEN
@@ -275,13 +275,13 @@ class TasksAPIView(APIView):
                 status.HTTP_400_BAD_REQUEST,
             )
 
-        userID = decodeApiKey(authorizationToken).get("userID")
+        profileID = decodeApiKey(authorizationToken).get("profileID")
         numberObjectsDeleted = 0
         if "id" in taskData:
             task = Task.objects.get(id=taskData["id"])
-            # Check if userID is in the project the task belongs to
+            # Check if profileID is in the project the task belongs to
             project = Project.objects.get(id=task["projectID"])
-            if ObjectId(userID) not in project["userIDs"]:
+            if ObjectId(profileID) not in project["profileIDs"]:
                 return {
                     "message": "User not authorized to delete this task"
                 }, status.HTTP_403_FORBIDDEN
@@ -306,9 +306,9 @@ class TasksAPIView(APIView):
 
                 numberObjectsDeleted = Task.objects(id=taskData["id"]).delete()
         else:  # projectIDs
-            # Check if userID is in the project
+            # Check if profileID is in the project
             project = Project.objects.get(id=taskData["projectID"])
-            if ObjectId(userID) not in project["userIDs"]:
+            if ObjectId(profileID) not in project["profileIDs"]:
                 return {
                     "message": "User not authorized to delete these task(s)"
                 }, status.HTTP_403_FORBIDDEN

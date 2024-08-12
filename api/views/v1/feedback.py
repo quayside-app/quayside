@@ -33,13 +33,13 @@ class FeedbackAPIView(APIView):
                 or
                 - taskID (objectID str)
                 or
-                - userID (objectID str)
+                - profileID (objectID str)
 
         @return A Response object containing a JSON array of serialized  objects that
         match the query parameters.
 
         @example Javascript:
-            fetch('quayside.app/api/v1/feedback?userIDs=1234');
+            fetch('quayside.app/api/v1/feedback?profileIDs=1234');
         """
         responseData, httpStatus = self.getFeedback(
             request.query_params.dict(), getAuthorizationToken(request)
@@ -52,7 +52,7 @@ class FeedbackAPIView(APIView):
 
         @param {HttpRequest} request - The request object.
             The request body can contain:
-                - userID (objectID str) [OPTIONAL]
+                - profileID (objectID str) [OPTIONAL]
                 - projectID (objectID str)
                 - taskID (objectID str) [OPTIONAL]
         @param {str} authorizationToken - JWT authorization token.
@@ -86,7 +86,7 @@ class FeedbackAPIView(APIView):
                 or
                 - taskID (objectID str)
                 or
-                - userID (objectID str)
+                - profileID (objectID str)
 
         @return: A Response object with a success or an error message.
 
@@ -148,8 +148,8 @@ class FeedbackAPIView(APIView):
         @return      A tuple of (response_data, http_status).
         """
 
-        userID = decodeApiKey(authorizationToken).get("userID")
-        if "userID" in feedbackData and feedbackData["userID"] != userID:
+        profileID = decodeApiKey(authorizationToken).get("profileID")
+        if "profileID" in feedbackData and feedbackData["profileID"] != profileID:
             return { "message": "Not authorized to create feedback." }, status.HTTP_401_UNAUTHORIZED
 
         if isinstance(feedbackData, list):
@@ -186,8 +186,8 @@ class FeedbackAPIView(APIView):
             numberObjectsDeleted = Feedback.objects.filter(taskID=feedbackData["taskID"]).delete()  
         elif "projectID" in feedbackData:  
             numberObjectsDeleted = Feedback.objects.filter(projectID__all=feedbackData["projectID"], **feedbackData).delete()  
-        elif "userID" in feedbackData:  
-            numberObjectsDeleted = Feedback.objects.filter(userID=feedbackData["userID"]).delete()  
+        elif "profileID" in feedbackData:  
+            numberObjectsDeleted = Feedback.objects.filter(profileID=feedbackData["profileID"]).delete()  
 
         if numberObjectsDeleted == 0:
             return { "message": "No associated feedback found." }, status.HTTP_404_NOT_FOUND

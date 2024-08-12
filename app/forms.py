@@ -31,7 +31,7 @@ class NewProjectForm(forms.Form):
 
 
 class TaskFeedbackForm(forms.Form):
-    userID = forms.CharField(widget=forms.HiddenInput())  # Assuming the user ID is handled in the background
+    profileID = forms.CharField(widget=forms.HiddenInput())  # Assuming the user ID is handled in the background
     projectID = forms.CharField(widget=forms.HiddenInput())  # Assuming the project ID is handled in the background
     taskID = forms.CharField(required=False, widget=forms.HiddenInput())  # Optional, can be null
     dateCreated = forms.DateTimeField(widget=forms.HiddenInput())  # Default to current time

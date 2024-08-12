@@ -22,7 +22,7 @@
         </div>
 
         <!-- Hidden Forms that get passed as appropriate to the form-->
-        <input id='userID' type="hidden" name="userID" value="{{ userID }}">
+        <input id='profileID' type="hidden" name="profileID" value="{{ profileID }}">
         <input id='projectID' type="hidden" name="projectID" value="{{ projectID }}">
         <input id="taskID" type="hidden" name="taskID" value="{% if taskID %}{{ taskID }}{% endif %}">
         <input type="hidden" name="dateCreated" id="dateCreatedInput" value="{% now 'Y-m-d H:i' %}">

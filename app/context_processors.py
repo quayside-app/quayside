@@ -11,25 +11,25 @@ from app.forms import NewProjectForm
 def global_context(request):
     """
     Sets context variables used by EVERY HTML template.
-    Currently sets the userID and api version url.
+    Currently sets the profileID and api version url.
 
     @param {HttpRequest} request - The request object.
     @returns {dict} - A dictionary with the API URL and the user ID,
         where the user ID is an empty string if not authenticated.
     """
 
-    # Get userID from jwt if they are logged in
+    # Get profileID from jwt if they are logged in
     load_dotenv()
     secretKey = os.getenv("API_SECRET")
     token = request.COOKIES.get("apiToken")
 
-    userID = ""
+    profileID = ""
     username = ""
     if token:
         decoded = jwt.decode(token, secretKey, algorithms=["HS256"])
-        userID = decoded.get("profileID")
+        profileID = decoded.get("profileID")
 
-        data, httpsCode = ProfilesAPIView.getProfiles({"id": userID}, token)
+        data, httpsCode = ProfilesAPIView.getProfiles({"id": profileID}, token)
         if httpsCode != status.HTTP_200_OK:
             print(f"User get failed: {data.get('message')}")
             return HttpResponseServerError(f"An error occurred: {data.get('message')}")
@@ -37,7 +37,7 @@ def global_context(request):
 
     return {
         "apiUrl": "/api/v1",
-        "userID": userID,
+        "profileID": profileID,
         "username": username,
         "newProjectForm": NewProjectForm(),
     }

@@ -21,9 +21,8 @@ from api.utils import (
 from api.views.v1.feedback import FeedbackAPIView
 from api.views.v1.tasks import TasksAPIView
 from api.views.v1.generatedTasks import GeneratedTasksAPIView
-from apiProjects.views import ProjectsAPIView
+from apiProjects.views import ProjectsAPIView, StatusesAPIView
 from apiAccounts.views import ProfilesAPIView
-from api.views.v1.statuses import StatusesAPIView
 
 from app.context_processors import global_context
 from app.forms import NewProjectForm, TaskForm, ProjectForm, TaskFeedbackForm
@@ -89,7 +88,7 @@ def projectGraphView(request, projectID):
 @apiKeyRequired
 def generateTaskFeedbackForm(request):
     payload = {
-        "userID": global_context(request).get("userID"),
+        "profileID": global_context(request).get("profileID"),
         "TaskFeedbackForm": TaskFeedbackForm
     }
     return payload
@@ -110,8 +109,8 @@ def createTaskFeedback(request, projectID):
             newData = form.cleaned_data
             newData["projectID"] = projectID
             print("PROJ ID:", projectID)
-            currentUserID = decodeApiKey(getAuthorizationToken(request)).get("userID")
-            newData['userID'] = currentUserID
+            currentUserID = decodeApiKey(getAuthorizationToken(request)).get("profileID")
+            newData['profileID'] = currentUserID
 
             # Remove blank task IDs (bc not required)
             if not newData["taskID"]:
@@ -170,14 +169,14 @@ def editProjectView(request, projectID):
             newData = form.cleaned_data
             newData["id"] = projectID
 
-            # Replace user emails with userIDs to save
+            # Replace user emails with profileIDs to save
 
             # Splits on comma, space, or newline. Makes sure only unique emails
             emails = set(re.split(r"\s*[, \n]+\s*", newData["contributors"].strip()))
             # Filter out empty strings
             emails = {email for email in emails if email}
 
-            userIDs = []
+            profileIDs = []
             if emails:
                 del newData["contributors"]
                 emails = [{"email": email} for email in emails if email]
@@ -191,13 +190,13 @@ def editProjectView(request, projectID):
                         f"Could not query contributor ids for project: {contributorData.get('message')}"
                     )
 
-                userIDs = [user["id"] for user in contributorData]
+                profileIDs = [user["id"] for user in contributorData]
 
-            currentUserID = decodeApiKey(getAuthorizationToken(request)).get("userID")
-            if currentUserID not in userIDs:
-                userIDs.append(currentUserID)
+            currentUserID = decodeApiKey(getAuthorizationToken(request)).get("profileID")
+            if currentUserID not in profileIDs:
+                profileIDs.append(currentUserID)
 
-            newData["userIDs"] = userIDs
+            newData["profileIDs"] = profileIDs
             message, httpsCode = ProjectsAPIView.updateProject(
                 newData, getAuthorizationToken(request)
             )
@@ -222,10 +221,10 @@ def editProjectView(request, projectID):
 
         # Get contributor emails
         contributorString = ""
-        currentUserID = decodeApiKey(getAuthorizationToken(request)).get("userID")
-        userIDs = projectData.get("userIDs")
+        currentUserID = decodeApiKey(getAuthorizationToken(request)).get("profileID")
+        profileIDs = projectData.get("profileIDs")
 
-        contributorIDs = [{"id": ID} for ID in userIDs if ID != currentUserID]
+        contributorIDs = [{"id": ID} for ID in profileIDs if ID != currentUserID]
         if contributorIDs:
             contributorData, httpsCode = ProfilesAPIView.getProfiles(contributorIDs)
             if httpsCode != status.HTTP_200_OK:
@@ -305,7 +304,7 @@ def taskView(request, projectID:str, viewType:str, taskID:str=None, parentTaskID
     projectData = data[0]
 
     userDataList, statusCode = ProfilesAPIView.getProfiles(
-        [{"id": id} for id in projectData.get("userIDs")], getAuthorizationToken(request))
+        [{"id": id} for id in projectData.get("profileIDs")], getAuthorizationToken(request))
     if statusCode != status.HTTP_200_OK:
         print(f"Users fetch failed: {userDataList.get('message')}")
         return HttpResponseServerError(f"An error occurred: {userDataList.get('message')}")
@@ -456,9 +455,9 @@ def createProjectView(request):
 
     """
 
-    # Gets userID from global context
+    # Gets profileID from global context
     context = global_context(request)
-    userId = context.get("userID")
+    userId = context.get("profileID")
 
     # If this is a POST request, process the form data
     if request.method == "POST":
@@ -472,7 +471,7 @@ def createProjectView(request):
                 {
                     "name": name,
                     "description": description, 
-                    "userIDs": [userId]
+                    "profileIDs": [userId]
                 }, getAuthorizationToken(request)
             )
             if httpsCode != status.HTTP_201_CREATED:

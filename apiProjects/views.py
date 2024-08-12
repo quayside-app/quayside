@@ -6,9 +6,9 @@ from django.utils.decorators import method_decorator
 from django.core.exceptions import ObjectDoesNotExist
 
 from api.decorators import apiKeyRequired
-from api.serializers import ProjectSerializer
+from .serializers import ProjectSerializer, StatusSerializer
 from api.views.v1.tasks import TasksAPIView
-from api.models import Project
+from .models import Project
 from api.utils import getAuthorizationToken, decodeApiKey
 
 
@@ -39,7 +39,7 @@ class ProjectsAPIView(APIView):
                 - scopesIncluded (list[str])
                 - scopesExcluded (list[str])
                 - risks (list[str])
-                - userIDs (list[ObjectId])
+                - profileIDs (list[ObjectId])
                 - projectManagerIDs (list[ObjectId])
                 - sponsors (list[str])
                 - contributorIDs (list[ObjectId])
@@ -55,7 +55,7 @@ class ProjectsAPIView(APIView):
         match the query parameters.
 
         @example Javascript:
-            fetch('quayside.app/api/v1/projects?userIDs=1234');
+            fetch('quayside.app/api/v1/projects?profileIDs=1234');
         """
         responseData, httpStatus = self.getProjects(
             request.query_params.dict(), getAuthorizationToken(request)
@@ -79,7 +79,7 @@ class ProjectsAPIView(APIView):
                 - scopesIncluded (list[str])
                 - scopesExcluded (list[str])
                 - risks (list[str])
-                - userIDs (list[ObjectId])
+                - profileIDs (list[ObjectId])
                 - projectManagerIDs (list[ObjectId])
                 - sponsors (list[str])
                 - contributorIDs (list[ObjectId])
@@ -128,7 +128,7 @@ class ProjectsAPIView(APIView):
                 - scopesIncluded (list[str])
                 - scopesExcluded (list[str])
                 - risks (list[str])
-                - userIDs (list[ObjectId])
+                - profileIDs (list[ObjectId])
                 - projectManagerIDs (list[ObjectId])
                 - sponsors (list[str])
                 - contributorIDs (list[ObjectId])
@@ -189,18 +189,18 @@ class ProjectsAPIView(APIView):
         try:
 
             # Only get project where user is a contributor
-            userID = decodeApiKey(authorizationToken).get("userID")
+            profileID = decodeApiKey(authorizationToken).get("profileID")
 
-            if "userIDs" not in projectData:
-                projectData["userIDs"] = []
-            elif not isinstance(projectData["userIDs"], list):
-                projectData["userIDs"] = [projectData["userIDs"]]
-            if userID not in projectData["userIDs"]:
-                projectData["userIDs"].append(userID)
+            if "profileIDs" not in projectData:
+                projectData["profileIDs"] = []
+            elif not isinstance(projectData["profileIDs"], list):
+                projectData["profileIDs"] = [projectData["profileIDs"]]
+            if profileID not in projectData["profileIDs"]:
+                projectData["profileIDs"].append(profileID)
 
             projects = Project.objects.filter(
-                userIDs__all=projectData.pop("userIDs"), **projectData
-            )  # Query mongo
+                profileIDs__in=projectData.pop("profileIDs"), **projectData
+            )  
 
             if not projects:
                 return {
@@ -232,9 +232,9 @@ class ProjectsAPIView(APIView):
         except ObjectDoesNotExist:
             return "Project not found", status.HTTP_404_NOT_FOUND
 
-        # Check if userID is in the project's list of UserIDs
-        userID = decodeApiKey(authorizationToken).get("userID")
-        if ObjectId(userID) not in project["userIDs"]:
+        # Check if profileID is in the project's list of UserIDs
+        profileID = decodeApiKey(authorizationToken).get("profileID")
+        if ObjectId(profileID) not in project["profileIDs"]:
             return {
                 "message": "User not authorized to edit this project"
             }, status.HTTP_403_FORBIDDEN
@@ -258,11 +258,11 @@ class ProjectsAPIView(APIView):
         @param authorizationToken      JWT authorization token.
         @return      A tuple of (response_data, http_status).
         """
-        userID = decodeApiKey(authorizationToken).get("profileID")
+        profileID = decodeApiKey(authorizationToken).get("profileID")
 
-        if "userIDs" not in projectData or projectData["userIDs"] != [userID]:
+        if "profileIDs" not in projectData or projectData["profileIDs"] != [profileID]:
             return {
-                "message": "Request data must contain a list of userIDs with only your user ID present."
+                "message": "Request data must contain a list of profileIDs with only your user ID present."
             }, status.HTTP_400_BAD_REQUEST
 
         if isinstance(projectData, list):
@@ -293,11 +293,10 @@ class ProjectsAPIView(APIView):
             ]
 
             for defaultStatus in defaultStatuses:
-                defaultStatus['projectID'] = serializer.data.id
+                defaultStatus['projectID'] = serializer.data["id"]
                 StatusesAPIView.createStatus(defaultStatus, authorizationToken)
             # Returns data including new primary key
             return serializer.data, status.HTTP_201_CREATED
-
         return {"message":serializer.errors}, status.HTTP_400_BAD_REQUEST
 
     @staticmethod
@@ -315,8 +314,8 @@ class ProjectsAPIView(APIView):
         ID = projectData["id"]
         project = Project.objects.get(id=ID)
 
-        userID = decodeApiKey(authorizationToken).get("userID")
-        if ObjectId(userID) not in project["userIDs"]:
+        profileID = decodeApiKey(authorizationToken).get("profileID")
+        if ObjectId(profileID) not in project["profileIDs"]:
             return {
                 "message": "Not authorized to delete project."
             }, status.HTTP_401_UNAUTHORIZED
@@ -531,6 +530,7 @@ class StatusesAPIView(APIView):
             )
             data=data[0]
 
+
             if httpsCode != status.HTTP_200_OK and httpsCode != status.HTTP_404_NOT_FOUND:
                 return data["message"], httpsCode
 
@@ -553,7 +553,6 @@ class StatusesAPIView(APIView):
             if serializer.is_valid():
                 serializer.save()  # Updates projects
                 return {"message":"Successfully created status"}, status.HTTP_200_OK
-            
             return {"message":serializer.errors}, status.HTTP_400_BAD_REQUEST
 
         except Exception as e:

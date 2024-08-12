@@ -4,7 +4,7 @@ from app.context_processors import global_context
 
 def index(request):
     context = global_context(request)
-    userId = context.get("userID")
+    userId = context.get("profileID")
     if(userId):
         return render(request, "index.html")
     else:

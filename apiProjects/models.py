@@ -3,10 +3,10 @@ from apiAccounts.models import Profile
 
 class Project(models.Model):
     name = models.CharField(max_length=255)  # TODO LIMIT ON FRONT END
-    description = models.TextField()
+    description = models.TextField(null=True, blank=True)
     startDate = models.DateField(null=True)  
     endDate = models.DateField(null=True) 
-    userIDs = models.ManyToManyField(Profile, related_name='projects')  # TODO: split into owner, editor, and viewer # Django handles as intermediary join table
+    profileIDs = models.ManyToManyField(Profile, related_name='projects') # Django handles as intermediary join table # TODO: split into owner, editor, and viewer 
 
 class Status(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE)

@@ -19,19 +19,19 @@ def getAuthorizationToken(request) -> str:
     return token
 
 
-def createEncodedApiKey(userID: str) -> str:
+def createEncodedApiKey(profileID: str) -> str:
     """
     Generates an encoded API key for a given user ID using JWT encoding.
     WARNING: if this key is stored in the database, it still needs to be encrypted (below).
 
-    @param userID: The user ID for to encode.
+    @param profileID: The user ID for to encode.
     @return: The encoded API key for the user
     """
 
     load_dotenv()
     secretKey = os.getenv("API_SECRET")
     payload = {
-        "profileID": userID,
+        "profileID": profileID,
     }
 
     encodedApiKey = jwt.encode(payload, secretKey, algorithm="HS256")
@@ -40,14 +40,14 @@ def createEncodedApiKey(userID: str) -> str:
 
 def decodeApiKey(apiKey: str) -> str:
     """
-    Decodes the provided API key using JWT decoding to proved the userID.
+    Decodes the provided API key using JWT decoding to proved the profileID.
     Will raise jwt.ExpiredSignatureError, or jwt.InvalidTokenError if the token is expired or invalid.
 
     @param apiKey: The encoded API key that needs to be decoded.
     @return: The decoded API key.
 
     @example:
-        userID = decodeApiKey("1234").get("profileID")
+        profileID = decodeApiKey("1234").get("profileID")
     """
     load_dotenv()
     secretKey = os.getenv("API_SECRET")

@@ -36,7 +36,7 @@ class Task(models.Model):
     # TODO automagically set date when updated
 
 class Feedback(models.Model):
-    userID = models.ForeignKey(Profile, on_delete=models.SET("DELETED_PROFILE"))  # TODO: Null may be better?  # Rename to profile
+    profileID = models.ForeignKey(Profile, on_delete=models.SET("DELETED_PROFILE"))  # TODO: Null may be better?  # Rename to profile
     projectID = models.ForeignKey(Project, on_delete=models.SET("DELETED_PROFILE"))
     taskID = models.ForeignKey(Task, on_delete=models.SET("DELETED_PROFILE"))
     dateCreated = models.DateField(auto_now_add=True)

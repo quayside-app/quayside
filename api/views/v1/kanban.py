@@ -7,7 +7,7 @@ from api.models import Task
 from api.serializers import TaskSerializer
 from api.decorators import apiKeyRequired
 from api.views.v1.tasks import TasksAPIView
-from api.views.v1.statuses import StatusesAPIView
+from apiProjects.views import StatusesAPIView
 from api.utils import getAuthorizationToken
 from bson.objectid import ObjectId
 

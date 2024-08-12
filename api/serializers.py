@@ -7,17 +7,6 @@ from api.models import  Project, Task, Feedback, Status
 #         model = User
 #         # Default to all fields
 
-class StatusSerializer(serializers.Serializer):
-    class Meta:
-        model=Status
-        fields = '__all__'
-
-class ProjectSerializer(serializers.Serializer):
-    taskStatuses = StatusSerializer(many=True)
-    class Meta:
-        model = Project
-        fields = '__all__'
-        # Default to all fields
 
     # def create(self, validated_data):
     #     status_data_list = validated_data.pop('taskStatuses', [])
@@ -46,7 +35,7 @@ class ProjectSerializer(serializers.Serializer):
     #     instance.scopesIncluded = validated_data.get('scopesIncluded', instance.scopesIncluded)
     #     instance.scopesExcluded = validated_data.get('scopesExcluded', instance.scopesExcluded)
     #     instance.risks = validated_data.get('risks', instance.risks)
-    #     instance.userIDs = validated_data.get('userIDs', instance.userIDs)
+    #     instance.profileIDs = validated_data.get('profileIDs', instance.profileIDs)
     #     instance.projectManagerIDs = validated_data.get('projectManagerIDs', instance.projectManagerIDs)
     #     instance.sponsors = validated_data.get('sponsors', instance.sponsors)
     #     instance.contributorIDs = validated_data.get('contributorIDs', instance.contributorIDs)

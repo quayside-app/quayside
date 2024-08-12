@@ -6,7 +6,7 @@
 */
 (async function () {
   try {
-    const response = await fetch('{{ apiUrl }}/projects/?userIDs={{userID}}')
+    const response = await fetch('{{ apiUrl }}/projects/?profileIDs={{profileID}}')
     const projects = await response.json()
 
     if (!response.ok) throw new Error(projects.message || 'Network response was not ok')

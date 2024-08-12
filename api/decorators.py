@@ -29,10 +29,10 @@ def apiKeyRequired(function):
             return JsonResponse({"Error": "Invalid API Key"}, status=401)
 
         # Verify that the user is in the database + API key matches (Can check perms if needed too)
-        userID = decodedKey.get("profileID")
+        profileID = decodedKey.get("profileID")
         try:
 
-            user = Profile.objects.filter(id=userID).first()
+            user = Profile.objects.filter(id=profileID).first()
 
             if not user:
                 return JsonResponse(
