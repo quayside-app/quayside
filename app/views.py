@@ -21,7 +21,7 @@ from api.utils import (
 from api.views.v1.feedback import FeedbackAPIView
 from api.views.v1.tasks import TasksAPIView
 from api.views.v1.generatedTasks import GeneratedTasksAPIView
-from api.views.v1.projects import ProjectsAPIView
+from apiProjects.views import ProjectsAPIView
 from apiAccounts.views import ProfilesAPIView
 from api.views.v1.statuses import StatusesAPIView
 
@@ -701,16 +701,8 @@ class Callback(TemplateView):
         if apiToken:
 
             apiToken = decryptApiKey(apiToken)
-            print("HERE API TOKEN", apiToken)
         # Create an api key if it doesn't exist in the db yet
         else:
-            # Create/encrypt API key using ID
-            # print("-----------------")
-            # print(userInfo)
-            # apiToken = createEncodedApiKey(userInfo["id"])
-            # encryptedApiKey = encryptApiKey(apiToken)
-            # print(encryptedApiKey)
-
             apiToken, httpsCode = ProfilesAPIView.updateApiKey(userInfo["id"])
             if httpsCode != status.HTTP_200_OK:
                 print(f"User update failed: {message}")
@@ -723,7 +715,6 @@ class Callback(TemplateView):
 
         # Make sure to add email not created already (oath doesn't require username I think but does require email)
         # TODO: Combine this logic with logic above
-        print("MADE IT HERE!")
         if "username" not in userInfo or not userInfo["username"]:
             message, httpsCode = ProfilesAPIView.updateProfile(
                 {

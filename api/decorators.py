@@ -29,7 +29,7 @@ def apiKeyRequired(function):
             return JsonResponse({"Error": "Invalid API Key"}, status=401)
 
         # Verify that the user is in the database + API key matches (Can check perms if needed too)
-        userID = decodedKey.get("userID")
+        userID = decodedKey.get("profileID")
         try:
 
             user = Profile.objects.filter(id=userID).first()
@@ -40,15 +40,15 @@ def apiKeyRequired(function):
                 )
 
             # Check API keys match
-            decryptedApiToken = decryptApiKey(user["apiKey"])
+            decryptedApiToken = decryptApiKey(user.apiKey)
             if token != decryptedApiToken:
                 return JsonResponse(
                     {"Error": "No user associated with that token"}, status=401
                 )
 
-        except Exception:
+        except Exception as e:
             return JsonResponse(
-                {"Error": "Could not find user associated with token"}, status=401
+                {"Error" : f"Could not find user associated with token: {e}"}, status=401
             )
         return function(request, *args, **kwargs)  # Call original function
 

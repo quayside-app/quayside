@@ -10,7 +10,7 @@ from api.serializers import ProjectSerializer
 from api.views.v1.tasks import TasksAPIView
 from api.models import Project
 from api.utils import getAuthorizationToken, decodeApiKey
-from api.views.v1.projects import ProjectsAPIView
+from apiProjects.views import ProjectsAPIView
 
 
 @method_decorator(

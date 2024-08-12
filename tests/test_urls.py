@@ -2,6 +2,9 @@ from django.test import SimpleTestCase
 from django.urls import reverse, resolve
 from api import views as api_views
 from app import views as app_views
+from apiProjects.views import ProjectsAPIView
+from apiAccounts.views import ProfilesAPIView
+
 from quayside import views as quayside_views
 import re
 
@@ -11,13 +14,13 @@ class TestAPIUrls(SimpleTestCase):
         url = reverse("v1-get-user")
         self.assertEqual(url, "/api/v1/users/")
         resolver = resolve(url)
-        self.assertEqual(resolver.func.view_class, api_views.users.UsersAPIView)
+        self.assertEqual(resolver.func.view_class, ProfilesAPIView)
 
     def test_projects_list_url(self):
         url = reverse("v1-projects-list")
         self.assertEqual(url, "/api/v1/projects/")
         resolver = resolve(url)
-        self.assertEqual(resolver.func.view_class, api_views.projects.ProjectsAPIView)
+        self.assertEqual(resolver.func.view_class, ProjectsAPIView)
 
     def test_tasks_list_url(self):
         url = reverse("v1-tasks-list")
