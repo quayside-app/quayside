@@ -4,9 +4,9 @@ from rest_framework import status
 from django.utils.decorators import method_decorator
 
 from api.models import Task
-from api.serializers import TaskSerializer
+from apiTasks.serializers import TaskSerializer
 from api.decorators import apiKeyRequired
-from api.views.v1.tasks import TasksAPIView
+from apiTasks.views import TasksAPIView
 from apiProjects.views import StatusesAPIView
 from api.utils import getAuthorizationToken
 from bson.objectid import ObjectId

@@ -7,7 +7,7 @@ from django.core.exceptions import ObjectDoesNotExist
 
 from api.decorators import apiKeyRequired
 from .serializers import ProjectSerializer, StatusSerializer
-from api.views.v1.tasks import TasksAPIView
+from apiTasks.views import TasksAPIView
 from .models import Project
 from api.utils import getAuthorizationToken, decodeApiKey
 
@@ -458,14 +458,20 @@ class StatusesAPIView(APIView):
             )
             data = data[0]
 
+            print("xxxxxxxxxxxxxxxxxxxxxxxxxx")
+
             if httpsCode != status.HTTP_200_OK and httpsCode != status.HTTP_404_NOT_FOUND:
+                print("yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy")
                 return data["message"], httpsCode
             
             if "taskStatuses" not in data or not data["taskStatuses"]:
-                return { "message": "No status associated with project" }, status.HTTP_404_NOT_FOUND
-            
+                print("HERERERERERE")
+                return { "taskStatuses": [] }, status.HTTP_404_NOT_FOUND
+            print("ddddddddddddddddddddddddddddddddd")
+            print(data)
             return data["taskStatuses"], status.HTTP_200_OK
         except Exception as e:
+            print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
             print("Error:", e)
             return {"message": e}, status.HTTP_500_INTERNAL_SERVER_ERROR
 

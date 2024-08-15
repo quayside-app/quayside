@@ -4,6 +4,7 @@ from api import views as api_views
 from app import views as app_views
 from apiProjects.views import ProjectsAPIView
 from apiAccounts.views import ProfilesAPIView
+from apiTasks.views import TasksAPIView, GeneratedTasksAPIView
 
 from quayside import views as quayside_views
 import re
@@ -26,13 +27,13 @@ class TestAPIUrls(SimpleTestCase):
         url = reverse("v1-tasks-list")
         self.assertEqual(url, "/api/v1/tasks/")
         resolver = resolve(url)
-        self.assertEqual(resolver.func.view_class, api_views.tasks.TasksAPIView)
+        self.assertEqual(resolver.func.view_class, TasksAPIView)
 
     def test_generated_tasks_url(self):
         url = reverse("v1-generated-tasks")
         self.assertEqual(url, "/api/v1/generatedTasks/")
         resolver = resolve(url)
-        self.assertEqual(resolver.func.view_class, api_views.generatedTasks.GeneratedTasksAPIView)
+        self.assertEqual(resolver.func.view_class, GeneratedTasksAPIView)
 
     def test_kanban_url(self):
         url = reverse("v1-kanban-board")

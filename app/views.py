@@ -19,8 +19,8 @@ from api.utils import (
     decodeApiKey,
 )
 from api.views.v1.feedback import FeedbackAPIView
-from api.views.v1.tasks import TasksAPIView
-from api.views.v1.generatedTasks import GeneratedTasksAPIView
+from apiTasks.views import TasksAPIView
+from apiTasks.views import GeneratedTasksAPIView
 from apiProjects.views import ProjectsAPIView, StatusesAPIView
 from apiAccounts.views import ProfilesAPIView
 
@@ -398,6 +398,9 @@ def taskView(request, projectID:str, viewType:str, taskID:str=None, parentTaskID
         taskView.statusData, statusCode = StatusesAPIView.getStatuses(
             {"projectID": projectID}, getAuthorizationToken(request))
         if statusCode != status.HTTP_200_OK:
+            print("--------")
+            print(statusCode)
+            print(data)
             print(f"Task fetch failed: {data.get('message')}")
             return HttpResponseServerError(f"An error occurred: {data.get('message')}")
         

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from api.models import  Project, Task, Feedback, Status
+from api.models import  Project, Task, Feedback
 
 
 # class UserSerializer(serializers.Serializer):
@@ -59,17 +59,7 @@ from api.models import  Project, Task, Feedback, Status
     #     return instance
 
 
-class TaskSerializer(serializers.Serializer):
-    class Meta:
-        model = Task
-        # Default to all fields
 
 class FeedbackSerializer(serializers.Serializer):
     class Meta:
         model = Feedback
-
-
-class GeneratedTaskSerializer(serializers.Serializer):
-    projectID = serializers.CharField(required=True)
-    name = serializers.CharField(required=True)  # project name
-    description = serializers.CharField(allow_blank=True, allow_null=True)
