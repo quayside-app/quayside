@@ -4,6 +4,7 @@ from api.models import Task
 class TaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
+        fields = '__all__'
         # Default to all fields
 
 class GeneratedTaskSerializer(serializers.ModelSerializer):

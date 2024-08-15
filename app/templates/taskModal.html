@@ -119,7 +119,8 @@
 
             if (!response.ok) {
             const errorData = await response.json()
-            throw new Error(errorData.message || 'Network response was not ok')
+            console.log("--------------", errorData)
+            throw new Error(errorData.message || errorData.detail || 'Network response was not ok')
             }
 
             // Navigate to project after deleting

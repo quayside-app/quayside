@@ -398,13 +398,12 @@ def taskView(request, projectID:str, viewType:str, taskID:str=None, parentTaskID
         taskView.statusData, statusCode = StatusesAPIView.getStatuses(
             {"projectID": projectID}, getAuthorizationToken(request))
         if statusCode != status.HTTP_200_OK:
-            print("--------")
             print(statusCode)
-            print(data)
-            print(f"Task fetch failed: {data.get('message')}")
-            return HttpResponseServerError(f"An error occurred: {data.get('message')}")
-        
-        initialStatus = taskView.statusData[0]["name"]
+            print(taskView.statusData)
+            print(f"Task fetch failed: {taskView.statusData.get('message')}")
+            return HttpResponseServerError(f"An error occurred: {taskView.statusData.get('message')}")
+
+        initialStatus = taskView.statusData[0]["name"] if taskView.statusData else ""
         status_choices = []
         for stat in taskView.statusData:
             status_choices.append((stat["id"], stat["name"]))

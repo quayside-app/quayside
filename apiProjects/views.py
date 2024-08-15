@@ -458,20 +458,14 @@ class StatusesAPIView(APIView):
             )
             data = data[0]
 
-            print("xxxxxxxxxxxxxxxxxxxxxxxxxx")
 
             if httpsCode != status.HTTP_200_OK and httpsCode != status.HTTP_404_NOT_FOUND:
-                print("yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy")
                 return data["message"], httpsCode
             
             if "taskStatuses" not in data or not data["taskStatuses"]:
-                print("HERERERERERE")
-                return { "taskStatuses": [] }, status.HTTP_404_NOT_FOUND
-            print("ddddddddddddddddddddddddddddddddd")
-            print(data)
+                return [], status.HTTP_200_OK
             return data["taskStatuses"], status.HTTP_200_OK
         except Exception as e:
-            print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
             print("Error:", e)
             return {"message": e}, status.HTTP_500_INTERNAL_SERVER_ERROR
 
