@@ -16,6 +16,6 @@ class Task(models.Model):
     durationMinutes = models.IntegerField(null=True, blank=True)
     dateCreated = models.DateField(auto_now_add=True)
     dateLastEdit = models.DateField(null=True, blank=True) # TODO ADD LOGIC FOR THIS
-    lastEditor = models.ForeignKey(Profile, on_delete=models.SET("DELETED_PROFILE"), null=True, blank=True)  # TODO: Null on_delete may be better? # TODO: ADD LOGIC IN VIEWS FOR THIS
+    lastEditor = models.ForeignKey(Profile, on_delete=models.SET_NULL, null=True, blank=True)  # TODO: Null on_delete may be better? # TODO: ADD LOGIC IN VIEWS FOR THIS
 
     # TODO automagically set date when updated

@@ -250,8 +250,9 @@ class TasksAPIView(APIView):
 
         # Check if profileID is in the project the task belongs to
         profileID = decodeApiKey(authorizationToken).get("profileID")
-        project = Project.objects.get(id=task["projectID"])
-        if ObjectId(profileID) not in project["profileIDs"]:
+        project = task.projectID
+        #if ObjectId(profileID) not in project["profileIDs"]
+        if not project.profileIDs.filter(id=profileID).exists():
             return {
                 "message": "User not authorized to edit this task"
             }, status.HTTP_403_FORBIDDEN
@@ -303,7 +304,7 @@ class TasksAPIView(APIView):
                 childTasks = task.childTasks.all() # Task.objects(parentTaskID=task)
                 for childTask in childTasks:
                     message, httpsCode = TasksAPIView.updateTask(
-                        {"id": childTask["id"], "parentTaskID": task["parentTaskID"]},
+                        {"id": childTask.id, "parentTaskID": task.parentTaskID_id},
                         authorizationToken,
                     )
                     print("HERE3")
@@ -315,6 +316,7 @@ class TasksAPIView(APIView):
                             f"Error moving children while deleting task: {message.get('message')}",
                             status.HTTP_500_INTERNAL_SERVER_ERROR,
                         )
+                print("-------------", taskData["id"])
 
                 numberObjectsDeleted, _ = Task.objects.filter(id=taskData["id"]).delete()
         else:  # projectIDs
@@ -324,10 +326,8 @@ class TasksAPIView(APIView):
                 return {
                     "message": "User not authorized to delete these task(s)"
                 }, status.HTTP_403_FORBIDDEN
+            numberObjectsDeleted, _ = Task.objects.filter(projectID=taskData["projectID"]).delete()
 
-            numberObjectsDeleted = Task.objects(
-                projectID=taskData["projectID"]
-            ).delete()
 
         if numberObjectsDeleted == 0:
             return {"message": "No tasks found to delete."}, status.HTTP_404_NOT_FOUND
@@ -342,10 +342,11 @@ def deleteAllChildren(taskID):
     @return: Total number of tasks deleted.
     """
     numberObjectsDeleted = 0
-    children = Task.objects(parentTaskID=taskID)
+    children = Task.objects.filter(parentTaskID=taskID)
     for child in children:
         numberObjectsDeleted += deleteAllChildren(child.id)
-    numberObjectsDeleted += Task.objects(id=taskID).delete()
+    
+    numberObjectsDeleted += Task.objects.filter(id=taskID).delete()[0]
     return numberObjectsDeleted
 
 
