@@ -7,7 +7,7 @@ class TaskSerializer(serializers.ModelSerializer):
         fields = '__all__'
         # Default to all fields
 
-class GeneratedTaskSerializer(serializers.ModelSerializer):
+class GeneratedTaskSerializer(serializers.Serializer):
     projectID = serializers.CharField(required=True)
     name = serializers.CharField(required=True)  # project name
     description = serializers.CharField(allow_blank=True, allow_null=True)
