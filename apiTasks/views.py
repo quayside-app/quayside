@@ -322,7 +322,7 @@ class TasksAPIView(APIView):
         else:  # projectIDs
             # Check if profileID is in the project
             project = Project.objects.get(id=taskData["projectID"])
-            if ObjectId(profileID) not in project["profileIDs"]:
+            if not project.profileIDs.filter(id=profileID).exists():
                 return {
                     "message": "User not authorized to delete these task(s)"
                 }, status.HTTP_403_FORBIDDEN

@@ -1,7 +1,6 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from bson.objectid import ObjectId
 from django.utils.decorators import method_decorator
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -234,7 +233,7 @@ class ProjectsAPIView(APIView):
 
         # Check if profileID is in the project's list of UserIDs
         profileID = decodeApiKey(authorizationToken).get("profileID")
-        if ObjectId(profileID) not in project["profileIDs"]:
+        if not project.profileIDs.filter(id=profileID).exists():
             return {
                 "message": "User not authorized to edit this project"
             }, status.HTTP_403_FORBIDDEN
@@ -293,8 +292,10 @@ class ProjectsAPIView(APIView):
             ]
 
             for defaultStatus in defaultStatuses:
-                defaultStatus['projectID'] = serializer.data["id"]
-                StatusesAPIView.createStatus(defaultStatus, authorizationToken)
+                defaultStatus['project'] = serializer.data["id"]
+                data, statusCode = StatusesAPIView.createStatus(defaultStatus, authorizationToken)
+                if statusCode != status.HTTP_201_CREATED:
+                    return {"message": f"There was an error creating default statuses for the project: {data}"}, statusCode
             # Returns data including new primary key
             return serializer.data, status.HTTP_201_CREATED
         return {"message":serializer.errors}, status.HTTP_400_BAD_REQUEST
@@ -315,7 +316,8 @@ class ProjectsAPIView(APIView):
         project = Project.objects.get(id=ID)
 
         profileID = decodeApiKey(authorizationToken).get("profileID")
-        if ObjectId(profileID) not in project["profileIDs"]:
+
+        if not project.profileIDs.filter(id=profileID).exists():
             return {
                 "message": "Not authorized to delete project."
             }, status.HTTP_401_UNAUTHORIZED
@@ -524,35 +526,19 @@ class StatusesAPIView(APIView):
         @return      A tuple of (response_data, http_status).
         """
         try:
-            # Only get project where user is a contributor
-            data, httpsCode = ProjectsAPIView.getProjects(
-                {"id": statusData["projectID"]}, authorizationToken
-            )
-            data=data[0]
 
-
-            if httpsCode != status.HTTP_200_OK and httpsCode != status.HTTP_404_NOT_FOUND:
-                return data["message"], httpsCode
-
-            if "taskStatuses" not in data or not data["taskStatuses"]:
+            # Check if profile can access project
+            profileID = decodeApiKey(authorizationToken).get("profileID")
+            if not Project.objects.filter(id=statusData["project"], profileIDs__id=profileID).exists():
                 return {
-                    "message": "No status associated with project"
-                }, status.HTTP_204_NO_CONTENT
-            
-            for stat in data["taskStatuses"]:
-                if stat["name"] == statusData["name"]:
-                    return {
-                        "message": "Status with name already exists"
-                    }, status.HTTP_403_FORBIDDEN
-                
-                statusData.pop("projectID")
-                data["taskStatuses"].append(statusData)
+                    "message": "No projects were found or you do not have authorization."
+                }, status.HTTP_400_BAD_REQUEST
 
-            serializer = ProjectSerializer(data=data)
+            serializer = StatusSerializer(data=statusData)
 
             if serializer.is_valid():
                 serializer.save()  # Updates projects
-                return {"message":"Successfully created status"}, status.HTTP_200_OK
+                return {"message":"Successfully created status"}, status.HTTP_201_CREATED
             return {"message":serializer.errors}, status.HTTP_400_BAD_REQUEST
 
         except Exception as e:
