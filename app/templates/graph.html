@@ -24,7 +24,7 @@
 (async function () {
   try {
     const response = await fetch('{{ apiUrl }}/tasks/?projectID={{projectID}}')
-    const status_response = await fetch('{{ apiUrl }}/statuses/?projectID={{projectID}}')
+    const status_response = await fetch('{{ apiUrl }}/statuses/?project={{projectID}}')
     const tasks = await response.json()
 
     // TODO: make use of the status information to color code each task node

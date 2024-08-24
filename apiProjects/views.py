@@ -7,7 +7,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from api.decorators import apiKeyRequired
 from .serializers import ProjectSerializer, StatusSerializer
 from apiTasks.views import TasksAPIView
-from .models import Project
+from .models import Project, Status
 from api.utils import getAuthorizationToken, decodeApiKey
 
 
@@ -446,27 +446,20 @@ class StatusesAPIView(APIView):
     def getStatuses(statusData, authorizationToken):
         """
         Service API function that can be called internally as well as through the API to get
-        project data based on input data.
+        status data based on input data.
 
-        @param projectData      Dict for a single project.
+        @param statusData      Dict for getting status 
         @param authorizationToken      JWT authorization token.
         @return      A tuple of (response_data, http_status).
         """
 
         try:
             # Only get project where user is a contributor
-            data, httpsCode = ProjectsAPIView.getProjects(
-                {"id": statusData["projectID"] }, authorizationToken
-            )
-            data = data[0]
-
-
-            if httpsCode != status.HTTP_200_OK and httpsCode != status.HTTP_404_NOT_FOUND:
-                return data["message"], httpsCode
+            profileID = decodeApiKey(authorizationToken).get("profileID") 
+            statuses = Status.objects.filter(**statusData, project__profileIDs=profileID)
             
-            if "taskStatuses" not in data or not data["taskStatuses"]:
-                return [], status.HTTP_200_OK
-            return data["taskStatuses"], status.HTTP_200_OK
+            serializer = ProjectSerializer(statuses, many=True)
+            return serializer.data, status.HTTP_200_OK
         except Exception as e:
             print("Error:", e)
             return {"message": e}, status.HTTP_500_INTERNAL_SERVER_ERROR

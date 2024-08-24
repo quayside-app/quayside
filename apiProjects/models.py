@@ -6,7 +6,7 @@ class Project(models.Model):
     description = models.TextField(null=True, blank=True)
     startDate = models.DateField(null=True)  
     endDate = models.DateField(null=True) 
-    profileIDs = models.ManyToManyField(Profile, related_name='projects') # Django handles as intermediary join table # TODO: split into owner, editor, and viewer 
+    profileIDs = models.ManyToManyField(Profile, related_name='project') # Django handles as intermediary join table # TODO: split into owner, editor, and viewer 
 
 class Status(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
