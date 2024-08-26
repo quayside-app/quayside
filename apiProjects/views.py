@@ -457,8 +457,7 @@ class StatusesAPIView(APIView):
             # Only get project where user is a contributor
             profileID = decodeApiKey(authorizationToken).get("profileID") 
             statuses = Status.objects.filter(**statusData, project__profileIDs=profileID)
-            
-            serializer = ProjectSerializer(statuses, many=True)
+            serializer = StatusSerializer(statuses, many=True)
             return serializer.data, status.HTTP_200_OK
         except Exception as e:
             print("Error:", e)

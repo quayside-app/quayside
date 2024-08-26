@@ -9,6 +9,7 @@ class ProjectSerializer(serializers.ModelSerializer):
 
 
 class StatusSerializer(serializers.ModelSerializer):
+    
     class Meta:
         model=Status
         fields = '__all__'
