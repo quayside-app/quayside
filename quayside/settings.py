@@ -77,7 +77,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                "app.context_processors.global_context",  #TODO: commenting out this line made it so I could login, maybe mya should take a look before it gets deleted
+                "app.context_processors.global_context",
             ],
         },
     },

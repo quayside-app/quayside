@@ -411,7 +411,7 @@ class GeneratedTasksAPIView(APIView):
 
         # Call ChatGPT
         completion = openai.chat.completions.create(
-            model="gpt-4o-mini",
+            model="gpt-3.5-turbo",
             messages=[
                 {
                     "role": "system",
@@ -434,7 +434,7 @@ class GeneratedTasksAPIView(APIView):
             frequency_penalty=0,
             presence_penalty=0,
         )
-        print(completion.model) 
+
         generatedString = completion.choices[0].message.content
 
 
