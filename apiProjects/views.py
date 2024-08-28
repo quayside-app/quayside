@@ -469,43 +469,34 @@ class StatusesAPIView(APIView):
         Service API function that can be called internally as well as through the API to update
         project data based on input data.
 
-        @param projectData      Dict for a single project.
+        @param statusData      Dict for a single status.
         @param authorizationToken      JWT authorization token.
         @return      A tuple of (response_data, http_status).
         """
 
-        try:
-            # Only get project where user is a contributor
-            data, httpsCode = ProjectsAPIView.getProjects(
-                {"id": statusData["projectID"]}, authorizationToken
-            )
-            data=data[0]
-
-            if httpsCode != status.HTTP_200_OK and httpsCode != status.HTTP_404_NOT_FOUND:
-                return data["message"], httpsCode
-
-            if "taskStatuses" not in data or not data["taskStatuses"]:
-                return {
-                    "message": "No status associated with project"
-                }, status.HTTP_204_NO_CONTENT
-            
-            for stat in data["taskStatuses"]:
-                if stat["id"] == statusData["id"]:
-                    statusData.pop("projectID")
-                    stat = statusData
-                    serializer = ProjectSerializer(data=data)
-
-                    if serializer.is_valid():
-                        serializer.save()  # Updates projects
-                        return {"message": "Successfully updated status"}, status.HTTP_200_OK
-
-                    return serializer.errors, status.HTTP_400_BAD_REQUEST
-
-            return {"message": "Failed to update status"}, status.HTTP_200_OK
         
-        except Exception as e:
-            print("Error:", e)
-            return {"message": e}, status.HTTP_500_INTERNAL_SERVER_ERROR
+        if "id" not in statusData:
+            return "Error: Parameter 'id' required", status.HTTP_400_BAD_REQUEST
+
+        try:
+            status = Status.objects.get(id=statusData["id"])
+        except ObjectDoesNotExist:
+            return "Status not found", status.HTTP_404_NOT_FOUND
+
+        # Check if profileID is in the project's list of UserIDs
+        profileID = decodeApiKey(authorizationToken).get("profileID")
+        if not Status.objects.filter(id=statusData["id"], project__profileIDs__id=profileID).exists():
+                return {
+                    "message": "No statuses were found or you do not have authorization."
+                }, status.HTTP_400_BAD_REQUEST
+        serializer = StatusSerializer(data=statusData, instance=status, partial=True)
+
+        if serializer.is_valid():
+            serializer.save()  # Updates projects
+            return serializer.data, status.HTTP_200_OK
+
+        print(serializer.errors)
+        return serializer.errors, status.HTTP_400_BAD_REQUEST
 
     @staticmethod
     def createStatus(statusData, authorizationToken):

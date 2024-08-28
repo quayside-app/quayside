@@ -316,7 +316,8 @@ def taskView(request, projectID:str, viewType:str, taskID:str=None, parentTaskID
 
         if form.is_valid():
             newData = form.cleaned_data
-            newData['statusId'] = newData.pop('status')
+            newData['status'] = newData.pop('status')
+            print("HERERER____-----------------", newData['status'])
             newData["projectID"] = projectID
             newData["contributorIDs"] = newData.pop('assignees')
 
@@ -355,6 +356,10 @@ def taskView(request, projectID:str, viewType:str, taskID:str=None, parentTaskID
                 message, status_code = TasksAPIView.updateTask(
                     newData, getAuthorizationToken(request)
                 )
+                if status_code != status.HTTP_200_OK:
+                    print(f"Task update failed: {message}")
+                    return HttpResponseServerError(f"An error occurred: {message}")
+                
                 if status_code != status.HTTP_200_OK:
                     print(f"Task update failed: {message}")
                     return HttpResponseServerError(f"An error occurred: {message}")

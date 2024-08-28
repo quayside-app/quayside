@@ -256,6 +256,8 @@ class TasksAPIView(APIView):
             return {
                 "message": "User not authorized to edit this task"
             }, status.HTTP_403_FORBIDDEN
+        print("------------------------!!!!!!!!!!!!!!!!!!!!!!!!!------------")
+        print(taskData)
 
         serializer = TaskSerializer(data=taskData, instance=task, partial=True)
 
@@ -287,27 +289,22 @@ class TasksAPIView(APIView):
         if "id" in taskData:
             task = Task.objects.get(id=taskData["id"])
             # Check if profileID is in the project the task belongs to
-            print("HERE1")
             project = task.projectID
-            print("HERE2")
-            print("HERE2.01")
+
             if not project.profileIDs.filter(id=profileID).exists():  # profileID not in project.profileIDs 
                 return {
                     "message": "User not authorized to delete this task"
                 }, status.HTTP_403_FORBIDDEN
-            print("HERE 2.02")
+
             if taskData.get("deleteChildren", "false") == "true":
-                print("HERE2.1")
                 numberObjectsDeleted = deleteAllChildren(taskData["id"])
             else:
-                print("HERE2.5")
                 childTasks = task.childTasks.all() # Task.objects(parentTaskID=task)
                 for childTask in childTasks:
                     message, httpsCode = TasksAPIView.updateTask(
                         {"id": childTask.id, "parentTaskID": task.parentTaskID_id},
                         authorizationToken,
                     )
-                    print("HERE3")
                     if httpsCode != status.HTTP_200_OK:
                         print(
                             f"Error moving children while deleting task: {message.get('message')}"
