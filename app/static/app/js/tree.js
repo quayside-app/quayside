@@ -24,7 +24,7 @@ function createTaskTrees(tasks, statuses) {
 
         statuses.every(status => {
           // if statusId is null, sets the default color to the first status color
-          if ((theTasks[i].statusId == status.id) || (theTasks[i].statusId == null)) {
+          if ((theTasks[i].status == status.id) || (theTasks[i].status == null)) {
             theTasks[i].color = status.color;
             return false; // exit loop
           }

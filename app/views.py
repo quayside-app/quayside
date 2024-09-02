@@ -72,8 +72,6 @@ def projectGraphView(request, projectID):
     data, httpsCode = ProjectsAPIView.getProjects(
         {"id": projectID}, getAuthorizationToken(request)
     )
-    
-
     if httpsCode != status.HTTP_200_OK:
         print(f"Project GET failed: {data.get('message')}")
         return HttpResponseServerError(
@@ -317,7 +315,6 @@ def taskView(request, projectID:str, viewType:str, taskID:str=None, parentTaskID
         if form.is_valid():
             newData = form.cleaned_data
             newData['status'] = newData.pop('status')
-            print("HERERER____-----------------", newData['status'])
             newData["projectID"] = projectID
             newData["contributorIDs"] = newData.pop('assignees')
 
@@ -408,19 +405,20 @@ def taskView(request, projectID:str, viewType:str, taskID:str=None, parentTaskID
             print(f"Task fetch failed: {taskView.statusData.get('message')}")
             return HttpResponseServerError(f"An error occurred: {taskView.statusData.get('message')}")
 
-        initialStatus = taskView.statusData[0]["name"] if taskView.statusData else ""
+        currentStatus = taskView.statusData[0]["name"] if taskView.statusData else ""  # Initialize status to first status (may be overwritten if exists)
         status_choices = []
         for stat in taskView.statusData:
             status_choices.append((stat["id"], stat["name"]))
-            if taskData and taskData.get("statusId") == stat["id"]:
-                initialStatus = stat["id"]
-        
+            if taskData and taskData.get("status") == stat["id"]:
+                currentStatus = stat["id"] 
+
+
         # Populate initial form data
         if taskData:
             initialData = {
                 "name": taskData.get("name", ""),
                 "description": taskData.get("description", ""),
-                "status": initialStatus,
+                "status": currentStatus,
                 "startDate": taskData.get("startDate", ""),
                 "endDate": taskData.get("endDate", ""),
                 "duration": durationString,

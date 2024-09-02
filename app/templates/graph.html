@@ -37,8 +37,6 @@
     const trees = createTaskTrees(tasks, statuses)
 
     // eslint-disable-next-line no-undef
-    console.log(trees)
-
     const treeSVG = Trees(trees, {
       label: (d, n) => d.name,
       link: (d, n) => `task/${d.id}`,
