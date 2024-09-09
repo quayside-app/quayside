@@ -2,7 +2,7 @@ from django.test import TestCase, RequestFactory
 from django.http import JsonResponse
 from django.urls import reverse
 from api.decorators import apiKeyRequired
-from api.views.v1.kanban import KanbanAPIView
+from apiProjects import KanbanAPIView
 from rest_framework import status
 
 # Helpful link: https://stackoverflow.com/questions/11885211/how-to-write-a-unit-test-for-a-django-view

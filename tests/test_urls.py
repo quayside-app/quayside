@@ -2,8 +2,8 @@ from django.test import SimpleTestCase
 from django.urls import reverse, resolve
 from api import views as api_views
 from app import views as app_views
-from apiProjects.views import ProjectsAPIView
-from apiAccounts.views import ProfilesAPIView
+from apiProjects.views import ProjectsAPIView, StatusesAPIView
+from apiAccounts.views import ProfilesAPIView, KanbanAPIView
 from apiTasks.views import TasksAPIView, GeneratedTasksAPIView
 
 from quayside import views as quayside_views
@@ -39,13 +39,13 @@ class TestAPIUrls(SimpleTestCase):
         url = reverse("v1-kanban-board")
         self.assertEqual(url, "/api/v1/kanban/")
         resolver = resolve(url)
-        self.assertEqual(resolver.func.view_class, api_views.kanban.KanbanAPIView)
+        self.assertEqual(resolver.func.view_class, KanbanAPIView)
 
     def test_statuses_url(self):
         url = reverse("v1-status-list")
         self.assertEqual(url, "/api/v1/statuses/")
         resolver = resolve(url)
-        self.assertEqual(resolver.func.view_class, api_views.statuses.StatusesAPIView)
+        self.assertEqual(resolver.func.view_class, StatusesAPIView)
 
     # ADD API URL TESTS HERE...
 

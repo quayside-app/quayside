@@ -12,6 +12,8 @@ urlpatterns = [
         f"{settings.API_VERSION}/generatedTasks/",
         views.GeneratedTasksAPIView.as_view(),
         name=f"{settings.API_VERSION}-generatedTasks",
-    )
+    ),
+
+
 ]
 

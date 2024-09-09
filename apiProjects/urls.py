@@ -12,6 +12,11 @@ urlpatterns = [
         f"{settings.API_VERSION}/statuses/",
         views.StatusesAPIView.as_view(),
         name=f"{settings.API_VERSION}-statuses",
-    )
+    ),
+    path(
+        f"{settings.API_VERSION}/kanban/",
+        views.KanbanAPIView.as_view(),
+        name=f"{settings.API_VERSION}-kanban-board"
+    ),
 ]
 
