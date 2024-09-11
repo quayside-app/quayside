@@ -704,31 +704,36 @@ class KanbanAPIView(APIView):
             # Creates a sorted list of tasks using the custom statusId mapping. If a statusId associated with
             # a task doesn't existing in the mapping, is None, or non-existent it's at the start of the list
             # and it will appear on the leftmost column
-            print("HEREREREREREREERERE-------------------2.2")
-            sorted_tasks = sorted(tasks, key=lambda task: status_id_order_dict[None if 'status' not in task or task.status not in status_id_order_dict.keys() else task['status']])
-
+            sorted_tasks = sorted(tasks, key=lambda task: status_id_order_dict[None if  task.status not in status_id_order_dict.keys() else task.status])
             tasks_by_status["taskLists"] = []
+            print("HEREREREREREREERERE-------------------2.3")
             
-            print("HEREREREREREREERERE-------------------3")
             # creates an empty task lists for each status type
             for stat in data:
                 tasks_by_status["taskLists"].append([])
+            print("HEREREREREREREERERE-------------------2.4")
 
             currentStatusId = list(status_id_order_dict.keys())[-1]
             statusIndex = len(tasks_by_status["taskLists"]) - 1
+            print("HEREREREREREREERERE-------------------2.5")
 
             # putting the sorted task objects into columns lists from right to left 
             for i, task in reversed(list(enumerate(sorted_tasks))):
+                print("HEREREREREREREERERE-------------------2.6")
 
                 # while a task doesn't go into the current selected column
-                while currentStatusId != task.statusId and statusIndex >= 1:
+                while currentStatusId != task.status and statusIndex >= 1:
                     statusIndex -= 1
                     currentStatusId = list(status_id_order_dict.keys())[statusIndex+1]
+                print("HEREREREREREREERERE-------------------2.7")
 
                 # instead of adding all remaining tasks indiviually into the leftmost column, dump them all at the same time
                 if (statusIndex < 1):
                     tasks_by_status["taskLists"][statusIndex] = sorted_tasks
                     break
+
+                print("HEREREREREREREERERE-------------------2.8")
+                
             
                 tasks_by_status["taskLists"][statusIndex].append(sorted_tasks.pop(i))
 
@@ -737,8 +742,8 @@ class KanbanAPIView(APIView):
                 serialized_data = TaskSerializer(taskList, many=True)
                 
                 tasks_by_status["taskLists"][i] = serialized_data.data
+                print("HEREREREREREREERERE-------------------2.9")
 
-            print("HEREREREREREREERERE-------------------4")
 
             if not tasks_by_status["taskLists"]:
                 return "No tasks found for the specified projectID.", status.HTTP_404_NOT_FOUND
