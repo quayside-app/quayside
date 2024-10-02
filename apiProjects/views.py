@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.utils.decorators import method_decorator
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.serializers import serialize
 
 from api.decorators import apiKeyRequired
 from .serializers import ProjectSerializer, StatusSerializer
@@ -705,6 +706,7 @@ class KanbanAPIView(APIView):
             # a task doesn't existing in the mapping, is None, or non-existent it's at the start of the list
             # and it will appear on the leftmost column
             sorted_tasks = sorted(tasks, key=lambda task: status_id_order_dict[None if  task.status not in status_id_order_dict.keys() else task.status])
+            
             tasks_by_status["taskLists"] = []
             print("HEREREREREREREERERE-------------------2.3")
             
@@ -714,6 +716,7 @@ class KanbanAPIView(APIView):
             print("HEREREREREREREERERE-------------------2.4")
 
             currentStatusId = list(status_id_order_dict.keys())[-1]
+            print("---------------------", tasks_by_status["taskLists"])
             statusIndex = len(tasks_by_status["taskLists"]) - 1
             print("HEREREREREREREERERE-------------------2.5")
 
@@ -728,26 +731,46 @@ class KanbanAPIView(APIView):
                 print("HEREREREREREREERERE-------------------2.7")
 
                 # instead of adding all remaining tasks indiviually into the leftmost column, dump them all at the same time
+                print(tasks_by_status)
+                print(sorted_tasks)
+                print(statusIndex)
+                
+                # TODO: Get rid of this or make more clear??
                 if (statusIndex < 1):
-                    tasks_by_status["taskLists"][statusIndex] = sorted_tasks
+                    print("HEREREREREREREERERE-------------------2.8")
+                    tasks_by_status['taskLists'][statusIndex] = sorted_tasks
+                    print("NEW sorted_tasks", tasks_by_status)
+                    tasks_by_status['taskLists'][statusIndex] = serialize('json', tasks_by_status['taskLists'][statusIndex])
+                    print("HEREREREREREREERERE-------------------2.81")
+                    
                     break
+                # tasks_by_status[statusIndex] = serialize('json', tasks_by_status[statusIndex])
+                
+                
 
                 print("HEREREREREREREERERE-------------------2.8")
                 
             
                 tasks_by_status["taskLists"][statusIndex].append(sorted_tasks.pop(i))
-
+            print("HEREREREREREREERERE-------------------2.85")
             for i, taskList in enumerate(tasks_by_status["taskLists"]):
                 KanbanAPIView.normalizeTaskPriorityAndStatus(taskList, tasks_by_status["statuses"][i]["id"])
                 serialized_data = TaskSerializer(taskList, many=True)
                 
                 tasks_by_status["taskLists"][i] = serialized_data.data
                 print("HEREREREREREREERERE-------------------2.9")
-
+            print("HEREREREREREREERERE-------------------2.10")
 
             if not tasks_by_status["taskLists"]:
                 return "No tasks found for the specified projectID.", status.HTTP_404_NOT_FOUND
-
+            print("HEREREREREREREERERE-------------------2.11")
+            for key, value in tasks_by_status.items():
+                print(key)
+                print()
+                print(value)
+                print("---------------------------------------------------------")
+            
+            print("HEREREREREREREERERE-------------------2.12")
             return tasks_by_status, status.HTTP_200_OK
             
         except Exception as e:
