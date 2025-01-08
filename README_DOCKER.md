@@ -1,6 +1,10 @@
+# Docker Setup
+
+If you have Docker Engine/Desktop isntalled, you can use the following commands to run the application locally instead of using the commands in the README.md. Just make sure that you still have your .env file in this directory (more details in the README.md).
+
 ```bash
 sudo docker build -t quayside -f Dockerfile.dev .
 
-# Start the container  mounted onto the current directory. Container is removed once it exits.
-sudo docker run --rm -it -v /tmp/.X11-unix:/tmp/.X11-unix -v $(pwd):/workspace --net=host quayside
+# Start the container. Container is removed once it exits.
+sudo docker run --rm -it  --net=host quayside
 ```
