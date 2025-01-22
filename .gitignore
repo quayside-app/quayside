@@ -4,6 +4,5 @@ venv/
 node_modules/
 **/__pycache__/
 /staticfiles/
-/api/apps.py
 env
 launch.json
