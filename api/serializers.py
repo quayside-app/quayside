@@ -58,9 +58,6 @@ class ProjectSerializer(DocumentSerializer):
         instance.informationLinks = validated_data.get('informationLinks', instance.informationLinks)
         instance.completionStatus = validated_data.get('completionStatus', instance.completionStatus)
         instance.teams = validated_data.get('teams', instance.teams)
-        
-        # Clear the existing comments
-        instance.taskStatuses = []
 
         # Add the new embedded documents to the main document
         for status_data in status_data_list:
