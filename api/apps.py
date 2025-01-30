@@ -1,4 +1,6 @@
 import os
+
+import certifi
 from django.apps import AppConfig
 import mongoengine as mongo
 from dotenv import load_dotenv
@@ -28,5 +30,6 @@ class ApiConfig(AppConfig):
         hostname = "quayside-cluster.ry3otj1.mongodb.net"
         database = "quayside"
 
-        connection_string = f"mongodb+srv://{username}:{password}@{hostname}/{database}?retryWrites=true&w=majority"
+        # connection_string = f"mongodb+srv://{username}:{password}@{hostname}/{database}?retryWrites=true&w=majority"
+        connection_string = f"mongodb+srv://{username}:{password}@{hostname}/{database}?retryWrites=true&w=majority&tls=true&tlsCAFile={certifi.where()}"
         mongo.connect(db=database, host=connection_string)
