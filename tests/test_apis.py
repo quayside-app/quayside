@@ -2,6 +2,32 @@ import pytest
 from rest_framework.exceptions import ValidationError
 from api.models import Project, User
 from api.serializers import ProjectSerializer, StatusSerializer
+import mongoengine as mongo
+from dotenv import load_dotenv
+import os
+import certifi
+
+
+# Set up database connection fixture
+@pytest.fixture(scope="session")
+def setup_database():
+    # Load environment variables from .env file
+    load_dotenv()
+    username = os.getenv("MONGO_USERNAME")
+    password = os.getenv("MONGO_PASSWORD")
+    hostname = "quayside-cluster.ry3otj1.mongodb.net"
+    database = "quayside"
+
+    # Construct connection string and connect to MongoDB
+    connection_string = f"mongodb+srv://{username}:{password}@{hostname}/{database}?retryWrites=true&w=majority&tls=true&tlsCAFile={certifi.where()}"
+
+    mongo.connect(db=database, host=connection_string)
+
+    # Yield control to the test functions
+    yield
+
+    # Cleanup: Disconnect after the tests are finished
+    mongo.disconnect()
 
 @pytest.mark.django_db
 def test_update_project_with_task_statuses():
