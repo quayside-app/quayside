@@ -1,10 +1,14 @@
 import os
 from pymongo import MongoClient
 import certifi
+from dotenv import load_dotenv
 
-# Retrieve credentials and setup the connection string
+
+load_dotenv()
+
 username = os.getenv("MONGO_USERNAME")
 password = os.getenv("MONGO_PASSWORD")
+
 hostname = "quayside-cluster.ry3otj1.mongodb.net"
 database = "quayside"
 
@@ -13,9 +17,8 @@ connection_string = f"mongodb+srv://{username}:{password}@{hostname}/{database}?
 # Connect to MongoDB
 client = MongoClient(connection_string)
 
-# Access the database
-db = client[database]
-
-# Example: List collections
-collections = db.list_collection_names()
-print(collections)
+try:
+    db = client.get_database()
+    print(db.list_collection_names())
+except Exception as e:
+    print("Error:", e)
