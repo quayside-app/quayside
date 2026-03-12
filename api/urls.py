@@ -19,6 +19,11 @@ urlpatterns = [
         name=f"{API_VERSION}-projects-list",
     ),
     path(
+        f"{API_VERSION}/statuses/reorder/",
+        views.statusesReorder.StatusesReorderAPIView.as_view(),
+        name=f"{API_VERSION}-statuses-reorder",
+    ),
+    path(
         f"{API_VERSION}/statuses/",
         views.statuses.StatusesAPIView.as_view(),
         name=f"{API_VERSION}-status-list",

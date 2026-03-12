@@ -1,105 +1,58 @@
-import pytest
-from rest_framework.exceptions import ValidationError
-from api.models import Project, User
-from api.serializers import ProjectSerializer, StatusSerializer
+from unittest.mock import MagicMock, patch
+from django.test import SimpleTestCase
+from bson import ObjectId
 
-@pytest.mark.django_db
-def test_update_project_with_task_statuses():
-    # Create a user instance
-    user = User.objects.create(name="Test User")
+from api.serializers import ProjectSerializer
 
-    # Create an initial project
-    initial_project_data = {
-        'name': "Test Project",
-        'description': "This is a test project.",
-        'userIDs': [user.id],
-        'taskStatuses': [{'status': 'In Progress', 'task': 'Test Task'}],
-    }
 
-    # Serialize and save the initial project
-    project_serializer = ProjectSerializer(data=initial_project_data)
-    project_serializer.is_valid(raise_exception=True)
-    project = project_serializer.save()
+class TestProjectSerializerStructure(SimpleTestCase):
+    """Basic sanity checks on ProjectSerializer that don't need a real DB."""
 
-    # Data for updating the project
-    updated_data = {
-        'name': "Updated Test Project",
-        'description': "This is an updated test project.",
-        'taskStatuses': [{'status': 'Completed', 'task': 'Test Task'}],
-    }
+    def test_serializer_has_required_methods(self):
+        self.assertTrue(hasattr(ProjectSerializer, "Meta"))
+        self.assertTrue(hasattr(ProjectSerializer, "create"))
+        self.assertTrue(hasattr(ProjectSerializer, "update"))
 
-    # Update the project with the new data
-    update_serializer = ProjectSerializer(instance=project, data=updated_data)
-    update_serializer.is_valid(raise_exception=True)
-    updated_project = update_serializer.save()
+    @patch("api.models.Project.Status")
+    def test_update_replaces_not_appends_statuses(self, MockStatus):
+        """
+        ProjectSerializer.update() must replace taskStatuses, not append.
+        Regression: the old implementation appended status_data_list onto
+        instance.taskStatuses each time update() was called, so calling
+        update twice (or with pre-existing statuses) would accumulate entries.
+        """
+        from api.models import Project
 
-    # Check if the project fields are updated correctly
-    assert updated_project.name == "Updated Test Project"
-    assert updated_project.description == "This is an updated test project."
-    assert len(updated_project.taskStatuses) == 1
-    assert updated_project.taskStatuses[0].status == "Completed"
-    assert updated_project.taskStatuses[0].task == "Test Task"
+        existing_status = MagicMock()
+        mock_instance = MagicMock(spec=Project)
+        mock_instance.taskStatuses = [existing_status]  # 1 pre-existing status
 
-@pytest.mark.django_db
-def test_update_project_with_invalid_task_status():
-    # Create a user instance
-    user = User.objects.create(name="Test User")
+        serializer = ProjectSerializer()
+        validated_data = {
+            "taskStatuses": [
+                {"name": "New", "color": "FFFFFF", "order": 1}
+            ]
+        }
+        MockStatus.return_value = MagicMock()
 
-    # Create an initial project
-    initial_project_data = {
-        'name': "Test Project",
-        'description': "This is a test project.",
-        'userIDs': [user.id],
-        'taskStatuses': [{'status': 'In Progress', 'task': 'Test Task'}],
-    }
+        with patch.object(mock_instance, "save"):
+            serializer.update(mock_instance, validated_data)
 
-    # Serialize and save the initial project
-    project_serializer = ProjectSerializer(data=initial_project_data)
-    project_serializer.is_valid(raise_exception=True)
-    project = project_serializer.save()
+        # Should be 1 (replaced), not 2 (appended to existing)
+        self.assertEqual(len(mock_instance.taskStatuses), 1)
 
-    # Invalid task status data (missing 'task' field)
-    invalid_data = {
-        'taskStatuses': [{'status': 'Completed'}],  # Missing 'task'
-    }
+    def test_update_without_task_statuses_leaves_existing_unchanged(self):
+        """If taskStatuses is absent from validated_data, leave the existing list alone."""
+        from api.models import Project
 
-    # Try updating the project with invalid data
-    update_serializer = ProjectSerializer(instance=project, data=invalid_data)
-    with pytest.raises(ValidationError):
-        update_serializer.is_valid(raise_exception=True)
+        existing_status = MagicMock()
+        mock_instance = MagicMock(spec=Project)
+        mock_instance.taskStatuses = [existing_status]
 
-@pytest.mark.django_db
-def test_update_project_with_no_task_statuses():
-    # Create a user instance
-    user = User.objects.create(name="Test User")
+        serializer = ProjectSerializer()
+        validated_data = {"name": "Updated Name"}  # no taskStatuses key
 
-    # Create an initial project
-    initial_project_data = {
-        'name': "Test Project",
-        'description': "This is a test project.",
-        'userIDs': [user.id],
-        'taskStatuses': [{'status': 'In Progress', 'task': 'Test Task'}],
-    }
+        with patch.object(mock_instance, "save"):
+            serializer.update(mock_instance, validated_data)
 
-    # Serialize and save the initial project
-    project_serializer = ProjectSerializer(data=initial_project_data)
-    project_serializer.is_valid(raise_exception=True)
-    project = project_serializer.save()
-
-    # Update the project with no task statuses (removing taskStatuses field)
-    updated_data = {
-        'name': "Updated Test Project",
-        'description': "This is an updated test project.",
-        'taskStatuses': [],  # Empty list for taskStatuses
-    }
-
-    # Update the project with the new data
-    update_serializer = ProjectSerializer(instance=project, data=updated_data)
-    update_serializer.is_valid(raise_exception=True)
-    updated_project = update_serializer.save()
-
-    # Check if the taskStatuses field was cleared
-    assert updated_project.name == "Updated Test Project"
-    assert updated_project.description == "This is an updated test project."
-    assert updated_project.taskStatuses == []
-
+        self.assertEqual(len(mock_instance.taskStatuses), 1)

@@ -32,8 +32,8 @@ class ProjectSerializer(DocumentSerializer):
         return project
         
     def update(self, instance, validated_data):
-        # Extract the embedded document data
-        status_data_list = validated_data.pop('taskStatuses', [])
+        # Extract embedded document data (None means key was absent — don't touch statuses)
+        status_data_list = validated_data.pop('taskStatuses', None)
         
         # Update the main document fields
         instance.name = validated_data.get('name', instance.name)
@@ -59,10 +59,10 @@ class ProjectSerializer(DocumentSerializer):
         instance.completionStatus = validated_data.get('completionStatus', instance.completionStatus)
         instance.teams = validated_data.get('teams', instance.teams)
 
-        # Add the new embedded documents to the main document
-        for status_data in status_data_list:
-            instance.taskStatuses.append(Project.Status(**status_data))
-        
+        # Replace (not append) taskStatuses when explicitly provided
+        if status_data_list is not None:
+            instance.taskStatuses = [Project.Status(**s) for s in status_data_list]
+
         # Save the main document
         instance.save()
         return instance
