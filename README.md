@@ -43,10 +43,18 @@ GITHUB_CLIENT_ID=<your client ID>
 GITHUB_CLIENT_SECRET=<your client secret>
 GITHUB_API_URL_email=https://api.github.com/user/emails
 GITHUB_API_URL_user=https://api.github.com/user
+GOOGLE_CLIENT_ID=<your Google OAuth client ID>
+GOOGLE_CLIENT_SECRET=<your Google OAuth client secret>
+GOOGLE_API_URL_userprofile=https://www.googleapis.com/oauth2/v1/userinfo
 API_SECRET=<key you make up to encrypt your jwt tokens (must be 32 url-safe base64-encoded bytes)>
+REDIRECT_URI=<your OAuth redirect URI, e.g. http://127.0.0.1:8000/auth/callback>
+DEBUG_BOOL=True
+GOOGLE_POSTGRES_HOST=<your Cloud SQL host>
+GOOGLE_POSTGRES_USER=<your Cloud SQL user>
+GOOGLE_POSTGRES_PASSWORD=<your Cloud SQL password>
 ```
 
-Check the env\_check\_file for more required variables.
+See [`env_check_file`](env_check_file) for the full list of required variables.
 ## Usage
 
 **Running** <br>
@@ -86,3 +94,12 @@ Note: If npx tells you `<someFunction> is not defined  no-undef` because someFun
 If you add any other npm dependencies, please do it by running `npm install --save <my-dependency>` so it is added to package.json for the next person to install. Otherwise, add the package manually to package.json. If you install python dependencies, please add them to the requirements.txt by running `pip freeze > requirements.txt`.
 
 Note: If you are having issues with "[SSL: CERTIFICATE_VERIFY_FAILED]" you may need to upgrade pip.
+
+## AI-Assisted Development
+
+This repo is configured for use with [Claude Code](https://claude.ai/claude-code). The [`CLAUDE.md`](CLAUDE.md) file at the root defines how AI agents should work in this codebase — conventions, code review standards, git workflow, and more. If you're using Claude Code, it will pick this up automatically.
+
+Additional resources for AI-assisted workflows:
+- [`docs/specs/spec-writing-guidelines.md`](docs/specs/spec-writing-guidelines.md) — how to write implementation specs before building something significant
+- [`docs/decisions/template.md`](docs/decisions/template.md) — ADR template for recording architectural decisions
+- `.claude/skills/` — reusable Claude Code skills (e.g. `/gen-release-notes`)

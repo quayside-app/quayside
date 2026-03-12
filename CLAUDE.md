@@ -2,6 +2,8 @@
 
 > **If you discover something that conflicts with this file, do not silently override it. Ask the user to clarify, then update this file together. When changing any convention documented here, consult the user and update this file accordingly.**
 
+> **New to this repo?** See [`README.md`](README.md) for setup instructions, dependencies, and how to run the dev server.
+
 ## Working relationship
 
 - No sycophancy.
