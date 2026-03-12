@@ -1,20 +1,16 @@
-FROM node:20.11.0-alpine as build
+FROM python:3.12-slim
 
 WORKDIR /app
-COPY package.json /app
-RUN npm install
 
-FROM python:3.12
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . app
-WORKDIR /app
+COPY . .
 
-COPY --from=build /app /app
-
-COPY requirements.txt requirements.txt
-RUN pip install -r requirements.txt
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
 EXPOSE 8080
 ENV PORT 8080
 
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8080"]
+ENTRYPOINT ["/entrypoint.sh"]
