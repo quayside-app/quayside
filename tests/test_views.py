@@ -1,4 +1,4 @@
-from django.test import TestCase, RequestFactory
+from django.test import SimpleTestCase, RequestFactory
 from django.http import JsonResponse
 from django.urls import reverse
 from api.decorators import apiKeyRequired
@@ -7,7 +7,7 @@ from rest_framework import status
 
 # Helpful link: https://stackoverflow.com/questions/11885211/how-to-write-a-unit-test-for-a-django-view
 
-class TestKanban(TestCase):
+class TestKanban(SimpleTestCase):
     def test_call_view_deny_anonymous(self):
         url = reverse("v1-kanban-board")
         response = self.client.get(url)

@@ -43,31 +43,34 @@ class TestAPIUrls(SimpleTestCase):
         resolver = resolve(url)
         self.assertEqual(resolver.func.view_class, api_views.statuses.StatusesAPIView)
 
+    def test_statuses_reorder_url(self):
+        url = reverse("v1-statuses-reorder")
+        self.assertEqual(url, "/api/v1/statuses/reorder/")
+        resolver = resolve(url)
+        self.assertEqual(resolver.func.view_class, api_views.statusesReorder.StatusesReorderAPIView)
+
     # ADD API URL TESTS HERE...
 
 
 class TestAppUrls(SimpleTestCase):
     """
-    Copy and paste the stuff inside the parenthases of the path function in app.views.py to add a test case.
-    Just change views. to app_views in the second column.
+    Tests that app URL names resolve to the correct paths and view functions.
+    Update this list whenever app/urls.py changes.
     """
     url_data = [
         ("/create-project/", app_views.createProjectView, "create-project-view"),
         ("/project/<str:projectID>/graph/", app_views.projectGraphView, "project-graph-view"),
         ("/project/<str:projectID>/kanban/", app_views.projectKanbanView, "project-kanban-view"),
-        ("/project/<str:projectID>/", app_views.editProjectView, "task-detail-view"),
-        ("/project/<str:projectID>/graph/task/<str:taskID>/", app_views.taskView, "task-detail-view"),
-        ("/project/<str:projectID>/graph/create-task/<str:parentTaskID>/", app_views.createTaskView, "create-task-view"),
-        ("/project/<str:projectID>/graph/create-task/", app_views.createTaskView, "create-task-view"),
-        ("/login/", app_views.userLogin, "login-view"),
-        ("/logout/", app_views.userLogout, "userLogout-view"),
+        ("/project/<str:projectID>/", app_views.editProjectView, "project-detail-view"),
+        ("/project/<str:projectID>/<str:viewType>/task/<str:taskID>/", app_views.taskView, "task-detail-view"),
+        ("/project/<str:projectID>/<str:viewType>/create-task/<str:parentTaskID>/", app_views.taskView, "create-task-with-parent-view"),
+        ("/project/<str:projectID>/<str:viewType>/create-task/", app_views.taskView, "create-task-tree-view"),
         ("/welcome/", app_views.logout, "logout-view"),
         ("/invite/", app_views.inviteView, "invite-view"),
         ("/tutorial/", app_views.tutorialView, "tutorial-view"),
         ("/marketplace/", app_views.marketplaceView, "marketplace-view"),
         ("/feedback/", app_views.feedbackView, "feedback-view"),
         ("/auth/<str:provider>/", app_views.requestAuth, "authorize"),
-        ("/callback/", app_views.Callback.as_view(), "callback"),
         ("/redirect/", app_views.redirectOffSite, "offsite-redirect"),
     ]
 

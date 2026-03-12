@@ -2,129 +2,675 @@
 {% load static %}
 {% block projectContent %}
 
-
-{% comment %} <head>
-    <!-- TODO use npm nodemanager instead of the headers -->
-    <script src="https://d3js.org/d3.v7.min.js"></script>
-</head> {% endcomment %}
-
 {% block taskContent %}{% endblock %}
 {% block editProjectContent %}{% endblock %}
 
-<div class = 'text-white'>
+<style>
+  .column-gear-btn {
+    opacity: 0.5;
+    transition: opacity 0.15s;
+    flex-shrink: 0;
+  }
+  .column-gear-btn:hover { opacity: 1; }
 
-  <div id="kanbanBoards" class='justify-center'>
+  #columnPopover {
+    position: fixed;
+    z-index: 50;
+    background: #262626;
+    border: 1px solid #404040;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    width: 220px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  }
+  #columnPopover label {
+    display: block;
+    font-size: 0.75rem;
+    color: #a3a3a3;
+    margin-bottom: 0.25rem;
+  }
+  #columnPopover input[type="text"] {
+    width: 100%;
+    background: #404040;
+    color: white;
+    border: none;
+    border-radius: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    margin-bottom: 0.75rem;
+    box-sizing: border-box;
+  }
+  #columnPopover input[type="color"] {
+    width: 100%;
+    height: 2rem;
+    border: none;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    margin-bottom: 0.75rem;
+    padding: 0;
+  }
 
-    <div id="columns" class=" m-6 text-xs sm:text-xl break-words">
-      <!-- Column styles + data added in js -->
-    </div> 
+  /* Manage Columns slide-over panel */
+  #manageColumnsPanel {
+    position: fixed;
+    top: 0; right: 0;
+    height: 100%;
+    width: 320px;
+    background: #1f1f1f;
+    border-left: 1px solid #404040;
+    z-index: 40;
+    display: flex;
+    flex-direction: column;
+    transform: translateX(100%);
+    transition: transform 0.2s ease;
+    color: white;
+  }
+  #manageColumnsPanel.open { transform: translateX(0); }
+
+  .manage-col-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #333;
+  }
+  .manage-col-row input[type="text"] {
+    flex: 1;
+    background: #333;
+    color: white;
+    border: none;
+    border-radius: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+  }
+  .manage-col-row input[type="color"] {
+    width: 2rem;
+    height: 1.75rem;
+    border: none;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    padding: 0;
+    flex-shrink: 0;
+  }
+</style>
+
+<div class="text-white">
+  <div id="kanbanBoards" class="justify-center">
+    <div id="columns" class="m-6 text-xs sm:text-xl break-words">
+      <!-- Columns rendered by JS -->
+    </div>
   </div>
-  
-</div> 
+</div>
 
+<!-- Manage Columns slide-over panel -->
+<div id="manageColumnsPanel">
+  <div class="flex justify-between items-center px-4 py-3 border-b border-neutral-700">
+    <span class="font-bold text-white">Manage Columns</span>
+    <button id="closePanelBtn" class="text-neutral-400 hover:text-white text-xl leading-none">&times;</button>
+  </div>
+  <div id="manageColumnsList" class="flex-1 overflow-y-auto px-4 py-2"></div>
+  <div class="px-4 py-3 border-t border-neutral-700">
+    <button id="panelAddColumnBtn"
+      class="w-full bg-neutral-700 hover:bg-neutral-600 text-white rounded py-2 text-sm">
+      + Add Column
+    </button>
+    <div id="panelAddForm" class="hidden mt-2">
+      <input id="panelAddName" type="text" placeholder="Column name"
+        class="w-full bg-neutral-600 text-white rounded px-2 py-1 mb-2 text-sm" style="display:block">
+      <input id="panelAddColor" type="color" value="#323232"
+        class="w-full h-8 rounded cursor-pointer mb-2" style="display:block">
+      <div id="panelAddError" class="text-red-400 text-xs mb-1 hidden"></div>
+      <div class="flex gap-2">
+        <button id="panelAddSubmit"
+          class="flex-1 bg-neutral-600 hover:bg-neutral-500 text-white rounded py-1 text-sm">Add</button>
+        <button id="panelAddCancel"
+          class="flex-1 bg-neutral-700 hover:bg-neutral-600 text-white rounded py-1 text-sm">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script>
+const projectID = '{{projectID|escapejs}}';
+const apiUrl = '{{ apiUrl|escapejs }}';
+let kanbanState = { statuses: [], taskLists: [] };
+let activePopover = null;
 
-  (async function () {
-    try {
-      const response = await fetch('{{ apiUrl }}/kanban/?projectID={{projectID}}');
-  
-      if (!response.ok) throw new Error('Network response was not ok');
-      const kanbanTasks = await response.json();
+// ── Init ──────────────────────────────────────────────────────────────────────
 
-      // create kanban category columns
-      columns = document.getElementById('columns');
-      
-      // Set grid layout (Tailwind flex/grid is acting funky)
-      const numCols = kanbanTasks["statuses"].length;
-      columns.style.display = 'grid';
-      columns.style.gridTemplateColumns = `repeat(${numCols}, minmax(0, 1fr))`;
-      columns.style.columnGap = '1rem'; // Set the column gap in pixels
+(async function () {
+  try {
+    const resp = await fetch(`${apiUrl}/kanban/?projectID=${projectID}`);
+    if (!resp.ok) throw new Error('Failed to load kanban');
+    kanbanState = await resp.json();
+    renderBoard();
+    injectManageColumnsButton();
+  } catch (err) {
+    console.error('Kanban init error:', err);
+  }
+})();
 
-      
-      // columns.className += `grid-cols-${numberCols}` // Add columns to grid
-      var orderNumber = 0;
-      
-      kanbanTasks["statuses"].forEach(function (stat) {
-        const columnElement = document.createElement('div');
+// ── Board rendering ───────────────────────────────────────────────────────────
 
-        columnElement.className = " p-2 rounded-xl ";
-        // you can't directly edit a class element to dynamically change the background color
-        columnElement.style.backgroundColor = '#'+stat["color"]
+function renderBoard() {
+  const columns = document.getElementById('columns');
+  columns.innerHTML = '';
 
-        const titleElement = document.createElement('div');
-        titleElement.className = "break-words font-bold text-md sm:text-2xl py-2 ";
-        titleElement.innerText = stat["name"];
+  columns.style.display = 'grid';
+  columns.style.gridTemplateColumns =
+    `repeat(${kanbanState.statuses.length}, minmax(0, 1fr)) 130px`;
+  columns.style.columnGap = '1rem';
 
-        const taskDropZone = document.createElement('div');
-        taskDropZone.id = stat["name"];
-        taskDropZone.setAttribute('ondrop', 'drop(event, this)');
-        taskDropZone.setAttribute('ondragover', 'allowDrop(event, this)');
-        taskDropZone.setAttribute('statusId', stat["id"]);
+  kanbanState.statuses.forEach((stat, idx) => {
+    columns.appendChild(buildColumn(stat, idx));
+  });
+  columns.appendChild(buildAddColumnCard());
+}
 
-        // Set height of dropzone
-        taskDropZone.className = " overflow-y-auto ";
-        remainingHeight = window.innerHeight - document.getElementById('navbar').offsetHeight 
-                          - document.getElementById('projectBar').offsetHeight 
-                          - 140;  // Extra subtracted for margins
-        taskDropZone.style.height = `${remainingHeight}px`;  
+function buildColumn(stat, idx) {
+  const col = document.createElement('div');
+  col.className = 'p-2 rounded-xl';
+  col.dataset.statusId = stat.id;
+  col.style.backgroundColor = '#' + stat.color;
 
-        kanbanTasks["taskLists"][orderNumber].forEach(function (task) {
-          const listLink = document.createElement('a');
-          listLink.id = task.id;
-          listLink.statusId = task.statusId;
-          
-          listLink.draggable = 'true';
-          listLink.href = `task/${listLink.id}`;
-          listLink.setAttribute('ondragstart', 'drag(event)');
-          listLink.className = '';
+  // Header
+  const header = document.createElement('div');
+  header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:0.5rem 0;gap:0.25rem';
 
-          const classContent = document.createElement('p');
-          classContent.className = 'break-words rounded-lg my-2 p-1 hover:bg-neutral-500 bg-neutral-600 ';
-          classContent.textContent = task.name;
-          
-          listLink.appendChild(classContent);
-          taskDropZone.appendChild(listLink);
+  const title = document.createElement('span');
+  title.className = 'break-words font-bold text-md sm:text-2xl';
+  title.style.minWidth = '0';
+  title.innerText = stat.name;
 
-        });
+  const gearBtn = document.createElement('button');
+  gearBtn.className = 'column-gear-btn';
+  gearBtn.style.fontSize = '1.1rem';
+  gearBtn.innerHTML = '⚙';
+  gearBtn.title = 'Edit column';
+  gearBtn.dataset.statusId = stat.id;
+  gearBtn.addEventListener('click', e => {
+    e.stopPropagation();
+    openColumnPopover(stat.id, gearBtn);
+  });
 
-        columnElement.appendChild(titleElement);
-        columnElement.appendChild(taskDropZone);
-        columns.appendChild(columnElement);
+  header.appendChild(title);
+  header.appendChild(gearBtn);
 
-        orderNumber++;
-      });
+  // Drop zone
+  const dropZone = document.createElement('div');
+  dropZone.id = stat.id;
+  dropZone.setAttribute('ondrop', 'drop(event, this)');
+  dropZone.setAttribute('ondragover', 'allowDrop(event)');
+  dropZone.setAttribute('statusId', stat.id);
+  dropZone.className = 'overflow-y-auto';
 
-    } catch (error) {
-      console.error('There has been a problem with fetching projects:', error);
+  const remaining = window.innerHeight
+    - document.getElementById('navbar').offsetHeight
+    - document.getElementById('projectBar').offsetHeight
+    - 140;
+  dropZone.style.height = `${remaining}px`;
+
+  (kanbanState.taskLists[idx] || []).forEach(task => {
+    const link = document.createElement('a');
+    link.id = task.id;
+    link.statusId = task.statusId;
+    link.draggable = true;
+    link.href = `task/${task.id}`;
+    link.setAttribute('ondragstart', 'drag(event)');
+
+    const card = document.createElement('p');
+    card.className = 'break-words rounded-lg my-2 p-1 hover:bg-neutral-500 bg-neutral-600';
+    card.textContent = task.name;
+
+    link.appendChild(card);
+    dropZone.appendChild(link);
+  });
+
+  col.appendChild(header);
+  col.appendChild(dropZone);
+  return col;
+}
+
+// ── Add Column card ───────────────────────────────────────────────────────────
+
+function buildAddColumnCard() {
+  const card = document.createElement('div');
+  card.id = 'addColumnCard';
+  card.style.cssText =
+    'padding:0.5rem;border-radius:0.75rem;border:2px dashed #737373;'
+    + 'display:flex;flex-direction:column;align-items:center;justify-content:center;'
+    + 'cursor:pointer;min-width:120px';
+  card.addEventListener('mouseenter', () => card.style.borderColor = '#d4d4d4');
+  card.addEventListener('mouseleave', () => card.style.borderColor = '#737373');
+
+  const plus = document.createElement('span');
+  plus.style.cssText = 'font-size:1.5rem;color:#a3a3a3';
+  plus.textContent = '+';
+  card.appendChild(plus);
+
+  card.addEventListener('click', () => openInlineAddForm(card));
+  return card;
+}
+
+function openInlineAddForm(card) {
+  card.innerHTML = '';
+  card.style.cursor = 'default';
+
+  const nameInput = document.createElement('input');
+  nameInput.type = 'text';
+  nameInput.placeholder = 'Column name';
+  nameInput.style.cssText =
+    'width:100%;background:#404040;color:white;border:none;border-radius:0.25rem;'
+    + 'padding:0.25rem 0.5rem;font-size:0.875rem;margin-bottom:0.5rem;box-sizing:border-box;display:block';
+
+  const colorInput = document.createElement('input');
+  colorInput.type = 'color';
+  colorInput.value = '#323232';
+  colorInput.style.cssText =
+    'width:100%;height:2rem;border:none;border-radius:0.25rem;'
+    + 'cursor:pointer;margin-bottom:0.5rem;display:block';
+
+  const errorDiv = document.createElement('div');
+  errorDiv.style.cssText = 'color:#f87171;font-size:0.75rem;margin-bottom:0.25rem;display:none';
+
+  const btnRow = document.createElement('div');
+  btnRow.style.cssText = 'display:flex;gap:0.5rem;width:100%';
+
+  const addBtn = document.createElement('button');
+  addBtn.textContent = 'Add';
+  addBtn.style.cssText =
+    'flex:1;background:#525252;color:white;border:none;border-radius:0.25rem;'
+    + 'padding:0.25rem;font-size:0.875rem;cursor:pointer';
+  addBtn.addEventListener('click', async () => {
+    const name = nameInput.value.trim();
+    if (!name) { errorDiv.textContent = 'Name is required'; errorDiv.style.display = 'block'; return; }
+    const ok = await apiCreateStatus(name, colorInput.value.slice(1).toUpperCase());
+    if (ok) await reloadBoard();
+  });
+
+  const cancelBtn = document.createElement('button');
+  cancelBtn.textContent = 'Cancel';
+  cancelBtn.style.cssText =
+    'flex:1;background:#404040;color:white;border:none;border-radius:0.25rem;'
+    + 'padding:0.25rem;font-size:0.875rem;cursor:pointer';
+  cancelBtn.addEventListener('click', renderBoard);
+
+  btnRow.appendChild(addBtn);
+  btnRow.appendChild(cancelBtn);
+
+  card.appendChild(nameInput);
+  card.appendChild(colorInput);
+  card.appendChild(errorDiv);
+  card.appendChild(btnRow);
+  nameInput.focus();
+}
+
+// ── Gear popover ──────────────────────────────────────────────────────────────
+
+function openColumnPopover(statusId, anchor) {
+  closeAllPopovers();
+
+  const stat = kanbanState.statuses.find(s => s.id == statusId);
+  if (!stat) return;
+
+  const pop = document.createElement('div');
+  pop.id = 'columnPopover';
+
+  // Name
+  const nameLabel = document.createElement('label');
+  nameLabel.textContent = 'Column name';
+  const nameInput = document.createElement('input');
+  nameInput.type = 'text';
+  nameInput.value = stat.name;
+  nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') nameInput.blur(); });
+  nameInput.addEventListener('blur', async () => {
+    const newName = nameInput.value.trim();
+    if (newName && newName !== stat.name) {
+      const ok = await apiUpdateStatus(statusId, { name: newName });
+      if (ok) { stat.name = newName; renderBoard(); closeAllPopovers(); }
     }
-  })()
-</script>
+  });
 
-<script>
-  function allowDrop(allowdropevent) {
-    allowdropevent.preventDefault();
+  // Color
+  const colorLabel = document.createElement('label');
+  colorLabel.textContent = 'Color';
+  const colorInput = document.createElement('input');
+  colorInput.type = 'color';
+  colorInput.value = '#' + stat.color;
+  colorInput.addEventListener('change', async () => {
+    const newColor = colorInput.value.slice(1).toUpperCase();
+    const ok = await apiUpdateStatus(statusId, { color: newColor });
+    if (ok) { stat.color = newColor; renderBoard(); closeAllPopovers(); }
+  });
+
+  // Delete
+  const sep = document.createElement('div');
+  sep.style.cssText = 'border-top:1px solid #404040;padding-top:0.5rem;margin-top:0.25rem';
+
+  const deleteBtn = document.createElement('button');
+  deleteBtn.style.cssText =
+    'width:100%;color:#f87171;font-size:0.875rem;text-align:left;'
+    + 'background:none;border:none;cursor:pointer;padding:0';
+  deleteBtn.textContent = 'Delete column';
+
+  const confirmDiv = document.createElement('div');
+  confirmDiv.style.display = 'none';
+  confirmDiv.style.marginTop = '0.5rem';
+
+  const confirmMsg = document.createElement('p');
+  confirmMsg.style.cssText = 'font-size:0.75rem;color:#d4d4d4;margin-bottom:0.5rem';
+  confirmMsg.textContent = 'Delete? Tasks will be unassigned.';
+
+  const confirmRow = document.createElement('div');
+  confirmRow.style.cssText = 'display:flex;gap:0.5rem';
+
+  const confirmBtn = document.createElement('button');
+  confirmBtn.textContent = 'Delete';
+  confirmBtn.style.cssText =
+    'flex:1;background:#dc2626;color:white;border:none;border-radius:0.25rem;'
+    + 'padding:0.25rem 0.5rem;font-size:0.75rem;cursor:pointer';
+  confirmBtn.addEventListener('click', async () => {
+    const ok = await apiDeleteStatus(statusId);
+    if (ok) {
+      kanbanState.statuses = kanbanState.statuses.filter(s => s.id != statusId);
+      closeAllPopovers();
+      await reloadBoard();
+    }
+  });
+
+  const cancelBtn = document.createElement('button');
+  cancelBtn.textContent = 'Cancel';
+  cancelBtn.style.cssText =
+    'flex:1;background:#404040;color:white;border:none;border-radius:0.25rem;'
+    + 'padding:0.25rem 0.5rem;font-size:0.75rem;cursor:pointer';
+  cancelBtn.addEventListener('click', () => { confirmDiv.style.display = 'none'; });
+
+  confirmRow.appendChild(confirmBtn);
+  confirmRow.appendChild(cancelBtn);
+  confirmDiv.appendChild(confirmMsg);
+  confirmDiv.appendChild(confirmRow);
+
+  deleteBtn.addEventListener('click', () => {
+    confirmDiv.style.display = confirmDiv.style.display === 'none' ? 'block' : 'none';
+  });
+
+  sep.appendChild(deleteBtn);
+  sep.appendChild(confirmDiv);
+
+  pop.appendChild(nameLabel);
+  pop.appendChild(nameInput);
+  pop.appendChild(colorLabel);
+  pop.appendChild(colorInput);
+  pop.appendChild(sep);
+
+  document.body.appendChild(pop);
+  activePopover = pop;
+
+  // Position below anchor
+  const rect = anchor.getBoundingClientRect();
+  pop.style.top = (rect.bottom + 6) + 'px';
+  pop.style.left = Math.min(rect.left, window.innerWidth - 240) + 'px';
+
+  document.addEventListener('click', outsideClickHandler);
+}
+
+function outsideClickHandler(e) {
+  if (activePopover
+      && !activePopover.contains(e.target)
+      && !e.target.classList.contains('column-gear-btn')) {
+    closeAllPopovers();
   }
+}
 
-  function drag(dragevent) {
-    dragevent.dataTransfer.setData("id", dragevent.target.id);
+function closeAllPopovers() {
+  if (activePopover) {
+    activePopover.remove();
+    activePopover = null;
+    document.removeEventListener('click', outsideClickHandler);
   }
+}
 
-  async function drop(dropevent, element) {
-    dropevent.preventDefault();
+// ── Manage Columns panel ──────────────────────────────────────────────────────
 
-    const task = document.getElementById(dropevent.dataTransfer.getData("id"));
-    try{
-    element.appendChild(task);
-    const response = await fetch('{{ apiUrl }}/kanban/', {
+function renderManagePanel() {
+  const list = document.getElementById('manageColumnsList');
+  list.innerHTML = '';
+
+  kanbanState.statuses.forEach((stat, idx) => {
+    const row = document.createElement('div');
+    row.className = 'manage-col-row';
+
+    const upBtn = document.createElement('button');
+    upBtn.textContent = '↑';
+    upBtn.title = 'Move up';
+    upBtn.style.cssText =
+      'color:#a3a3a3;background:none;border:none;cursor:pointer;font-size:1rem;padding:0 2px';
+    if (idx === 0) upBtn.style.opacity = '0.3';
+    upBtn.addEventListener('click', () => moveColumn(idx, -1));
+
+    const downBtn = document.createElement('button');
+    downBtn.textContent = '↓';
+    downBtn.title = 'Move down';
+    downBtn.style.cssText =
+      'color:#a3a3a3;background:none;border:none;cursor:pointer;font-size:1rem;padding:0 2px';
+    if (idx === kanbanState.statuses.length - 1) downBtn.style.opacity = '0.3';
+    downBtn.addEventListener('click', () => moveColumn(idx, 1));
+
+    const nameInput = document.createElement('input');
+    nameInput.type = 'text';
+    nameInput.value = stat.name;
+    nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') nameInput.blur(); });
+    nameInput.addEventListener('blur', async () => {
+      const newName = nameInput.value.trim();
+      if (newName && newName !== stat.name) {
+        const ok = await apiUpdateStatus(stat.id, { name: newName });
+        if (ok) { stat.name = newName; renderBoard(); }
+      }
+    });
+
+    const colorInput = document.createElement('input');
+    colorInput.type = 'color';
+    colorInput.value = '#' + stat.color;
+    colorInput.title = 'Change color';
+    colorInput.addEventListener('change', async () => {
+      const newColor = colorInput.value.slice(1).toUpperCase();
+      const ok = await apiUpdateStatus(stat.id, { color: newColor });
+      if (ok) { stat.color = newColor; renderBoard(); }
+    });
+
+    const delBtn = document.createElement('button');
+    delBtn.innerHTML = '🗑';
+    delBtn.title = 'Delete column';
+    delBtn.style.cssText =
+      'background:none;border:none;cursor:pointer;font-size:1rem;color:#f87171';
+    delBtn.addEventListener('click', async () => {
+      if (!confirm('Delete column? Tasks will be unassigned.')) return;
+      const ok = await apiDeleteStatus(stat.id);
+      if (ok) {
+        kanbanState.statuses = kanbanState.statuses.filter(s => s.id !== stat.id);
+        renderBoard();
+        renderManagePanel();
+      }
+    });
+
+    row.appendChild(upBtn);
+    row.appendChild(downBtn);
+    row.appendChild(nameInput);
+    row.appendChild(colorInput);
+    row.appendChild(delBtn);
+    list.appendChild(row);
+  });
+}
+
+async function moveColumn(idx, direction) {
+  const newIdx = idx + direction;
+  if (newIdx < 0 || newIdx >= kanbanState.statuses.length) return;
+
+  const arr = kanbanState.statuses;
+  [arr[idx], arr[newIdx]] = [arr[newIdx], arr[idx]];
+
+  const ok = await apiReorderStatuses(arr.map(s => s.id));
+  if (ok) {
+    renderBoard();
+    renderManagePanel();
+  } else {
+    // Revert on failure
+    [arr[idx], arr[newIdx]] = [arr[newIdx], arr[idx]];
+    renderManagePanel();
+  }
+}
+
+function openManagePanel() {
+  renderManagePanel();
+  document.getElementById('manageColumnsPanel').classList.add('open');
+}
+
+document.getElementById('closePanelBtn').addEventListener('click', () => {
+  document.getElementById('manageColumnsPanel').classList.remove('open');
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    document.getElementById('manageColumnsPanel').classList.remove('open');
+  }
+});
+
+document.getElementById('panelAddColumnBtn').addEventListener('click', () => {
+  document.getElementById('panelAddForm').classList.remove('hidden');
+  document.getElementById('panelAddColumnBtn').classList.add('hidden');
+  document.getElementById('panelAddName').focus();
+});
+
+document.getElementById('panelAddCancel').addEventListener('click', () => {
+  document.getElementById('panelAddForm').classList.add('hidden');
+  document.getElementById('panelAddColumnBtn').classList.remove('hidden');
+  document.getElementById('panelAddName').value = '';
+  document.getElementById('panelAddError').classList.add('hidden');
+});
+
+document.getElementById('panelAddSubmit').addEventListener('click', async () => {
+  const name = document.getElementById('panelAddName').value.trim();
+  const color = document.getElementById('panelAddColor').value.slice(1).toUpperCase();
+  const errDiv = document.getElementById('panelAddError');
+
+  if (!name) { errDiv.textContent = 'Name is required'; errDiv.classList.remove('hidden'); return; }
+
+  const ok = await apiCreateStatus(name, color);
+  if (ok) {
+    document.getElementById('panelAddForm').classList.add('hidden');
+    document.getElementById('panelAddColumnBtn').classList.remove('hidden');
+    document.getElementById('panelAddName').value = '';
+    errDiv.classList.add('hidden');
+    await reloadBoard();
+    renderManagePanel();
+  }
+});
+
+// ── Inject "Columns" button into project bar ──────────────────────────────────
+
+function injectManageColumnsButton() {
+  const bar = document.getElementById('projectBar');
+  if (!bar) return;
+  const firstDiv = bar.querySelector('div');
+  if (!firstDiv) return;
+
+  const btn = document.createElement('a');
+  btn.href = '#';
+  btn.className = 'my-auto rounded-full ml-4 px-2 py-1 bg-neutral-600 hover:bg-gray-500';
+  btn.innerHTML = '<div class="sm:text-xl font-semibold mx-1">Columns</div>';
+  btn.addEventListener('click', e => { e.preventDefault(); openManagePanel(); });
+  firstDiv.appendChild(btn);
+}
+
+// ── API helpers ───────────────────────────────────────────────────────────────
+
+async function apiUpdateStatus(statusId, fields) {
+  try {
+    const resp = await fetch(`${apiUrl}/statuses/`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({id: task.id, statusId: element.getAttribute('statusId'), priority: task.getAttribute('priority')})
+      body: JSON.stringify({ projectID, id: statusId, ...fields }),
     });
-  }catch(error)
-  {
-    console.error('There has been a problem with updating the kanban board:', error);
+    if (!resp.ok) { const err = await resp.json(); alert(err.message || 'Failed to update column'); return false; }
+    return true;
+  } catch (e) { console.error('updateStatus error:', e); return false; }
+}
+
+async function apiDeleteStatus(statusId) {
+  try {
+    const resp = await fetch(
+      `${apiUrl}/statuses/?id=${statusId}&projectID=${projectID}`,
+      { method: 'DELETE' }
+    );
+    if (!resp.ok) { const err = await resp.json(); alert(err.message || 'Failed to delete column'); return false; }
+    return true;
+  } catch (e) { console.error('deleteStatus error:', e); return false; }
+}
+
+async function apiCreateStatus(name, color) {
+  try {
+    const resp = await fetch(`${apiUrl}/statuses/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ projectID, name, color }),
+    });
+    if (!resp.ok) { const err = await resp.json(); alert(err.message || 'Failed to create column'); return false; }
+    return true;
+  } catch (e) { console.error('createStatus error:', e); return false; }
+}
+
+async function apiReorderStatuses(orderedIds) {
+  try {
+    const resp = await fetch(`${apiUrl}/statuses/reorder/`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ projectID, orderedIds }),
+    });
+    if (!resp.ok) { const err = await resp.json(); alert(err.message || 'Failed to reorder columns'); return false; }
+    return true;
+  } catch (e) { console.error('reorderStatuses error:', e); return false; }
+}
+
+async function reloadBoard() {
+  try {
+    const resp = await fetch(`${apiUrl}/kanban/?projectID=${projectID}`);
+    if (!resp.ok) throw new Error('Failed to reload');
+    kanbanState = await resp.json();
+    renderBoard();
+  } catch (e) { console.error('reloadBoard error:', e); }
+}
+
+// ── Task drag and drop ────────────────────────────────────────────────────────
+
+function allowDrop(e) { e.preventDefault(); }
+
+function drag(e) { e.dataTransfer.setData('id', e.target.id); }
+
+async function drop(e, el) {
+  e.preventDefault();
+  const task = document.getElementById(e.dataTransfer.getData('id'));
+  const prevParent = task.parentElement;
+  const prevNext = task.nextElementSibling; // preserve original position for revert
+  try {
+    el.appendChild(task);
+    const resp = await fetch(`${apiUrl}/kanban/`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: task.id,
+        statusId: el.getAttribute('statusId'),
+        priority: task.getAttribute('priority'),
+      }),
+    });
+    if (!resp.ok) {
+      prevParent.insertBefore(task, prevNext); // revert to original position
+      console.error('Drop failed:', await resp.text());
+    }
+  } catch (err) {
+    prevParent.insertBefore(task, prevNext); // revert to original position
+    console.error('Drop error:', err);
   }
-  }
+}
 </script>
+
 {% endblock %}
