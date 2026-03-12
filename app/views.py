@@ -7,12 +7,14 @@ from oauthlib.oauth2 import WebApplicationClient as WAC
 from rest_framework import status
 
 # django imports
+from django.conf import settings
 from django.shortcuts import render, redirect
-from django.http import HttpResponseRedirect, HttpResponseServerError
+from django.http import Http404, HttpResponseRedirect, HttpResponseServerError
 from django.views.generic.base import TemplateView
 
 # api imports
 from api.decorators import apiKeyRequired
+from api.models import User
 from api.utils import (
     decryptApiKey,
     createEncodedApiKey,
@@ -557,6 +559,32 @@ def marketplaceView(request):
     return render(request, "marketplace.html", {})
 
 
+
+
+def devLogin(request):
+    """
+    DEV ONLY (DEBUG=True): sets the apiToken cookie for the first user in the DB so
+    automated tools (e.g. Playwright) can browse authenticated pages without OAuth.
+    """
+    if not settings.DEBUG:
+        raise Http404
+
+    user = User.objects.order_by("id").first()
+    if not user or not user.apiKey:
+        return HttpResponseServerError("No user with an API key found in the database.")
+
+    apiToken = decryptApiKey(user.apiKey)
+    if not apiToken:
+        return HttpResponseServerError("Failed to decrypt API key.")
+
+    # Restrict redirect to local paths only — prevent open redirect
+    next_url = request.GET.get("next", "/")
+    if not next_url.startswith("/") or next_url.startswith("//"):
+        next_url = "/"
+
+    response = redirect(next_url)
+    response.set_cookie("apiToken", apiToken, httponly=True, samesite="Strict")
+    return response
 
 
 def requestAuth(_request, provider):

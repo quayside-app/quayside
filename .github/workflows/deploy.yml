@@ -55,13 +55,12 @@ jobs:
             GITHUB_API_URL_email=https://api.github.com/user/emails
             GITHUB_API_URL_user=https://api.github.com/user
             GOOGLE_API_URL_userprofile=https://www.googleapis.com/oauth2/v2/userinfo
-          secrets: |
-            MONGO_USERNAME=MONGO_USERNAME:latest
-            MONGO_PASSWORD=MONGO_PASSWORD:latest
-            CHATGPT_API_KEY=CHATGPT_API_KEY:latest
-            GITHUB_CLIENT_ID=GITHUB_CLIENT_ID:latest
-            GITHUB_CLIENT_SECRET=GITHUB_CLIENT_SECRET:latest
-            GOOGLE_CLIENT_ID=GOOGLE_CLIENT_ID:latest
-            GOOGLE_CLIENT_SECRET=GOOGLE_CLIENT_SECRET:latest
-            API_SECRET=API_SECRET:latest
-            REDIRECT_URI=REDIRECT_URI:latest
+            MONGO_USERNAME=${{ secrets.MONGO_USERNAME }}
+            MONGO_PASSWORD=${{ secrets.MONGO_PASSWORD }}
+            CHATGPT_API_KEY=${{ secrets.CHATGPT_API_KEY }}
+            GITHUB_CLIENT_ID=${{ secrets.GH_CLIENT_ID }}
+            GITHUB_CLIENT_SECRET=${{ secrets.GH_CLIENT_SECRET }}
+            GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+            GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
+            API_SECRET=${{ secrets.API_SECRET }}
+            REDIRECT_URI=${{ secrets.REDIRECT_URI }}

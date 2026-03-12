@@ -28,7 +28,7 @@
     "playwright": {
       "type": "stdio",
       "command": "npx",
-      "args": ["@playwright/mcp@latest"]
+      "args": ["@playwright/mcp@latest", "--browser", "chromium"]
     },
     "code-graph": {
       "type": "stdio",
