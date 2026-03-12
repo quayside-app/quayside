@@ -1,0 +1,39 @@
+{
+  "mcpServers": {
+    "pare-git": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@paretools/git"]
+    },
+    "pare-test": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@paretools/test"]
+    },
+    "pare-npm": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@paretools/npm"]
+    },
+    "pare-lint": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@paretools/lint"]
+    },
+    "pare-build": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@paretools/build"]
+    },
+    "playwright": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["@playwright/mcp@latest"]
+    },
+    "code-graph": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "github:jasonwarta/code-graph-mcp"]
+    }
+  }
+}
