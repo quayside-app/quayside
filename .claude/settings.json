@@ -1,0 +1,41 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cat:*)",
+      "Bash(chmod:*)",
+      "Bash(curl:*)",
+      "Bash(find:*)",
+      "Bash(gh:*)",
+      "Bash(git:*)",
+      "Bash(grep:*)",
+      "Bash(head:*)",
+      "Bash(jq:*)",
+      "Bash(node:*)",
+      "Bash(npx:*)",
+      "Bash(pip:*)",
+      "Bash(python:*)",
+      "Bash(python3:*)",
+      "Bash(pytest:*)",
+      "Bash(wc:*)",
+      "Bash(xargs:*)",
+      "Bash(yarn:*)",
+      "WebFetch(domain:docs.djangoproject.com)",
+      "WebFetch(domain:docs.pytest.org)",
+      "WebFetch(domain:github.com)",
+      "mcp__pare-build__*",
+      "mcp__pare-git__*",
+      "mcp__pare-lint__*",
+      "mcp__pare-npm__*",
+      "mcp__pare-test__*",
+      "mcp__playwright__*"
+    ],
+    "deny": [
+      "Bash(git clean -f *)",
+      "Bash(git push --force *)",
+      "Bash(git reset --hard *)",
+      "Bash(rm -rf *)",
+      "Read(.env*)",
+      "Read(secrets/**)"
+    ]
+  }
+}
