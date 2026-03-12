@@ -182,10 +182,16 @@ function Trees(dataList, {
 
         node.append("rect")
             .attr("fill", d => fill(d.data, d))
-            .attr("rx", 5)
-            .attr("width",  nodeWidth)// .attr("width",  `${maxTextLength*0.85}em`)
+            .attr("rx", 4)
+            .attr("width",  nodeWidth)
             .attr("height", nodeHeight)
             .attr("y", -nodeHeight / 2)
+            .attr("stroke", "rgba(64,196,255,0.35)")
+            .attr("stroke-width", 1)
+            .style("filter", "drop-shadow(0px 0px 5px rgba(64,196,255,0.2)) drop-shadow(0px 2px 6px rgba(0,0,0,0.6))")
+            .style("cursor", "pointer")
+            .on("mouseover", function() { d3.select(this).style("filter", "drop-shadow(0px 0px 10px rgba(64,196,255,0.5)) drop-shadow(0px 2px 8px rgba(0,0,0,0.7))"); })
+            .on("mouseout",  function() { d3.select(this).style("filter", "drop-shadow(0px 0px 5px rgba(64,196,255,0.2)) drop-shadow(0px 2px 6px rgba(0,0,0,0.6))"); })
 
         // "+"" Icon
         const iconGroup = node.append("g")

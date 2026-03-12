@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.urls import path
 
 from app import views
@@ -52,3 +53,6 @@ urlpatterns = [
     path("callback/", views.Callback.as_view(), name="callback"),
     path('redirect/', views.redirectOffSite,name='offsite-redirect'),
 ]
+
+if settings.DEBUG:
+    urlpatterns += [path('dev-login/', views.devLogin, name='dev-login')]

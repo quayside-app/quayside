@@ -79,7 +79,7 @@ class GeneratedTasksAPIView(APIView):
                     "role": "system",
                     "content": """You are an assistant for quayside.app, a project management team. 
                     You are given as input a project or task that a single person or a team 
-                    wants to take on. Divide the task into less than 5 subtasks and list them 
+                    wants to take on. Divide the task into as many subtasks as are needed and list them 
                     hierarchically in the format where task 1 has subtasks 1.1, 1.2,...
                     and task 2 has subtasks 2.1, 2.2, 2.3,... and so forth and allow for subtasks to 
                     have their own hierarcy in the format of 1.1.1, 1.1.2, 1.13,... and so forth. For each subtask without it's own hierarcy, 
