@@ -2,60 +2,53 @@
 {% load static %}
 {% load tz %}
 
-<div id='duckDiv' class="hidden fixed z-50 bottom-0 right-5  bounce ">
+<div id='duckDiv' class="fixed z-50 bottom-0 right-5 bounce">
     <img id="duckImage" class="w-24 cursor-pointer" src="{% static 'app/images/duck.png' %}">
 </div>
-<div id="taskFeedBackFormDiv" class="hidden fixed z-50 bottom-12 right-36   p-4 rounded-t-[40px] rounded-bl-[40px] text-center text-white  bg-neutral-800  shadow-lg shadow-black w-80">
-<!--absolute bottom-40 right-5-->
-    <form action="/project/{{ projectID }}/graph/give-feedback" method="post" id="taskFeedbackForm">
-        {% csrf_token %} <!-- Required by Django to prevent Cross Site Scripting -->
-
-        <h3 id="formDescriptor"></h3>
-        <!-- Project Input(s) -->
-        <div class="pt-4 ">
-            How are you feeling about this {% if taskID %}task{% else %}project{% endif %}?
-            {{ TaskFeedbackForm.mood }} <!-- Comes from the context processor (since in the base class)-->
-            
-            <div class="mt-2">
-                {{ TaskFeedbackForm.explanation }}
-            </div>
+<div id="taskFeedBackFormDiv" class="hidden fixed z-50 bottom-12 right-36 p-4 rounded-t-[40px] rounded-bl-[40px] text-center text-white bg-neutral-800 shadow-lg shadow-black w-80">
+    {% if not userID %}
+        <!-- Not logged in: welcome message -->
+        <div class="pt-2 pb-2">
+            <p class="font-semibold text-base mb-2">Hi, I'm Qpa! 👋</p>
+            <p class="text-sm mb-4">I'm your AI project assistant. Sign up and I'll help you manage your projects and stay on track.</p>
+            <a href="/welcome/" class="px-3 py-1 rounded-md bg-neutral-600 hover:bg-gray-500 text-white text-sm">Get started</a>
         </div>
-
-        <!-- Hidden Forms that get passed as appropriate to the form-->
-        <input id='userID' type="hidden" name="userID" value="{{ userID }}">
-        <input id='projectID' type="hidden" name="projectID" value="{{ projectID }}">
-        <input id="taskID" type="hidden" name="taskID" value="{% if taskID %}{{ taskID }}{% endif %}">
-        <input type="hidden" name="dateCreated" id="dateCreatedInput" value="{% now 'Y-m-d H:i' %}">
-
-        <!-- Submit Button -->
-        <div id="submitButton">
-            <div class="flex justify-end">
-                <button id="feedBackSubmitter" type='submit' class="  px-2 py-1 rounded-md  text-white bg-neutral-600 hover:bg-gray-500 text-center">
-                    Submit!
-                </button>
+    {% elif projectID %}
+        <!-- Logged in with a project: feedback form -->
+        <form action="/project/{{ projectID }}/graph/give-feedback" method="post" id="taskFeedbackForm">
+            {% csrf_token %}
+            <h3 id="formDescriptor"></h3>
+            <div class="pt-4">
+                How are you feeling about this {% if taskID %}task{% else %}project{% endif %}?
+                {{ TaskFeedbackForm.mood }}
+                <div class="mt-2">
+                    {{ TaskFeedbackForm.explanation }}
+                </div>
             </div>
+            <input id='userID' type="hidden" name="userID" value="{{ userID }}">
+            <input id='projectID' type="hidden" name="projectID" value="{{ projectID }}">
+            <input id="taskID" type="hidden" name="taskID" value="{% if taskID %}{{ taskID }}{% endif %}">
+            <input type="hidden" name="dateCreated" id="dateCreatedInput" value="{% now 'Y-m-d H:i' %}">
+            <div class="flex justify-end mt-2">
+                <button type='submit' class="px-2 py-1 rounded-md text-white bg-neutral-600 hover:bg-gray-500">Submit!</button>
+            </div>
+        </form>
+    {% else %}
+        <!-- Logged in but no project selected -->
+        <div class="pt-2 pb-2">
+            <p class="font-semibold text-base mb-2">Hi, I'm Qpa! 🦆</p>
+            <p class="text-sm mb-4">Open a project and I'll help you track your progress.</p>
         </div>
-    </form>
+    {% endif %}
 </div>
 <script>
     // wait until the whole doc is loaded... all of it
     let duckSpeed = 1000;
     document.addEventListener('DOMContentLoaded', function() {
-        // ONLY SHOW DUCK 1% of the time
-        const MIN = 1
-        const MAX = 100
-        // Generates random between 0 and 100
-        randomValue = Math.floor(Math.random() * (MAX - MIN + 1)) + MIN; 
-        console.log("RANDOM", randomValue)
-        if (randomValue > 1) return // Don't continue to show duck
-
-        // Show duck + Modal
         let feedbackDiv = document.getElementById('taskFeedBackFormDiv');
-        feedbackDiv.classList.toggle('hidden');
         let duckDiv = document.getElementById('duckDiv');
-        duckDiv.classList.toggle('hidden');
 
-        // Trigger duck bounce
+        // Trigger duck bounce animation
         const images = [
             "{% static 'app/images/duck.png' %}",
             "{% static 'app/images/duck_sit.png' %}"
@@ -68,15 +61,14 @@
         }
         var intervalId = setInterval(toggleImage, duckSpeed);
 
-
         // Toggle Modal when duck clicked
-        duckDiv.addEventListener('click', function() { 
+        duckDiv.addEventListener('click', function() {
             feedbackDiv.classList.toggle('hidden');
-            // Stop duck bounce when modal hidden
-            if (feedbackDiv.classList.contains("hidden")) clearInterval(intervalId);
-            else intervalId = setInterval(toggleImage, duckSpeed);
+            clearInterval(intervalId);
+            // Stop duck bounce when modal open; resume when closed
+            if (feedbackDiv.classList.contains("hidden")) intervalId = setInterval(toggleImage, duckSpeed);
         });
- 
+
     });
 
 </script>
