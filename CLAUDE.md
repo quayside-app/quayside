@@ -9,7 +9,15 @@
 - No sycophancy.
 - Be direct, matter-of-fact, and concise.
 - Be critical; challenge my reasoning.
-- Don't include timeline estimates in plans.
+
+## Tech Debt
+
+Tech debt compounds and slows every future decision. Treat it as a first-class cost.
+
+- **Cut debt when you touch the code.** If you're editing a file and see unnecessary complexity, dead code, or a confusing abstraction — clean it up now. Don't create a ticket.
+- **Never add debt intentionally** without an explicit, time-bounded plan to remove it.
+- **Debt includes**: comments that substitute for clear naming, abstractions used only once, duplicated logic, overly generic code written for hypothetical future cases, and anything that slows onboarding.
+- **TODOs do not belong in code.** If something needs doing, open a GitHub issue — that's where work is tracked, prioritized, and visible to the team. A `// TODO` in code is invisible to planning and never gets done. Delete it and open an issue instead.
 
 ## Fix Bugs When Found
 
@@ -17,9 +25,67 @@ If you encounter a bug while working on something else, fix it now — don't def
 
 **Test failures are bugs.** When you run tests and see failures, investigate and fix them — even if they look "pre-existing." Do not dismiss failures as "not related to my changes" or "pre-existing." If the tests fail, the suite is broken and needs fixing before moving on. The only acceptable response to a failing test is to either fix the code or fix the test.
 
-## Test-First Development
+## Development Workflow
 
-Write a failing test before implementing a feature or bugfix. The test should demonstrate the expected behavior or reproduce the bug, then write the code that makes it pass.
+**Safety is the first priority. Speed is the second.** Efficiency = value ÷ time.
+
+Every feature or bugfix follows this sequence — do not skip or reorder steps:
+
+### 1. Design for value
+Before writing any code, define what success looks like:
+- What problem does this solve and for whom?
+- What is the expected behavior (inputs, outputs, edge cases)?
+- What is explicitly out of scope?
+
+For significant features, capture this in an ADR (why) and/or spec (how) before proceeding. For smaller changes, a clear written description in the task or PR is sufficient — but the thinking must happen first.
+
+### 2. Safety & risk review
+Before writing tests or code, explicitly consider safety. This is not optional — even small changes can have safety implications.
+
+**User safety**
+- What data does this touch? Is collection minimized? Is PII protected?
+- Could this cause data loss, corruption, or unexpected state for users?
+- Does it fail safe (deny by default) or fail open?
+- Are there UX patterns that could mislead or harm users?
+
+**Organizational safety**
+- Does this affect auth, authorization, billing, or compliance-sensitive flows?
+- Could this expose the organization to legal or financial risk?
+- Are new dependencies being introduced? (Flag for review — supply chain risk)
+
+**Societal safety**
+- Could this feature be abused or weaponized?
+- Does it have unintended consequences for third parties or the broader world?
+
+**Threat model (for any security-relevant change)**
+- Who are the actors (authenticated user, anonymous user, admin, external system)?
+- What can each actor do that they shouldn't be able to?
+- What's the blast radius if this is exploited?
+
+If any significant risk is identified, stop and resolve it in the design — not in a follow-up ticket.
+
+### 3. Write failing tests
+Translate the design into tests before writing any implementation:
+- Tests must fail when first run — if they pass immediately, either the behavior already exists or the test is wrong
+- Tests define the contract: they should read like a specification of the expected behavior
+- Cover the happy path, edge cases, and failure modes identified in the design step
+- **Safety requirements become test cases**: unauthorized access must be tested, invalid inputs must be tested, failure modes must be tested
+
+### 4. Implement until tests pass
+Write the minimum code needed to make the tests pass:
+- Do not add behavior that isn't covered by a test
+- Do not gold-plate or over-engineer — solve what the tests specify
+- Honor every safety constraint identified in step 2 — if a constraint can't be met, raise it before committing
+
+### 5. Refactor for clarity and speed
+After tests are green, simplify. Run `/simplify` to assist with this step.
+
+- **Remove all comments.** If a comment explains *what* the code does, the code should be rewritten to be self-evident. If it explains *why* a decision was made, it belongs in an ADR — not inline. Comments are a maintenance liability and bloat the context window for AI tools.
+- **Rename until names are obvious.** A future developer (or AI) should understand a function or variable without any surrounding context.
+- **Cut dead code.** Unused variables, unreachable branches, and obsolete abstractions slow onboarding and obscure intent.
+- **Flatten unnecessary complexity.** Prefer simple, direct code over clever indirection. Three readable lines beat one cryptic expression.
+- **Ask: would a new developer understand this in 30 seconds?** If not, simplify further — don't add a comment.
+- **Re-run all tests after refactoring.** Refactoring can break things. Green before refactor does not guarantee green after.
 
 ## Finding Files
 
@@ -30,6 +96,16 @@ If you can't locate a file within 3 search attempts, stop and ask the user for t
 This is a Django project. Review the top-level directory structure and any existing apps before making changes.
 
 The default branch is `dev` (not `main`). Target PRs against `dev`.
+
+## Naming
+
+Names should be **short, descriptive, and memorable** — useful enough to understand at a glance, entertaining enough to stick.
+
+- Prefer a single well-chosen word over a generic compound (`invoice` not `invoiceDataObject`)
+- Branch and worktree names should hint at the feature without a dictionary (`fix-auth-loop`, `beacon-retry`, `dark-mode`)
+- Function and variable names should read like plain English at the call site
+- Avoid filler words: `Manager`, `Handler`, `Helper`, `Utils`, `Data`, `Info`
+- If a name needs a comment to explain it, the name is wrong
 
 ## Git Worktrees
 
@@ -44,6 +120,12 @@ If the current branch is `dev`, ask the user **before doing any work**:
 Wait for the user to confirm before proceeding. Creating a worktree up front is the preferred workflow — it avoids having to juggle branch creation later.
 
 If the user declines the worktree, continue on `dev` but create a new branch before committing. Do not commit directly to `dev`.
+
+**At the start of every task**, check the current worktree name (`git worktree list`) and compare it to the work being requested. If they don't match — e.g., you're in `fix-auth-loop` but the task is about billing — stop and say so:
+
+> You're in worktree `fix-auth-loop` but this looks like billing work. Want to create a new worktree first?
+
+Don't silently proceed in the wrong tree.
 
 ## Labels
 
