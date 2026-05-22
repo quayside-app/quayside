@@ -1,4 +1,4 @@
-# CLAUDE.md
+# AGENTS.md
 
 > **If you discover something that conflicts with this file, do not silently override it. Ask the user to clarify, then update this file together. When changing any convention documented here, consult the user and update this file accordingly.**
 
@@ -80,12 +80,11 @@ Write the minimum code needed to make the tests pass:
 ### 5. Refactor for clarity and speed
 After tests are green, simplify. Run `/simplify` to assist with this step.
 
-- **Remove all comments.** If a comment explains *what* the code does, the code should be rewritten to be self-evident. If it explains *why* a decision was made, it belongs in an ADR — not inline. Comments are a maintenance liability and bloat the context window for AI tools.
-- **Rename until names are obvious.** A future developer (or AI) should understand a function or variable without any surrounding context.
-- **Cut dead code.** Unused variables, unreachable branches, and obsolete abstractions slow onboarding and obscure intent.
-- **Flatten unnecessary complexity.** Prefer simple, direct code over clever indirection. Three readable lines beat one cryptic expression.
-- **Ask: would a new developer understand this in 30 seconds?** If not, simplify further — don't add a comment.
-- **Re-run all tests after refactoring.** Refactoring can break things. Green before refactor does not guarantee green after.
+- **Remove all comments.** If a comment explains *what* the code does, the code should be rewritten to be self-evident. If it explains *why* a decision was made, it belongs in an ADR — not inline.
+- **Rename until names are obvious.**
+- **Cut dead code.**
+- **Flatten unnecessary complexity.** Prefer simple, direct code over clever indirection.
+- **Re-run all tests after refactoring.**
 
 ## Finding Files
 
@@ -117,15 +116,7 @@ If the current branch is `dev`, ask the user **before doing any work**:
 
 > You're on the `dev` branch. Want to create a worktree first?
 
-Wait for the user to confirm before proceeding. Creating a worktree up front is the preferred workflow — it avoids having to juggle branch creation later.
-
-If the user declines the worktree, continue on `dev` but create a new branch before committing. Do not commit directly to `dev`.
-
-**At the start of every task**, check the current worktree name (`git worktree list`) and compare it to the work being requested. If they don't match — e.g., you're in `fix-auth-loop` but the task is about billing — stop and say so:
-
-> You're in worktree `fix-auth-loop` but this looks like billing work. Want to create a new worktree first?
-
-Don't silently proceed in the wrong tree.
+**At the start of every task**, check the current worktree name (`git worktree list`) and compare it to the work being requested. If they don't match, stop and say so.
 
 ## Labels
 
@@ -140,9 +131,9 @@ When addressing PR review comments:
 
 ## Commits
 
-Proactively propose commits in blocks aligned to logical groupings of tasks or features. When a coherent unit of work is complete, ask the user if they'd like to commit rather than waiting for them to bring it up.
+Proactively propose commits in blocks aligned to logical groupings of tasks or features.
 
-**Never use `--no-verify` when committing.** Pre-commit hooks exist for a reason. If a hook fails, fix the underlying issue — don't bypass the hooks.
+**Never use `--no-verify` when committing.**
 
 ### Adversarial Review Before Commit
 
@@ -151,7 +142,7 @@ Before committing, run an adversarial review of the staged changes:
 1. **Summarize the diff** — Describe what changed and why.
 2. **Adversarial review** — Run a separate Claude Code agent (`model: "sonnet"`) with the same review prompt. Ask it to find bugs, inconsistencies, security issues, and missed edge cases. Classify issues as CRITICAL/IMPORTANT/MINOR.
 3. **Address concerns** — Fix legitimate issues before committing.
-4. **Second review round** — Repeat steps 2-3. The second round catches inconsistencies introduced by fixes.
+4. **Second review round** — Repeat steps 2-3.
 
 ## Tooling
 
@@ -160,25 +151,15 @@ Before committing, run an adversarial review of the staged changes:
 
 ## MCP Tools
 
-When Pare MCP tools are available (prefixed with mcp\_\_pare-\*), prefer them over running raw CLI commands via Bash. Pare tools return structured JSON with ~85% fewer tokens than CLI output.
+When Pare MCP tools are available (prefixed with `mcp__pare-*`), prefer them over running raw CLI commands via Bash.
 
-- Git: mcp**pare-git**status, log, diff, branch, show, add, commit, push, pull, checkout
-- Tests: mcp**pare-test**run, mcp**pare-test**coverage (pytest, jest, vitest, mocha)
-- Builds: mcp**pare-build**tsc, build, esbuild, vite-build, webpack
-- Linting: mcp**pare-lint**lint, format-check, prettier-format, biome-check, biome-format
-- npm: mcp**pare-npm**install, audit, outdated, list, run, test, init
+- Git: `mcp__pare-git__status`, log, diff, branch, show, add, commit, push, pull, checkout
+- Tests: `mcp__pare-test__run`, `mcp__pare-test__coverage` (pytest, jest, vitest, mocha)
+- Linting: `mcp__pare-lint__lint`, format-check, prettier-format, biome-check
 
 ## Spec Writing
 
-When planning a new system, service, or significant feature, write a formal specification document before implementation. Follow the guidelines in [`docs/specs/spec-writing-guidelines.md`](docs/specs/spec-writing-guidelines.md). Key requirements:
-
-- **Structure**: Problem Statement, Goals/Non-Goals, System Overview, Domain Model, per-subsystem specs, Observability, Failure Model, Security, Reference Algorithms, Test Matrix, Implementation Checklist
-- **Every config field** gets type + default + dynamic reload behavior
-- **Every operation that can fail** gets a named error class and explicit recovery behavior
-- **Required vs optional** is always explicit — use validation profiles (Core, Extension, Real Integration)
-- **Reference pseudocode** for complex algorithms — language-agnostic
-- **Test matrix** as specific testable behaviors, not vague categories
-- **State what you don't prescribe** — "implementation-defined" for things that vary by deployment
+When planning a new system, service, or significant feature, write a formal specification document before implementation. Follow the guidelines in [`docs/specs/spec-writing-guidelines.md`](docs/specs/spec-writing-guidelines.md).
 
 ## Code Review Checklist
 
@@ -187,28 +168,22 @@ When reviewing or writing code, check against these criteria.
 ### Security
 
 - No hardcoded secrets, API keys, tokens, or credentials in source or tests
-- No `print()` / logger calls printing sensitive headers, tokens, or PII
 - Auth middleware/decorators on all protected views; authorization checked, not just authentication
 - All request bodies, query params, and path params validated before use
 - No raw SQL with user-supplied string interpolation — use parameterized queries or ORM
 - Error responses do not leak stack traces, file paths, or internal schema details
-- No `eval()` or unsafe deserialization of user input
-- If any new dependencies were added, flag them for human review
 
 ### Python / Django
 
 - Avoid broad `except Exception` — catch specific exceptions and handle or re-raise
-- No unsafe `# type: ignore` without an explanatory comment
 - Use Django ORM; avoid raw SQL unless absolutely necessary and document why
 - Migrations committed alongside model changes
-- No blocking I/O in request handlers — offload to background tasks (Celery, etc.)
+- No blocking I/O in request handlers — offload to background tasks
 - `select_related` / `prefetch_related` used to avoid N+1 queries
-- No `DEBUG = True` or development settings leaking into production paths
 
 ### Architecture
 
-- Business logic in service modules or model methods, not in views — views do input parsing, call services, return responses
+- Business logic in service modules or model methods, not in views
 - No direct DB queries outside the data layer
-- Template context kept minimal — heavy computation belongs in the view or service layer
 - Background tasks use a task queue (Celery), not threads or subprocesses
 - Cross-app imports flow in one direction; avoid circular imports
