@@ -1,0 +1,37 @@
+{% if available and total > 0 %}
+<div class="text-white mx-3 sm:mx-6 mt-3 sm:mt-6">
+  <div class="bg-neutral-800 rounded-lg py-3 px-4">
+    <div class="flex justify-between items-baseline mb-2">
+      <div class="font-semibold sm:text-lg">What's Next</div>
+      <div class="text-sm text-neutral-300">
+        <span class="font-bold text-white">{{ completeness_pct }}%</span> complete &middot; {{ done }}/{{ total }} done
+      </div>
+    </div>
+
+    <div class="flex w-full h-3 rounded-full overflow-hidden bg-neutral-900" style="gap:2px">
+      {% for segment in segments %}
+        {% if segment.count %}
+          <div title="{{ segment.name }}: {{ segment.count }}"
+               style="flex:{{ segment.count }};background-color:#{{ segment.color }}"></div>
+        {% endif %}
+      {% endfor %}
+    </div>
+
+    <div class="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-neutral-300">
+      {% for segment in segments %}
+        <span class="inline-flex items-center gap-1">
+          <span class="inline-block w-2 h-2 rounded-full" style="background-color:#{{ segment.color }}"></span>
+          {{ segment.name }} {{ segment.count }}
+        </span>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+{% elif available %}
+<div class="text-white mx-3 sm:mx-6 mt-3 sm:mt-6">
+  <div class="bg-neutral-800 rounded-lg py-3 px-4 text-sm text-neutral-300">
+    <span class="font-semibold text-white">What's Next</span> &middot; No tasks yet. Add tasks to track progress.
+  </div>
+</div>
+{% endif %}

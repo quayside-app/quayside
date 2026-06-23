@@ -1,5 +1,6 @@
 {% extends '_base.html' %}
 {% load static %}
+{% load whatsnext %}
 
 {% block content %}
 
@@ -93,6 +94,8 @@
 
 
 
+
+  {% whats_next projectID %}
 
   <div class="w-full">
     {% block projectContent %}{% endblock %}
