@@ -75,3 +75,30 @@ def next_actions(statuses, tasks, limit=3):
         "in_flight": [brief(task) for task in sorted(in_flight, key=rank)],
         "next_up": [brief(task) for task in sorted(next_pool, key=rank)[:limit]],
     }
+
+
+def cross_project_next(projects, limit=8):
+    """One ranked view of work across every project: what is moving, what to start.
+
+    Projects with tasks in flight come first (you are already working them),
+    then the most active, then alphabetically. Finished and empty projects drop
+    out so the list is only the work that still wants attention.
+    """
+    digests = []
+    for project in projects:
+        actions = next_actions(project["statuses"], project["tasks"])
+        if actions["in_flight"] or actions["next_up"]:
+            digests.append({
+                "id": str(project["id"]),
+                "name": project["name"],
+                "in_flight": actions["in_flight"],
+                "next_up": actions["next_up"],
+            })
+
+    digests.sort(key=lambda digest: (
+        0 if digest["in_flight"] else 1,
+        -len(digest["in_flight"]),
+        (digest["name"] or "").lower(),
+    ))
+
+    return {"projects": digests[:limit], "more": max(0, len(digests) - limit)}

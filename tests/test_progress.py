@@ -1,6 +1,6 @@
 from bson import ObjectId
 
-from api.progress import compute_progress, next_actions
+from api.progress import compute_progress, cross_project_next, next_actions
 
 
 TODO = {"id": "s1", "name": "Todo", "color": "323232", "order": 1}
@@ -143,4 +143,54 @@ def test_unknown_or_missing_status_is_treated_as_todo():
     result = next_actions([TODO, DONE], tasks)
 
     assert {t["name"] for t in result["next_up"]} == {"Orphan", "Ghost"}
+
+
+def project(id, name, statuses, tasks):
+    return {"id": id, "name": name, "statuses": statuses, "tasks": tasks}
+
+
+def test_cross_project_excludes_empty_and_finished_projects():
+    active = project("p1", "Active", [TODO, DONE], [task("1", "Do it", "s1", priority=0)])
+    finished = project("p2", "Finished", [TODO, DONE], [task("2", "Old", "s3", priority=0)])
+    empty = project("p3", "Empty", [TODO, DONE], [])
+
+    result = cross_project_next([active, finished, empty])
+
+    assert [p["name"] for p in result["projects"]] == ["Active"]
+    assert result["projects"][0]["next_up"][0]["name"] == "Do it"
+
+
+def test_cross_project_orders_in_flight_projects_before_queued_only():
+    queued = project("p1", "Queued", [TODO, DONE], [task("1", "Start me", "s1", priority=0)])
+    moving = project("p2", "Moving", [TODO, DOING, DONE], [task("2", "In motion", "s2", priority=0)])
+
+    result = cross_project_next([queued, moving])
+
+    assert [p["name"] for p in result["projects"]] == ["Moving", "Queued"]
+
+
+def test_cross_project_caps_to_limit_and_reports_remainder():
+    projects = [
+        project(f"p{i}", f"P{i}", [TODO, DONE], [task(f"t{i}", f"Task {i}", "s1", priority=0)])
+        for i in range(10)
+    ]
+
+    result = cross_project_next(projects, limit=3)
+
+    assert len(result["projects"]) == 3
+    assert result["more"] == 7
+
+
+def test_cross_project_carries_project_identity_and_actions():
+    p = project("p9", "Duck", [TODO, DOING, DONE], [
+        task("a", "Building", "s2", priority=0),
+        task("b", "Queued task", "s1", priority=0),
+    ])
+
+    digest = cross_project_next([p])["projects"][0]
+
+    assert digest["id"] == "p9"
+    assert digest["name"] == "Duck"
+    assert [t["name"] for t in digest["in_flight"]] == ["Building"]
+    assert [t["name"] for t in digest["next_up"]] == ["Queued task"]
 

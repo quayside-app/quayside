@@ -1,0 +1,37 @@
+{% if available %}
+  {% if projects %}
+    <div class="space-y-3">
+      {% for project in projects %}
+        <div class="bg-neutral-800 rounded-lg p-4">
+          <a href="/project/{{ project.id }}/graph/" class="font-semibold sm:text-lg hover:underline">{{ project.name }}</a>
+
+          {% if project.in_flight %}
+            <div class="mt-2">
+              <div class="text-xs uppercase tracking-wide text-neutral-400 mb-1">In flight</div>
+              {% for task in project.in_flight %}
+                <a href="/project/{{ project.id }}/graph/task/{{ task.id }}/" class="block truncate rounded px-2 py-1 hover:bg-neutral-700">{{ task.name }}</a>
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          {% if project.next_up %}
+            <div class="mt-2">
+              <div class="text-xs uppercase tracking-wide text-neutral-400 mb-1">Next up</div>
+              {% for task in project.next_up %}
+                <a href="/project/{{ project.id }}/graph/task/{{ task.id }}/" class="block truncate rounded px-2 py-1 hover:bg-neutral-700">{{ task.name }}</a>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+
+    {% if more %}
+      <div class="text-neutral-400 text-sm mt-3">+ {{ more }} more project{{ more|pluralize }} with open work</div>
+    {% endif %}
+  {% else %}
+    <div class="bg-neutral-800 rounded-lg p-4 text-neutral-300">
+      No open work across your projects. Create a project or add tasks to get started.
+    </div>
+  {% endif %}
+{% endif %}
