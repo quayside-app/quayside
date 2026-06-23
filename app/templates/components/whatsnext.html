@@ -1,0 +1,75 @@
+{% if available %}
+<div class="text-white mx-3 sm:mx-6 mt-3 sm:mt-6">
+  <div class="bg-neutral-800 rounded-lg">
+
+    <button id="whatsNextToggle" type="button"
+            class="w-full flex justify-between items-center py-3 px-4 text-left hover:bg-neutral-700 rounded-lg">
+      <span class="font-semibold sm:text-lg">What's Next</span>
+      <span class="flex items-center gap-3 text-sm text-neutral-300">
+        {% if total %}<span><span class="font-bold text-white">{{ completeness_pct }}%</span> &middot; {{ done }}/{{ total }} done</span>{% endif %}
+        <svg id="whatsNextChevron" width="14" height="14" viewBox="0 0 20 20" fill="none" style="transition:transform .15s">
+          <path d="M5 8l5 5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </span>
+    </button>
+
+    <div id="whatsNextBody" class="px-4 pb-4">
+      {% if total %}
+        <div class="flex w-full h-3 rounded-full overflow-hidden bg-neutral-900 mb-3" style="gap:2px">
+          {% for segment in segments %}
+            {% if segment.count %}
+              <div title="{{ segment.name }}: {{ segment.count }}"
+                   style="flex:{{ segment.count }};background-color:#{{ segment.color }}"></div>
+            {% endif %}
+          {% endfor %}
+        </div>
+
+        {% if in_flight %}
+          <div class="mb-3">
+            <div class="text-xs uppercase tracking-wide text-neutral-400 mb-1">In flight</div>
+            {% for task in in_flight %}
+              <a href="task/{{ task.id }}/" class="block truncate rounded px-2 py-1 hover:bg-neutral-700">{{ task.name }}</a>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        {% if next_up %}
+          <div>
+            <div class="text-xs uppercase tracking-wide text-neutral-400 mb-1">Next up</div>
+            {% for task in next_up %}
+              <a href="task/{{ task.id }}/" class="block truncate rounded px-2 py-1 hover:bg-neutral-700">{{ task.name }}</a>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        {% if not in_flight and not next_up %}
+          <div class="text-sm text-neutral-300">Every task is done.</div>
+        {% endif %}
+      {% else %}
+        <div class="text-sm text-neutral-300">No tasks yet. Add tasks to track progress.</div>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function () {
+  var key = 'whatsNextCollapsed';
+  var body = document.getElementById('whatsNextBody');
+  var toggle = document.getElementById('whatsNextToggle');
+  var chevron = document.getElementById('whatsNextChevron');
+  function apply(collapsed) {
+    body.classList.toggle('hidden', collapsed);
+    if (chevron) chevron.style.transform = collapsed ? 'rotate(-90deg)' : '';
+  }
+  var collapsed = localStorage.getItem(key) === '1';
+  apply(collapsed);
+  toggle.addEventListener('click', function () {
+    collapsed = !collapsed;
+    localStorage.setItem(key, collapsed ? '1' : '0');
+    apply(collapsed);
+  });
+})();
+</script>
+{% endif %}
