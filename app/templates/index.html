@@ -1,27 +1,23 @@
 {% extends "_base.html" %}
 {% load static %}
+{% load whatsnext %}
 
 {% block content %}
 
-<div class='fixed left-0 pt-80  text-white  w-screen text-center'>
+<div class="text-white overflow-y-auto px-4 sm:px-8 pb-24" style="height:calc(100vh - 3.5rem)">
+  <div class="max-w-3xl mx-auto pt-8">
 
+    <div class="flex items-baseline justify-between mb-1">
+      <h1 class="text-2xl sm:text-3xl font-bold">What's Next</h1>
+      <a href="/?newProjectModal=true">
+        <button class="bg-neutral-700 hover:bg-neutral-600 rounded-lg px-3 py-1 text-sm">New project</button>
+      </a>
+    </div>
+    <p class="text-neutral-300 text-sm mb-5">Across all your projects: what's in flight, and what to pick up next.</p>
 
-  <div class='  text-4xl md:text-7xl font-bold '>
-    quayside.app
+    {% whats_next_all userID %}
+
   </div>
-
-  <div class=' md:text-3xl mt-3'>
-    Ignite Collaborative Productivity
-  </div>
-
-  <div class=' text-sm md:text-xl  mt-3'>
-    <a href='/?newProjectModal=true' >
-      <button class='bg-neutral-700 rounded-lg mx-2 px-2 py-1'>
-        Create a project to get started...
-      </button>
-    </a>
 </div>
-</div>
-
 
 {% endblock content %}
