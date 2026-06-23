@@ -6,7 +6,7 @@ from mongoengine.errors import OperationError, ValidationError
 from pymongo.errors import PyMongoError
 
 from api.models import Project, Task
-from api.progress import compute_progress
+from api.progress import compute_progress, next_actions
 
 register = template.Library()
 
@@ -26,14 +26,27 @@ def whats_next(project_id):
             {"id": status.id, "name": status.name, "color": status.color, "order": status.order}
             for status in project.taskStatuses
         ]
-        task_status_ids = [task.statusId for task in Task.objects.filter(projectID=project_id).only("statusId")]
+        tasks = list(Task.objects.filter(projectID=project_id).only("name", "statusId", "priority", "parentTaskID"))
     except (Project.DoesNotExist, ValidationError, InvalidId, OperationError, PyMongoError):
         return {"available": False}
 
     if not statuses:
         return {"available": False}
 
-    progress = compute_progress(statuses, task_status_ids)
+    parent_ids = {str(task.parentTaskID) for task in tasks if task.parentTaskID}
+    task_records = [
+        {
+            "id": task.id,
+            "name": task.name,
+            "status_id": task.statusId,
+            "priority": task.priority,
+            "is_leaf": str(task.id) not in parent_ids,
+        }
+        for task in tasks
+    ]
+
+    progress = compute_progress(statuses, [record["status_id"] for record in task_records])
+    actions = next_actions(statuses, task_records)
     segments = [
         {"name": segment["name"], "color": hex_color(segment["color"]), "count": segment["count"]}
         for segment in progress["segments"]
@@ -45,4 +58,6 @@ def whats_next(project_id):
         "done": progress["done"],
         "completeness_pct": round(progress["completeness"] * 100),
         "segments": segments,
+        "in_flight": actions["in_flight"],
+        "next_up": actions["next_up"],
     }

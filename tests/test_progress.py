@@ -1,6 +1,6 @@
 from bson import ObjectId
 
-from api.progress import compute_progress
+from api.progress import compute_progress, next_actions
 
 
 TODO = {"id": "s1", "name": "Todo", "color": "323232", "order": 1}
@@ -84,4 +84,63 @@ def test_duplicate_order_resolves_deterministically_regardless_of_input_order():
 
     assert [segment["name"] for segment in forward["segments"]] == ["A", "B"]
     assert [segment["name"] for segment in reversed_["segments"]] == ["A", "B"]
+
+
+def task(id, name, status, priority=None, is_leaf=True):
+    return {"id": id, "name": name, "status_id": status, "priority": priority, "is_leaf": is_leaf}
+
+
+def test_in_flight_is_middle_columns_and_next_up_is_top_todo_leaves():
+    tasks = [
+        task("1", "Build API", "s1", priority=0),
+        task("2", "Write dialog", "s1", priority=2),
+        task("3", "Category", "s1", priority=1, is_leaf=False),
+        task("4", "Collect feedback", "s2", priority=0),
+        task("5", "Old thing", "s3", priority=0),
+    ]
+    result = next_actions([TODO, DOING, DONE], tasks)
+
+    assert [t["name"] for t in result["in_flight"]] == ["Collect feedback"]
+    assert [t["name"] for t in result["next_up"]] == ["Build API", "Write dialog"]
+    assert result["next_up"][0]["id"] == "1"
+
+
+def test_next_up_falls_back_to_parents_when_no_leaf_tasks_remain():
+    tasks = [
+        task("1", "Cat A", "s1", priority=0, is_leaf=False),
+        task("2", "Cat B", "s1", priority=1, is_leaf=False),
+    ]
+    result = next_actions([TODO, DONE], tasks)
+
+    assert [t["name"] for t in result["next_up"]] == ["Cat A", "Cat B"]
+
+
+def test_two_status_project_has_no_in_flight_section():
+    tasks = [task("1", "A", "s1", priority=0), task("2", "B", "s3", priority=0)]
+    result = next_actions([TODO, DONE], tasks)
+
+    assert result["in_flight"] == []
+    assert [t["name"] for t in result["next_up"]] == ["A"]
+
+
+def test_all_done_project_has_no_next_actions():
+    tasks = [task("1", "A", "s3", 0), task("2", "B", "s3", 1)]
+    result = next_actions([TODO, DOING, DONE], tasks)
+
+    assert result["in_flight"] == []
+    assert result["next_up"] == []
+
+
+def test_next_up_is_capped_by_limit():
+    tasks = [task(str(i), f"T{i}", "s1", priority=i) for i in range(10)]
+    result = next_actions([TODO, DONE], tasks, limit=3)
+
+    assert [t["name"] for t in result["next_up"]] == ["T0", "T1", "T2"]
+
+
+def test_unknown_or_missing_status_is_treated_as_todo():
+    tasks = [task("1", "Orphan", None, priority=0), task("2", "Ghost", "zzz", priority=1)]
+    result = next_actions([TODO, DONE], tasks)
+
+    assert {t["name"] for t in result["next_up"]} == {"Orphan", "Ghost"}
 
